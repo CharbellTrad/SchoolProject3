@@ -45,36 +45,52 @@ function RootLayoutNav() {
     }
 
     const inLoginPage = segments[0] === 'login';
+    const validRoles: UserRole[] = ['admin', 'teacher', 'student', 'employee'];
+    const inDashboard = validRoles.includes(segments[0] as UserRole);
+    const inRootPage = !inLoginPage && !inDashboard && segments[0] !== '_sitemap';
 
     if (__DEV__) {
       console.log('🔍 Verificando navegación:', {
         hasUser: !!user,
         inLoginPage,
+        inRootPage,
         segments,
         userRole: user?.role,
       });
     }
 
+    // Usuario no autenticado
     if (!user && !inLoginPage) {
       if (__DEV__) {
-        console.log('🔐 No autenticado, redirigiendo a login');
+        console.log('🔒 No autenticado, redirigiendo a login');
       }
       router.replace('/login' as any);
     }
+    // Usuario autenticado en login
     else if (user && inLoginPage) {
       const dashboardRoute = ROLE_DASHBOARDS[user.role];
 
       if (__DEV__) {
-        console.log('✅ Usuario autenticado, redirigiendo a:', dashboardRoute);
+        console.log('✅ Usuario autenticado en login, redirigiendo a:', dashboardRoute);
       }
 
       router.replace(dashboardRoute as any);
     }
-    else if (user && !inLoginPage) {
+    // Usuario autenticado en ruta raíz
+    else if (user && inRootPage) {
+      const dashboardRoute = ROLE_DASHBOARDS[user.role];
+
+      if (__DEV__) {
+        console.log('✅ Usuario autenticado en raíz, redirigiendo a:', dashboardRoute);
+      }
+
+      router.replace(dashboardRoute as any);
+    }
+    // Usuario autenticado en dashboard incorrecto
+    else if (user && !inLoginPage && !inRootPage) {
       const currentRoute = `/${segments.join('/')}`;
       const expectedDashboard = ROLE_DASHBOARDS[user.role];
 
-      const validRoles: UserRole[] = ['admin', 'teacher', 'student', 'employee'];
       const currentSegment = segments[0] as UserRole | string;
       
       const isInWrongDashboard = 

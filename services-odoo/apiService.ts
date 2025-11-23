@@ -231,6 +231,7 @@ const odooRequest = async <T = any>(
       method: 'POST',
       headers,
       body,
+      credentials: 'include', // Esto es clave para funcionar en web
     });
 
     if (__DEV__) {
@@ -292,6 +293,7 @@ const odooRequest = async <T = any>(
   }
 };
 
+
 /**
  * Obtiene la lista de bases de datos disponibles en Odoo
  */
@@ -341,6 +343,7 @@ export const authenticate = async (
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      credentials: 'include', // AGREGAR ESTA LÍNEA
       body: JSON.stringify({ params }),
     });
 
@@ -350,7 +353,13 @@ export const authenticate = async (
       return { success: false, error: responseJson.error };
     }
 
-    const sid = extractSessionId(response.headers.get('set-cookie'));
+    // MODIFICAR ESTA SECCIÓN
+    let sid = extractSessionId(response.headers.get('set-cookie'));
+    
+    // Si no se pudo extraer del header (caso web), intentar del result
+    if (!sid && responseJson.result && responseJson.result.session_id) {
+      sid = responseJson.result.session_id;
+    }
 
     if (sid) {
       await saveSessionId(sid);
@@ -365,6 +374,7 @@ export const authenticate = async (
     return { success: false, error: { message: error.message } };
   }
 };
+
 
 /**
  * Verifica si la sesión actual sigue siendo válida en Odoo
@@ -385,6 +395,7 @@ export const verifySession = async (): Promise<{ success: boolean; data?: any; e
         'Accept': 'application/json',
         'X-Openerp-Session-Id': sid,
       },
+      credentials: 'include', // AGREGAR ESTA LÍNEA
       body: JSON.stringify({}),
     });
 
@@ -410,6 +421,7 @@ export const verifySession = async (): Promise<{ success: boolean; data?: any; e
     return { success: false, error: { message: error.message } };
   }
 };
+
 
 /**
  * Cierra la sesión en Odoo y limpia el Session ID local
