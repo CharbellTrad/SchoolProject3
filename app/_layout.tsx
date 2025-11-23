@@ -1,7 +1,7 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { LogBox } from 'react-native';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ROLE_DASHBOARDS, UserRole } from '../types/auth';
 
 // Suprimir warnings específicos en desarrollo

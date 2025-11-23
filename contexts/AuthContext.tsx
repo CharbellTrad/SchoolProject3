@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserSession, AuthContextType } from '../types/auth';
-import * as authService from '../services-odoo/authService';
-import * as odooApi from '../services-odoo/apiService';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { showAlert } from '../components/showAlert';
-import { router } from 'expo-router';
+import * as odooApi from '../services-odoo/apiService';
+import * as authService from '../services-odoo/authService';
+import { AuthContextType, UserSession } from '../types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -148,6 +147,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const result = await authService.login(username, password);
+
+      // Manejar caso de usuario sin rol
+      if (!result.success && result.message === 'NO_ROLE_DEFINED') {
+        if (__DEV__) {
+          console.log('❌ Usuario sin rol definido - Mostrando alerta y limpiando datos');
+        }
+
+        // Asegurar que todos los datos se eliminen
+        await authService.logout();
+        setUser(null);
+
+        // Mostrar alerta específica
+        showAlert(
+          'Usuario sin rol',
+          'Tu usuario no tiene un rol definido en el sistema. Por favor, contacta al administrador para que asigne un rol a tu cuenta.',
+          [
+            {
+              text: 'Aceptar',
+              onPress: () => {
+                // Opcional: redirigir a login si es necesario
+                // router.replace('/login');
+              },
+            },
+          ]
+        );
+
+        return false;
+      }
 
       if (result.success && result.user) {
         if (__DEV__) {

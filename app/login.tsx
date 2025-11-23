@@ -1,24 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  ScrollView,
-  Dimensions,
-  Animated,
-  Easing,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth } from '../contexts/AuthContext';
-import { router } from 'expo-router';
-import Head from 'expo-router/head';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Input } from '../components/ui/Input';
+import { LinearGradient } from 'expo-linear-gradient';
+import Head from 'expo-router/head';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, View, } from 'react-native';
 import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 import Colors from '../constants/Colors';
+import { useAuth } from '../contexts/AuthContext';
 
 const { height } = Dimensions.get('window');
 

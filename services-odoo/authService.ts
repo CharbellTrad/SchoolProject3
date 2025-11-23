@@ -85,12 +85,26 @@ export const login = async (
       };
     }
 
-    // Determinar el rol del usuario
-    let userRole: 'admin' | 'teacher' | 'student' | 'employee' = 'employee';
-    
-    if (authData.role) {
-      userRole = mapOdooRoleToAppRole(authData.role);
+    // Verificar que el usuario tenga un rol definido
+    if (!authData.role || authData.role.trim() === '') {
+      if (__DEV__) {
+        console.log('❌ Usuario sin rol definido:', {
+          username: authData.username,
+          uid: authData.uid,
+        });
+      }
+
+      // Destruir la sesión antes de retornar el error
+      await odooApi.destroySession();
+
+      return {
+        success: false,
+        message: 'NO_ROLE_DEFINED',
+      };
     }
+
+    // Determinar el rol del usuario (ya validamos que existe)
+    const userRole = mapOdooRoleToAppRole(authData.role);
 
     // Crear sesión de usuario
     const userSession: UserSession = {
@@ -406,3 +420,4 @@ export const changePassword = async (
 
 // Exportar también las funciones del apiService para facilitar el uso
 export { checkOdooConnection } from './apiService';
+

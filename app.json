@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SchoolProject",
+    "name": "Sistema Academico U.E.N.B Ciudad Jardin",
     "slug": "SchoolProject",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,10 +8,17 @@
     "scheme": "schoolproject",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uenbciudadjardin.schoolproject"
     },
     "android": {
+      "package": "com.uenbciudadjardin.schoolproject",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +26,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -50,6 +60,18 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "aac88740-ec55-48ab-be5b-d801c57a66ae"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/aac88740-ec55-48ab-be5b-d801c57a66ae"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
