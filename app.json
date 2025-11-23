@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Sistema Academico U.E.N.B Ciudad Jardin",
+    "name": " UENB Ciudad Jardin",
     "slug": "SchoolProject",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,8 +9,6 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
@@ -40,8 +38,6 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
@@ -54,6 +50,14 @@
         {
           "photosPermission": "Necesitamos acceso a tus fotos",
           "cameraPermission": "Necesitamos acceso a la cámara"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],

@@ -312,7 +312,7 @@ export const updateUserSession = async (
  * Verifica la salud del servidor Odoo
  * @returns true si el servidor está disponible
  */
-export const checkServerHealth = async (): Promise<boolean> => {
+export const checkServerHealth = async (): Promise<{ ok: boolean; error?: any }> => {
   try {
     const isConnected = await odooApi.checkOdooConnection();
 
@@ -324,14 +324,15 @@ export const checkServerHealth = async (): Promise<boolean> => {
       }
     }
 
-    return isConnected;
+    return { ok: isConnected };
   } catch (error) {
     if (__DEV__) {
       console.log('❌ Error verificando servidor:', error);
     }
-    return false;
+    return { ok: false, error };
   }
 };
+
 
 /**
  * Obtiene información adicional del usuario desde Odoo

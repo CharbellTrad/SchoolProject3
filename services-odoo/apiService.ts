@@ -189,6 +189,7 @@ export const clearSessionId = async (): Promise<void> => {
 /**
  * Realiza una petición al API de Odoo con manejo robusto de errores y sesión
  */
+
 const odooRequest = async <T = any>(
   path: string,
   params: RequestParams | Record<string, any>,
