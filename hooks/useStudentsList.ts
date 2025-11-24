@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { showAlert } from '../components/showAlert';
+import { useAuth } from '../contexts/AuthContext';
+import * as authService from '../services-odoo/authService';
 import { Student, canDeleteStudent, deleteStudent, loadStudents } from '../services-odoo/personService';
 
 export const useStudentsList = () => {
@@ -7,6 +9,7 @@ export const useStudentsList = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { logout } = useAuth();
 
   const filteredStudents = useMemo(() => {
     if (!searchQuery.trim()) return students;
@@ -68,8 +71,37 @@ export const useStudentsList = () => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData(true);
-    setRefreshing(false);
+    try {
+      if (__DEV__) {
+        console.log('🔄 Refrescando students list...');
+      }
+
+      const validSession = await authService.verifySession();
+
+      if (!validSession) {
+        if (__DEV__) {
+          console.log('❌ Sesión no válida durante refresh');
+        }
+        await logout();
+        return;
+      } else {
+        await loadData(true);
+      }
+
+      if (__DEV__) {
+        console.log('✅ Students list actualizado');
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('❌ Error al refrescar:', error);
+      }
+      showAlert(
+        'Error',
+        'No se pudo actualizar la información. Verifica tu conexión.'
+      );
+    } finally {
+      setRefreshing(false);
+    }
   }, [loadData]);
 
   return {

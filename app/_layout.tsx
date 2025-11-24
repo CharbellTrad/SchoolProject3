@@ -6,6 +6,7 @@ import { Dimensions, LogBox, Platform, StyleSheet, Text, View } from "react-nati
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import splashAnimation from "../assets/lotties/splashAnimation.json"
 import Colors from "../constants/Colors"
+import { AppReadyProvider, useAppReady } from "../contexts/AppReady"
 import { AuthProvider, useAuth } from "../contexts/AuthContext"
 import { ROLE_DASHBOARDS, type UserRole } from "../types/auth"
 
@@ -15,7 +16,9 @@ SplashScreen.preventAutoHideAsync()
 // Suprimir warnings específicos en desarrollo
 LogBox.ignoreLogs(["shadow*", "props.pointerEvents is deprecated", "useNativeDriver"])
 
-if (__DEV__) {
+const isDev = typeof __DEV__ !== "undefined" && __DEV__
+
+if (isDev) {
   const originalWarn = console.warn
   console.warn = (...args) => {
     const message = args[0]
@@ -34,6 +37,7 @@ if (__DEV__) {
  */
 function RootLayoutNav() {
   const { user, loading } = useAuth()
+  const { setAppReady } = useAppReady()
   const segments = useSegments()
   const router = useRouter()
   const [isAnimationFinished, setIsAnimationFinished] = useState(false)
@@ -66,8 +70,8 @@ function RootLayoutNav() {
         await new Promise((resolve) => setTimeout(resolve, 100))
         await SplashScreen.hideAsync()
         setSplashHidden(true)
-        
-        if (__DEV__) {
+
+        if (isDev) {
           console.log("✅ Splash nativo ocultado")
         }
       } catch (e) {
@@ -86,10 +90,7 @@ function RootLayoutNav() {
   }, [])
 
   useEffect(() => {
-    if (loading) {
-      if (__DEV__) {
-        console.log("🔄 AuthContext cargando...")
-      }
+    if (loading || !isAnimationFinished) {
       return
     }
 
@@ -98,79 +99,41 @@ function RootLayoutNav() {
     const inDashboard = validRoles.includes(segments[0] as UserRole)
     const inRootPage = !inLoginPage && !inDashboard && segments[0] !== "_sitemap"
 
-    if (__DEV__) {
-      console.log("🔍 Verificando navegación:", {
-        hasUser: !!user,
-        inLoginPage,
-        inRootPage,
-        segments,
-        userRole: user?.role,
-      })
-    }
-
     // Usuario no autenticado
     if (!user && !inLoginPage) {
-      if (__DEV__) {
-        console.log("🔒 No autenticado, redirigiendo a login")
-      }
       router.replace("/login" as any)
     }
     // Usuario autenticado en login
     else if (user && inLoginPage) {
       const dashboardRoute = ROLE_DASHBOARDS[user.role]
-
-      if (__DEV__) {
-        console.log("✅ Usuario autenticado en login, redirigiendo a:", dashboardRoute)
-      }
-
       router.replace(dashboardRoute as any)
     }
     // Usuario autenticado en ruta raíz
     else if (user && inRootPage) {
       const dashboardRoute = ROLE_DASHBOARDS[user.role]
-
-      if (__DEV__) {
-        console.log("✅ Usuario autenticado en raíz, redirigiendo a:", dashboardRoute)
-      }
-
       router.replace(dashboardRoute as any)
     }
     // Usuario autenticado en dashboard incorrecto
     else if (user && !inLoginPage && !inRootPage) {
-      const currentRoute = `/${segments.join("/")}`
-      const expectedDashboard = ROLE_DASHBOARDS[user.role]
-
       const currentSegment = segments[0] as UserRole | string
-
       const isInWrongDashboard = validRoles.includes(currentSegment as UserRole) && currentSegment !== user.role
 
       if (isInWrongDashboard) {
-        if (__DEV__) {
-          console.log("⚠️ Usuario en ruta incorrecta, redirigiendo:", {
-            current: currentRoute,
-            expected: expectedDashboard,
-            role: user.role,
-          })
-        }
+        const expectedDashboard = ROLE_DASHBOARDS[user.role]
         router.replace(expectedDashboard as any)
       }
     }
-  }, [user, segments, loading, router])
+  }, [user, segments, loading, router, isAnimationFinished])
 
   // Esperar a que la app esté lista
   if (!appIsReady) {
     return null
   }
 
-  // Mostrar animación hasta que termine
   if (!isAnimationFinished) {
     return (
       <View style={styles.splashContainer} onLayout={onLayoutRootView}>
-        <Animated.View 
-          style={styles.animationWrapper}
-          entering={FadeIn.duration(200)}
-          exiting={FadeOut.duration(500)}
-        >
+        <Animated.View style={styles.animationWrapper} entering={FadeIn.duration(200)} exiting={FadeOut.duration(500)}>
           <LottieView
             ref={animationRef}
             source={splashAnimation}
@@ -180,22 +143,13 @@ function RootLayoutNav() {
             speed={1}
             resizeMode="cover"
             onAnimationFinish={() => {
-              if (__DEV__) {
-                console.log("🎬 Animación terminada, esperando 2.5s...")
-              }
-              // Timer después de que la animación termine
               timerRef.current = setTimeout(() => {
-                if (__DEV__) {
-                  console.log("✨ Finalizando splash screen")
-                }
                 setIsAnimationFinished(true)
+                setAppReady(true) // 👈 Notificar que la app está lista
               }, 2500)
             }}
           />
-          <Animated.View 
-            style={styles.institutionNameContainer} 
-            entering={FadeIn.delay(1800).duration(800)}
-          >
+          <Animated.View style={styles.institutionNameContainer} entering={FadeIn.delay(1800).duration(800)}>
             <Text style={styles.institutionName}>U.E.N.B. Ciudad Jardín</Text>
             <Text style={styles.institutionSubtitle}>Sistema Academico</Text>
           </Animated.View>
@@ -205,24 +159,27 @@ function RootLayoutNav() {
   }
 
   return (
-    <Animated.View style={{ flex: 1 }} entering={FadeIn.duration(300)}>
+    <Animated.View style={{ flex: 1 }} >
       <Slot />
     </Animated.View>
   )
 }
 
-const bottomPosition = Platform.OS === "web"
-  ? Dimensions.get("window").height * 0.03 // 10% de la altura en web
-  : 120; // valor fijo para mobile
+const bottomPosition =
+  Platform.OS === "web"
+    ? Dimensions.get("window").height * 0.03 // 3% de la altura en web
+    : 120 // valor fijo para mobile
 
 /**
  * Layout principal con Provider
  */
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <AppReadyProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </AppReadyProvider>
   )
 }
 

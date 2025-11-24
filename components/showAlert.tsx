@@ -1,4 +1,4 @@
-import { Platform, Alert, } from 'react-native';
+import { Alert, Platform, } from 'react-native';
 
 export const showAlert = (title: string, message: string, buttons?: any[]) => {
   if (Platform.OS === 'web') {

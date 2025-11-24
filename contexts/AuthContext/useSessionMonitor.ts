@@ -1,10 +1,7 @@
-/**
- * Hook para monitorear y manejar sesiones expiradas
- */
-
 import { useCallback, useEffect, useRef } from 'react';
 import { showAlert } from '../../components/showAlert';
 import { UserSession } from '../../types/auth';
+import { useAppReady } from '../AppReady';
 import { ERROR_MESSAGES } from './constants';
 
 export interface SessionMonitorHook {
@@ -28,22 +25,18 @@ export const useSessionMonitor = ({
   setUser,
 }: UseSessionMonitorProps): SessionMonitorHook => {
   const monitorIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { isAppReady } = useAppReady();
+  const pendingSessionExpiredRef = useRef(false);
 
   /**
-   * Maneja cuando la sesión expira durante el uso de la app
+   * Muestra la alerta de sesión expirada
    */
-  const handleSessionExpired = useCallback(() => {
-    // Evitar mostrar múltiples alertas
-    if (isSessionExpiredHandled) {
-      return;
-    }
+  const showSessionExpiredAlert = useCallback(() => {
 
+    // Marcar como manejado
     setSessionExpiredHandled(true);
-
-    if (__DEV__) {
-      console.log('🔒 Sesión expirada, cerrando sesión...');
-    }
-
+    
+    // Cerrar sesión
     setUser(null);
 
     // Mostrar alerta
@@ -54,19 +47,57 @@ export const useSessionMonitor = ({
         {
           text: 'Aceptar',
           onPress: () => {
+            // Resetear el estado cuando se presiona Aceptar
             setSessionExpiredHandled(false);
+            pendingSessionExpiredRef.current = false;
           },
         },
-      ]
+      ],
     );
-  }, [isSessionExpiredHandled, setSessionExpiredHandled, setUser]);
+  }, [setSessionExpiredHandled, setUser]);
+
+  /**
+   * Maneja cuando la sesión expira durante el uso de la app
+   */
+  const handleSessionExpired = useCallback(() => {
+
+    // Evitar mostrar múltiples alertas
+    if (isSessionExpiredHandled) {
+      return;
+    }
+
+    // Si la app NO está lista (aún en splash), marcar como pendiente
+    if (!isAppReady) {
+      pendingSessionExpiredRef.current = true;
+      if (__DEV__) {
+        console.log('🔒 Sesión expirada, esperando a que la app esté lista...');
+      }
+      return;
+    }
+
+    // Si la app YA está lista, mostrar alerta inmediatamente
+    if (__DEV__) {
+      console.log('🔒 App lista, mostrando alerta inmediatamente');
+    }
+    
+    showSessionExpiredAlert();
+  }, [isSessionExpiredHandled, isAppReady, showSessionExpiredAlert]);
+
+  /**
+   * Efecto para mostrar la alerta pendiente cuando la app esté lista
+   */
+  useEffect(() => {
+    if (isAppReady && pendingSessionExpiredRef.current && !isSessionExpiredHandled) {
+      showSessionExpiredAlert();
+      // Limpiar la referencia pendiente
+      pendingSessionExpiredRef.current = false;
+    }
+  }, [isAppReady, showSessionExpiredAlert, isSessionExpiredHandled]);
 
   /**
    * Inicia el monitoreo periódico de la sesión (opcional)
    */
   const startSessionMonitoring = useCallback(() => {
-    // Por ahora deshabilitado, se puede implementar después
-    // si se desea verificar la sesión periódicamente
     if (__DEV__) {
       console.log('📡 Monitoreo de sesión disponible (actualmente deshabilitado)');
     }
@@ -90,6 +121,7 @@ export const useSessionMonitor = ({
   useEffect(() => {
     return () => {
       stopSessionMonitoring();
+      pendingSessionExpiredRef.current = false;
     };
   }, [stopSessionMonitoring]);
 

@@ -1,14 +1,14 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import Head from 'expo-router/head';
-import { useAuth } from '../../contexts/AuthContext';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '../../constants/Colors';
-import { formatTimeAgo } from '../../utils/formatHelpers';
-import * as authService from '../../services-odoo/authService';
+import { router } from 'expo-router';
+import Head from 'expo-router/head';
+import React, { useCallback, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { showAlert } from '../../components/showAlert';
+import Colors from '../../constants/Colors';
+import { useAuth } from '../../contexts/AuthContext';
+import * as authService from '../../services-odoo/authService';
+import { formatTimeAgo } from '../../utils/formatHelpers';
 
 export default function AdminDashboard() {
   const { user, logout, updateUser } = useAuth();
@@ -31,19 +31,7 @@ export default function AdminDashboard() {
         if (__DEV__) {
           console.log('❌ Sesión no válida durante refresh');
         }
-        showAlert(
-          'Sesión Expirada',
-          'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
-          [
-            {
-              text: 'Aceptar',
-              onPress: async () => {
-                await logout();
-                router.replace('/login');
-              },
-            },
-          ]
-        );
+        await logout();
         return;
       }
 
