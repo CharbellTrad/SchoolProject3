@@ -1,5 +1,5 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const LIVING_OPTIONS = [
   { label: 'PADRE/MADRE', value: 'P/M' },
@@ -18,7 +18,7 @@ export const StudentLivesSelector: React.FC<StudentLivesSelectorProps> = ({
   error,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label="El estudiante vive con"
       value={value}
       options={LIVING_OPTIONS}
@@ -26,7 +26,7 @@ export const StudentLivesSelector: React.FC<StudentLivesSelectorProps> = ({
       error={error}
       placeholder="Seleccionar..."
       required
-      leftIcon="home"
+      icon="home"
     />
   );
 };

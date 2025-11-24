@@ -1,9 +1,9 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const YES_NO_OPTIONS = [
-  { label: 'Sí', value: 'Si' },
-  { label: 'No', value: 'No' },
+  { label: 'Sí', value: 'si' },
+  { label: 'No', value: 'no' },
 ];
 
 interface YesNoSelectorProps {
@@ -22,7 +22,7 @@ export const YesNoSelectorDropdown: React.FC<YesNoSelectorProps> = ({
   required = false,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label={label}
       value={value}
       options={YES_NO_OPTIONS}
@@ -30,7 +30,11 @@ export const YesNoSelectorDropdown: React.FC<YesNoSelectorProps> = ({
       error={error}
       placeholder="Seleccionar"
       required={required}
-      leftIcon="help-circle"
+      icon={
+        value === 'si' ? 'checkmark-circle' :
+        value === 'no' ? 'close-circle' :
+        'help-circle'
+      }
     />
   );
 };

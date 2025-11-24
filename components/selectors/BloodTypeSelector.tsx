@@ -1,5 +1,5 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const BLOOD_TYPES = [
   { label: 'A+', value: 'A+' },
@@ -24,15 +24,15 @@ export const BloodTypeSelectorDropdown: React.FC<BloodTypeSelectorProps> = ({
   error,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label="Tipo de Sangre"
       value={value}
       options={BLOOD_TYPES}
       onChange={onChange}
       error={error}
-      placeholder="Seleccionar tipo de sangre"
+      placeholder="Seleccionar..."
       required
-      leftIcon="water"
+      icon="water"
     />
   );
 };

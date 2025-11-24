@@ -1,13 +1,13 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const SHIRT_SIZES = [
-  { label: 'XS', value: 'XS' },
-  { label: 'S', value: 'S' },
-  { label: 'M', value: 'M' },
-  { label: 'L', value: 'L' },
-  { label: 'XL', value: 'XL' },
-  { label: 'XXL', value: 'XXL' },
+  { label: 'XS', value: 'xs' },
+  { label: 'S', value: 's' },
+  { label: 'M', value: 'm' },
+  { label: 'L', value: 'l' },
+  { label: 'XL', value: 'xl' },
+  { label: 'XXL', value: 'xxl' },
 ];
 
 interface ShirtSizeSelectorProps {
@@ -22,14 +22,14 @@ export const ShirtSizeSelector: React.FC<ShirtSizeSelectorProps> = ({
   error,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label="Talla Camisa"
       value={value}
       options={SHIRT_SIZES}
       onChange={onChange}
       error={error}
-      placeholder="Seleccionar talla"
-      leftIcon="shirt"
+      placeholder="Seleccionar..."
+      icon="shirt"
     />
   );
 };

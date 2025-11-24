@@ -1,4 +1,4 @@
-export { BaseSelector } from './BaseSelector';
+export { DropdownSelector } from './BaseSelector';
 export { BloodTypeSelectorDropdown } from './BloodTypeSelector';
 export { GenderSelectorDropdown } from './GenderSelector';
 export { NationalitySelectorDropdown } from './NationalitySelector';

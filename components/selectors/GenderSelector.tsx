@@ -1,9 +1,9 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const GENDERS = [
-  { label: 'Masculino', value: 'male' },
-  { label: 'Femenino', value: 'female' },
+  { label: 'Masculino', value: 'M' },
+  { label: 'Femenino', value: 'F' },
 ];
 
 interface GenderSelectorProps {
@@ -18,15 +18,19 @@ export const GenderSelectorDropdown: React.FC<GenderSelectorProps> = ({
   error,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label="Género"
       value={value}
       options={GENDERS}
       onChange={onChange}
       error={error}
-      placeholder="Seleccionar género"
+      placeholder="Seleccionar..."
       required
-      leftIcon="male-female"
+      icon={
+        value === 'M' ? 'male' :
+        value === 'F' ? 'female' :
+        'male-female'
+      }
     />
   );
 };

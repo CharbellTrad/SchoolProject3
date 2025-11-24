@@ -1,25 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
-interface Option {
+// ============ SELECTOR GENÉRICO DROPDOWN ============
+
+interface DropdownOption {
   label: string;
   value: string;
 }
 
-interface BaseSelectorProps {
+interface DropdownSelectorProps {
   label: string;
   value: string;
-  options: Option[];
+  options: DropdownOption[];
   onChange: (value: string) => void;
   error?: string;
   placeholder?: string;
   required?: boolean;
-  leftIcon?: keyof typeof Ionicons.glyphMap;
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
-export const BaseSelector: React.FC<BaseSelectorProps> = ({
+export const DropdownSelector: React.FC<DropdownSelectorProps> = ({
   label,
   value,
   options,
@@ -27,80 +29,90 @@ export const BaseSelector: React.FC<BaseSelectorProps> = ({
   error,
   placeholder = 'Seleccionar...',
   required = false,
-  leftIcon,
+  icon,
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const selectedOption = options.find(opt => opt.value === value);
-
-  const handleSelect = (selectedValue: string) => {
-    onChange(selectedValue);
-    setModalVisible(false);
-  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
-        {label} {required && <Text style={styles.required}>*</Text>}
+        {label} {required && '*'}
       </Text>
-
+      
       <TouchableOpacity
         style={[styles.selector, error && styles.selectorError]}
-        onPress={() => setModalVisible(true)}
+        onPress={() => setIsOpen(true)}
       >
-        {leftIcon && (
-          <Ionicons name={leftIcon} size={20} color={Colors.textSecondary} style={styles.leftIcon} />
+        {icon && (
+          <Ionicons name={icon} size={18} color={Colors.textSecondary} style={styles.icon} />
         )}
-        <Text style={[styles.selectorText, !value && styles.placeholder]}>
+        <Text 
+          style={[
+            styles.selectorText,
+            !selectedOption && styles.placeholder
+          ]}
+          numberOfLines={1}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+        <Ionicons name="chevron-down" size={18} color={Colors.textSecondary} />
       </TouchableOpacity>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && (
+        <View style={styles.errorWrapper}>
+          <Ionicons name="alert-circle" size={14} color={Colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
 
+      {/* MODAL DE OPCIONES */}
       <Modal
-        visible={modalVisible}
+        visible={isOpen}
         transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        animationType="fade"
+        onRequestClose={() => setIsOpen(false)}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setModalVisible(false)}
+          onPress={() => setIsOpen(false)}
         >
-          <View style={styles.modalContent}>
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{label}</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalTitle} numberOfLines={2}>{label}</Text>
+              <TouchableOpacity onPress={() => setIsOpen(false)} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={options}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
+            <ScrollView style={styles.optionsList} showsVerticalScrollIndicator={false}>
+              {options.map((option, index) => (
                 <TouchableOpacity
+                  key={option.value}
                   style={[
                     styles.option,
-                    item.value === value && styles.selectedOption
+                    value === option.value && styles.optionSelected,
+                    index === options.length - 1 && styles.lastOption
                   ]}
-                  onPress={() => handleSelect(item.value)}
+                  onPress={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
                 >
                   <Text style={[
                     styles.optionText,
-                    item.value === value && styles.selectedOptionText
+                    value === option.value && styles.optionTextSelected
                   ]}>
-                    {item.label}
+                    {option.label}
                   </Text>
-                  {item.value === value && (
+                  {value === option.value && (
                     <Ionicons name="checkmark" size={24} color={Colors.primary} />
                   )}
                 </TouchableOpacity>
-              )}
-            />
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -117,82 +129,118 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     marginBottom: 8,
-  },
-  required: {
-    color: Colors.error,
+    paddingLeft: 4,
   },
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: 1.6,
     borderColor: Colors.border,
     borderRadius: 12,
-    paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: 8,
+    paddingHorizontal: 16,
+    minHeight: 52,
+    gap: 6,
   },
   selectorError: {
     borderColor: Colors.error,
   },
-  leftIcon: {
-    marginRight: 4,
+  icon: {
+    marginRight: 12,
   },
   selectorText: {
     flex: 1,
     fontSize: 15,
     color: Colors.textPrimary,
+    fontWeight: '400',
+    lineHeight: 20,
   },
   placeholder: {
-    color: Colors.textTertiary,
+    color: '#9ca3af',
+    fontWeight: '400',
+  },
+  errorWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    marginLeft: 4,
+    gap: 6,
   },
   errorText: {
-    fontSize: 12,
     color: Colors.error,
-    marginTop: 4,
-    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: '500',
   },
+
+  // MODAL
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
     maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
+    paddingRight: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#e5e7eb',
+  },
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
+    flex: 1,
+    paddingRight: 8,
+  },
+  optionsList: {
+    maxHeight: 400,
   },
   option: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#f0f0f0',
   },
-  selectedOption: {
+  lastOption: {
+    borderBottomWidth: 0,
+  },
+  optionSelected: {
     backgroundColor: Colors.primary + '10',
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.textPrimary,
+    fontWeight: '500',
+    flex: 1,
+    paddingRight: 8,
   },
-  selectedOptionText: {
-    fontWeight: '600',
+  optionTextSelected: {
     color: Colors.primary,
+    fontWeight: '700',
   },
 });

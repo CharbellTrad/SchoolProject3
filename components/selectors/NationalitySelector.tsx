@@ -1,5 +1,5 @@
 import React from 'react';
-import { BaseSelector } from './BaseSelector';
+import { DropdownSelector } from './BaseSelector';
 
 const NATIONALITIES = [
   { label: 'Venezolano', value: 'V' },
@@ -18,7 +18,7 @@ export const NationalitySelectorDropdown: React.FC<NationalitySelectorProps> = (
   error,
 }) => {
   return (
-    <BaseSelector
+    <DropdownSelector
       label="Nacionalidad"
       value={value}
       options={NATIONALITIES}
@@ -26,7 +26,11 @@ export const NationalitySelectorDropdown: React.FC<NationalitySelectorProps> = (
       error={error}
       placeholder="V o E"
       required
-      leftIcon="flag"
+      icon={
+        value === 'V' ? 'home' : 
+        value === 'E' ? 'airplane' : 
+        'flag'
+      }
     />
   );
 };
