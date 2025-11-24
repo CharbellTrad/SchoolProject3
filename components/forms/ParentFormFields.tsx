@@ -189,7 +189,6 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           label="Cédula de Identidad del Representante"
           value={getImage('parent_ci_document')?.base64}
           onImageSelected={(base64, filename) => onImageSelected('parent_ci_document', base64, filename)}
-          aspectRatio={[4, 3]}
           circular={false}
           acceptPDF={true}
         />
@@ -200,7 +199,6 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           label="Firma del Representante"
           value={getImage('parent_signature')?.base64}
           onImageSelected={(base64, filename) => onImageSelected('parent_signature', base64, filename)}
-          aspectRatio={[3, 1]}
           circular={false}
           acceptPDF={false}
         />

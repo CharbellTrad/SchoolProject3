@@ -1,0 +1,116 @@
+import { ODOO_CONFIG } from './config';
+import {
+    extractOdooErrorMessage,
+    isAccessDeniedError,
+    isExpectedError,
+    isSessionExpiredError,
+} from './errorHandler';
+import { getStoredSessionId, handleSessionExpired } from './sessionManager';
+import { OdooResponse, OdooResult, RequestParams } from './types';
+
+/**
+ * Realiza una petición al API de Odoo con manejo robusto de errores y sesión
+ */
+export const odooRequest = async <T = any>(
+  path: string,
+  params: RequestParams | Record<string, any>,
+  requiresAuth: boolean = true
+): Promise<OdooResult<T>> => {
+  try {
+    const url = `${ODOO_CONFIG.host}${path}`;
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (requiresAuth) {
+      const sid = await getStoredSessionId();
+      if (sid) {
+        headers['X-Openerp-Session-Id'] = sid;
+      } else {
+        return {
+          success: false,
+          error: {
+            message: 'No hay sesión activa',
+            code: 'NO_SESSION',
+          },
+        };
+      }
+    }
+
+    const body = JSON.stringify({
+      jsonrpc: '2.0',
+      id: new Date().getTime(),
+      method: 'call',
+      params,
+    });
+
+    if (__DEV__) {
+      console.log(`🔥 Odoo Request: ${path}`);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+      credentials: 'include',
+    });
+
+    if (__DEV__) {
+      console.log(`📡 Response Status: ${response.status}`);
+    }
+
+    const textResponse = await response.text();
+
+    if (!response.ok) {
+      const errorMessage = `HTTP Error: ${response.status} ${response.statusText}`;
+      throw new Error(errorMessage);
+    }
+
+    let responseJson: OdooResponse<T>;
+    try {
+      responseJson = JSON.parse(textResponse);
+    } catch (e) {
+      throw new Error(`No se pudo parsear JSON: ${textResponse.substring(0, 100)}`);
+    }
+
+    if (responseJson.error) {
+      if (isSessionExpiredError(responseJson.error) || isAccessDeniedError(responseJson.error)) {
+        if (__DEV__) {
+          console.log('🔒 Sesión expirada o inválida detectada');
+        }
+        await handleSessionExpired();
+
+        return {
+          success: false,
+          error: {
+            ...responseJson.error,
+            isSessionExpired: true,
+            message: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+          },
+        };
+      }
+
+      const errorMsg = extractOdooErrorMessage(responseJson.error);
+
+      if (__DEV__ && !isExpectedError(errorMsg)) {
+        console.log('❌ Error de Odoo:', errorMsg);
+      }
+
+      return { success: false, error: responseJson.error };
+    }
+
+    if (__DEV__) {
+      console.log('✅ Odoo Response: Success');
+    }
+    return { success: true, data: responseJson.result };
+  } catch (error: any) {
+    const errorMsg = error.message || 'Error desconocido';
+
+    if (__DEV__ && !isExpectedError(errorMsg)) {
+      console.log('❌ Error inesperado:', errorMsg);
+    }
+
+    return { success: false, error: { message: errorMsg } };
+  }
+};

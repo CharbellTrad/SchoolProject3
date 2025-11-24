@@ -43,7 +43,7 @@ export const EditGeneralTab: React.FC<EditGeneralTabProps> = ({
         label="Foto del Estudiante"
         value={studentPhoto}
         onImageSelected={onImageSelected}
-        circular
+        circular={true}
       />
 
       <Text style={listStyles.editSectionTitle}>Información Personal</Text>

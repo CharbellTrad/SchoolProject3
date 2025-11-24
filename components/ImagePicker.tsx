@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useState } from 'react';
+import { Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../constants/Colors';
 
 interface ImagePickerComponentProps {
@@ -11,11 +11,12 @@ interface ImagePickerComponentProps {
   onImageSelected: (base64: string, filename: string) => void;
   aspectRatio?: [number, number];
   quality?: number;
-  allowsEditing?: boolean;
+  allowsEditing?: boolean; // true = permitir recorte, false = usar imagen completa
   circular?: boolean;
-  maxWidth?: number;
-  maxHeight?: number;
+  maxWidth?: number; // null = sin límite
+  maxHeight?: number; // null = sin límite
   acceptPDF?: boolean;
+  compress?: boolean; // Comprimir automáticamente
 }
 
 export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
@@ -24,11 +25,12 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
   onImageSelected,
   aspectRatio = [1, 1],
   quality = 0.8,
-  allowsEditing = true,
+  allowsEditing = false, // ✅ Por defecto NO recorta
   circular = false,
-  maxWidth = 1024,
-  maxHeight = 1024,
+  maxWidth, // ✅ Sin valor por defecto = sin límite
+  maxHeight, // ✅ Sin valor por defecto = sin límite
   acceptPDF = false,
+  compress = true,
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -87,10 +89,13 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: "images",
-        allowsEditing,
+        allowsEditing, // ✅ Respeta la configuración
         aspect: aspectRatio,
         quality,
         base64: false,
+        // ✅ Respeta límites opcionales
+        ...(maxWidth && { maxWidth }),
+        ...(maxHeight && { maxHeight }),
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -121,10 +126,13 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
-        allowsEditing,
+        allowsEditing, // ✅ Respeta la configuración
         aspect: aspectRatio,
         quality,
         base64: false,
+        // ✅ Respeta límites opcionales
+        ...(maxWidth && { maxWidth }),
+        ...(maxHeight && { maxHeight }),
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -355,6 +363,9 @@ const styles = StyleSheet.create({
   },
 });
 
+// ============================================
+// HOOK PERSONALIZADO (sin cambios)
+// ============================================
 export const useImagePicker = () => {
   const [images, setImages] = useState<Record<string, { base64: string; filename: string }>>({});
 

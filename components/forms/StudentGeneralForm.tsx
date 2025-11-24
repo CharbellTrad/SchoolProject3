@@ -38,7 +38,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
         label="Foto del Estudiante"
         value={studentPhoto}
         onImageSelected={onImageSelected}
-        circular
+        circular={true}
       />
 
       <Text style={GlobalStyles.subsectionTitle}>Datos Personales</Text>

@@ -68,7 +68,6 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
         <ImagePickerComponent
           value={ciDocument}
           onImageSelected={onCiDocumentSelected}
-          aspectRatio={[4, 3]}
           circular={false}
           acceptPDF={true}
         />
@@ -80,7 +79,6 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
         <ImagePickerComponent
           value={bornDocument}
           onImageSelected={onBornDocumentSelected}
-          aspectRatio={[4, 3]}
           circular={false}
           acceptPDF={true}
         />

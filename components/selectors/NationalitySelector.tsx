@@ -24,7 +24,7 @@ export const NationalitySelectorDropdown: React.FC<NationalitySelectorProps> = (
       options={NATIONALITIES}
       onChange={onChange}
       error={error}
-      placeholder="V o E"
+      placeholder="Seleccionar..."
       required
       icon={
         value === 'V' ? 'home' : 

@@ -62,7 +62,6 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
         <ImagePickerComponent
           value={ciDocument}
           onImageSelected={onCiDocumentSelected}
-          aspectRatio={[4, 3]}
           circular={false}
           acceptPDF={true}
         />
@@ -74,7 +73,6 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
         <ImagePickerComponent
           value={bornDocument}
           onImageSelected={onBornDocumentSelected}
-          aspectRatio={[4, 3]}
           circular={false}
           acceptPDF={true}
         />

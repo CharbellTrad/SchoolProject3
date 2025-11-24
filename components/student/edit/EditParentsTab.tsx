@@ -166,7 +166,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
           label="Foto del Representante"
           value={getImage('parent_photo')?.base64}
           onImageSelected={(base64, filename) => onImageSelected('parent_photo', base64, filename)}
-          circular
+          circular={true}
         />
 
         <Input
@@ -311,7 +311,6 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
           <ImagePickerComponent
             value={getImage('parent_ci_document')?.base64}
             onImageSelected={(base64, filename) => onImageSelected('parent_ci_document', base64, filename)}
-            aspectRatio={[4, 3]}
             circular={false}
             acceptPDF={true}
           />
@@ -323,7 +322,6 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
           <ImagePickerComponent
             value={getImage('parent_signature')?.base64}
             onImageSelected={(base64, filename) => onImageSelected('parent_signature', base64, filename)}
-            aspectRatio={[3, 1]}
             circular={false}
             acceptPDF={false}
           />

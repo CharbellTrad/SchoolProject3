@@ -2,7 +2,7 @@ import { Slot, useRouter, useSegments } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import LottieView from "lottie-react-native"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { LogBox, StyleSheet, Text, View } from "react-native"
+import { Dimensions, LogBox, Platform, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import splashAnimation from "../assets/lotties/splashAnimation.json"
 import Colors from "../constants/Colors"
@@ -211,6 +211,10 @@ function RootLayoutNav() {
   )
 }
 
+const bottomPosition = Platform.OS === "web"
+  ? Dimensions.get("window").height * 0.03 // 10% de la altura en web
+  : 120; // valor fijo para mobile
+
 /**
  * Layout principal con Provider
  */
@@ -241,7 +245,7 @@ const styles = StyleSheet.create({
   },
   institutionNameContainer: {
     position: "absolute",
-    bottom: 120,
+    bottom: bottomPosition,
     alignItems: "center",
     justifyContent: "center",
   },
