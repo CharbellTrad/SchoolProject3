@@ -34,6 +34,7 @@ interface EditParentsTabProps {
   onCancelForm: () => void;
   onImageSelected: (key: string, base64: string, filename: string) => void;
   getImage: (key: string) => { base64?: string } | undefined;
+  loading?: boolean;
 }
 
 export const EditParentsTab: React.FC<EditParentsTabProps> = ({
@@ -57,6 +58,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
   onCancelForm,
   onImageSelected,
   getImage,
+  loading = false,
 }) => {
   const formatBirthDate = (text: string) => {
     let formatted = text.replace(/[^\d]/g, '');
@@ -69,7 +71,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
     return formatted;
   };
 
-  const isYes = (value?: string) => 
+  const isYes = (value?: string) =>
     value?.toLowerCase() === 'si' || value?.toLowerCase() === 'sí';
 
   if (showSearchParent) {
@@ -124,7 +126,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                       <Ionicons name="person" size={28} color={Colors.secondary} />
                     </View>
                   )}
-                  
+
                   <View style={styles.parentInfo}>
                     <Text style={styles.parentName}>{parent.name}</Text>
                     <Text style={styles.parentDetail}>
@@ -139,7 +141,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                       </Text>
                     )}
                   </View>
-                  
+
                   <Ionicons name="add-circle" size={32} color={Colors.success} />
                 </View>
               </TouchableOpacity>
@@ -341,17 +343,17 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
     <View style={listStyles.editSection}>
       <View style={styles.parentsHeader}>
         <Text style={listStyles.editSectionTitle}>Representantes</Text>
-        
+
         <View style={styles.buttonRow}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addButton}
             onPress={onAddNewParent}
           >
             <Ionicons name="person-add" size={24} color={Colors.primary} />
             <Text style={styles.addButtonText}>Crear Nuevo</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.searchButton}
             onPress={onSearchExisting}
           >
@@ -361,7 +363,12 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
         </View>
       </View>
 
-      {parents.length === 0 ? (
+      {loading ? (
+        <View style={styles.searchingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.searchingText}>Cargando representantes...</Text>
+        </View>
+      ) : parents.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={64} color={Colors.textTertiary} />
           <Text style={styles.emptyText}>No hay representantes agregados</Text>
@@ -380,7 +387,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                   <Ionicons name="person" size={28} color={Colors.primary} />
                 </View>
               )}
-              
+
               <View style={styles.parentInfo}>
                 <Text style={styles.parentName}>{parent.name}</Text>
                 <Text style={styles.parentDetail}>
@@ -396,7 +403,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                   </View>
                 )}
               </View>
-              
+
               <View style={styles.parentActions}>
                 <TouchableOpacity onPress={() => onEditParent(index)}>
                   <Ionicons name="create" size={24} color={Colors.secondary} />

@@ -29,12 +29,12 @@ const TABS = [
   { id: 'documents' as EditTab, label: 'Documentos', icon: 'document' },
 ];
 
-export const EditStudentModal: React.FC<EditStudentModalProps> = ({ 
-  visible, 
-  student, 
-  onClose, 
-  onSave, 
-  onDelete 
+export const EditStudentModal: React.FC<EditStudentModalProps> = ({
+  visible,
+  student,
+  onClose,
+  onSave,
+  onDelete
 }) => {
   const [activeTab, setActiveTab] = useState<EditTab>('general');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +54,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     setImage,
     getImage,
     clearImage,
+    loadingParents,
   } = useStudentEdit(student);
 
   const parentManagement = useParentManagement(
@@ -141,7 +142,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
 
     setIsLoading(true);
-    
+
     try {
       // 3️⃣ Eliminar representantes marcados para eliminación
       for (const parentId of parentsToDelete) {
@@ -154,7 +155,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
           if (__DEV__) {
             console.error('❌ Error al eliminar representante:', error);
           }
-          
+
           // Detectar error de red
           if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
             showAlert(
@@ -168,9 +169,9 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
           return;
         }
       }
-      
+
       const savedParentIds: number[] = [];
-      
+
       // 4️⃣ Actualizar o crear representantes
       for (const parent of parents) {
         const commonData = {
@@ -195,9 +196,9 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
               if (__DEV__) {
                 console.log(`📝 Actualizando representante ID: ${parent.id}`);
               }
-              
+
               const result = await updateParent(parent.id, parentData);
-              
+
               if (result.success && result.parent) {
                 savedParentIds.push(result.parent.id);
               } else {
@@ -206,7 +207,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
                 return;
               }
             }
-          } 
+          }
           // Crear nuevo representante
           else {
             if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone) {
@@ -242,7 +243,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             };
 
             const result = await saveParent(newParentData);
-            
+
             if (result.success && result.parent) {
               savedParentIds.push(result.parent.id);
             } else {
@@ -255,7 +256,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
           if (__DEV__) {
             console.error('❌ Error procesando representante:', error);
           }
-          
+
           // Detectar error de red
           if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
             showAlert(
@@ -302,7 +303,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       }
 
       const result = await updateStudent(formData.id, updateData);
-      
+
       if (result.success) {
         showAlert('Éxito', 'Estudiante actualizado correctamente');
         onSave();
@@ -313,7 +314,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       if (__DEV__) {
         console.error('❌ Error al guardar:', error);
       }
-      
+
       // Detectar error de red
       if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
         showAlert(
@@ -367,6 +368,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             onCancelForm={parentManagement.resetForm}
             onImageSelected={setImage}
             getImage={getImage}
+            loading={loadingParents}
           />
         );
       case 'documents':
@@ -455,8 +457,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
           </ScrollView>
 
           <View style={listStyles.modalFooter}>
-            <TouchableOpacity 
-              style={listStyles.cancelButton} 
+            <TouchableOpacity
+              style={listStyles.cancelButton}
               onPress={() => {
                 setParentsToDelete([]);
                 onClose();
@@ -464,10 +466,10 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             >
               <Text style={listStyles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
-                listStyles.saveButton, 
+                listStyles.saveButton,
                 (isLoading || parentManagement.showAddParent) && listStyles.saveButtonDisabled
               ]}
               onPress={handleSave}

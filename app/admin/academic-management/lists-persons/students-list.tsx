@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EmptyState, SearchBar, StatsCards } from '../../../../components/list';
 import { EditStudentModal, StudentCard, ViewStudentModal } from '../../../../components/student';
 import Colors from '../../../../constants/Colors';
@@ -13,21 +13,17 @@ import { Student } from '../../../../services-odoo/personService';
 
 export default function StudentsListScreen() {
   const {
-    students,
     loading,
     refreshing,
     searchQuery,
     filteredStudents,
-    totalStudents,
-    hasMore,
-    loadingMore,
-    isSearching,
+    activeStudentsCount,
+    students,
     isOfflineMode,
     setSearchQuery,
     loadData,
     handleDelete,
     onRefresh,
-    loadMore,
   } = useStudentsList();
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -48,47 +44,10 @@ export default function StudentsListScreen() {
     setShowEditModal(true);
   };
 
-  const renderFooter = () => {
-    if (!loadingMore) return null;
-    
-    return (
-      <View style={styles.loadingMoreContainer}>
-        <ActivityIndicator size="small" color={Colors.primary} />
-        <Text style={styles.loadingMoreText}>Cargando más estudiantes...</Text>
-      </View>
-    );
-  };
-
-  const renderEmpty = () => {
-    if (loading || isSearching) {
-      return null;
-    }
-
-    if (isOfflineMode && students.length === 0) {
-      return (
-        <View style={styles.emptyOfflineContainer}>
-          <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
-          <Text style={styles.emptyOfflineTitle}>Sin conexión</Text>
-          <Text style={styles.emptyOfflineText}>
-            No hay datos guardados. Conecta a internet para cargar estudiantes.
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <EmptyState 
-        hasSearchQuery={!!searchQuery}
-        entityName="estudiantes"
-      />
-    );
-  };
-
   if (loading) {
     return (
       <View style={listStyles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Cargando estudiantes...</Text>
       </View>
     );
   }
@@ -113,7 +72,7 @@ export default function StudentsListScreen() {
         </LinearGradient>
 
         <View style={listStyles.content}>
-          {/* 🔴 Banner de Modo Offline */}
+          {/* Banner de Modo Offline */}
           {isOfflineMode && (
             <View style={styles.offlineBanner}>
               <Ionicons name="cloud-offline" size={20} color="#fff" />
@@ -124,8 +83,8 @@ export default function StudentsListScreen() {
           )}
 
           <StatsCards
-            total={totalStudents}
-            active={students.filter(s => s.is_active).length}
+            total={students.length}
+            active={activeStudentsCount}
           />
 
           <SearchBar
@@ -134,50 +93,10 @@ export default function StudentsListScreen() {
             placeholder="Buscar por nombre o cédula..."
           />
 
-          {/* 🔍 Indicador de búsqueda */}
-          {isSearching && (
-            <View style={styles.searchingContainer}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-              <Text style={styles.searchingText}>Buscando...</Text>
-            </View>
-          )}
-
-          {/* 📊 Indicador de total */}
-          {!isSearching && totalStudents > 0 && (
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalText}>
-                {searchQuery 
-                  ? `${filteredStudents.length} resultado${filteredStudents.length !== 1 ? 's' : ''}`
-                  : `Mostrando ${filteredStudents.length} de ${totalStudents}`}
-              </Text>
-            </View>
-          )}
-
-          {/* 📜 LISTA CON SCROLL INFINITO */}
-          <FlatList
-            data={filteredStudents}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <StudentCard
-                student={item}
-                onView={() => handleView(item)}
-                onEdit={() => handleEdit(item)}
-              />
-            )}
-            contentContainerStyle={styles.listContent}
+          <ScrollView
+            style={listStyles.listContainer}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-            initialNumToRender={10}
-            ListEmptyComponent={renderEmpty}
-            ListFooterComponent={renderFooter}
-            onEndReached={() => {
-              if (!searchQuery && hasMore && !loadingMore) {
-                loadMore();
-              }
-            }}
-            onEndReachedThreshold={0.5}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -188,7 +107,34 @@ export default function StudentsListScreen() {
                 titleColor={Colors.textSecondary}
               />
             }
-          />
+          >
+            {filteredStudents.length === 0 ? (
+              isOfflineMode && students.length === 0 ? (
+                <View style={styles.emptyOfflineContainer}>
+                  <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
+                  <Text style={styles.emptyOfflineTitle}>Sin conexión</Text>
+                  <Text style={styles.emptyOfflineText}>
+                    No hay datos guardados. Conecta a internet para cargar estudiantes.
+                  </Text>
+                </View>
+              ) : (
+                <EmptyState
+                  hasSearchQuery={!!searchQuery}
+                  entityName="estudiantes"
+                />
+              )
+            ) : (
+              filteredStudents.map((student) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  onView={() => handleView(student)}
+                  onEdit={() => handleEdit(student)}
+                  isOfflineMode={isOfflineMode}
+                />
+              ))
+            )}
+          </ScrollView>
         </View>
 
         <ViewStudentModal
@@ -207,8 +153,7 @@ export default function StudentsListScreen() {
           onClose={() => setShowEditModal(false)}
           onSave={() => {
             setShowEditModal(false);
-            // ⚡ ACTUALIZACIÓN AUTOMÁTICA después de editar
-            loadData(true);
+            loadData();
           }}
           onDelete={handleDelete}
         />
@@ -218,11 +163,6 @@ export default function StudentsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -238,42 +178,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
-  },
-  searchingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 8,
-  },
-  searchingText: {
-    fontSize: 14,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  totalContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-  totalText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-  loadingMoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    gap: 8,
-  },
-  loadingMoreText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
   },
   emptyOfflineContainer: {
     alignItems: 'center',

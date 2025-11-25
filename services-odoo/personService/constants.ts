@@ -18,6 +18,11 @@ export const STUDENT_FIELDS = [
   'user_id', 'is_active',
 ];
 
+export const STUDENT_SUMMARY_FIELDS = [
+  'id', 'name', 'vat', 'nationality', 'image_1920', 'is_active',
+  'parents_ids', 'inscription_ids'
+];
+
 export const PARENT_FIELDS = [
   'id', 'name', 'vat', 'nationality', 'born_date', 'age', 'sex',
   'email', 'phone', 'resident_number', 'emergency_phone_number',
@@ -35,7 +40,7 @@ export const INSCRIPTION_FIELDS = [
 ];
 
 export const INSCRIPTION_MINIMAL_FIELDS = [
-  'id', 'year_id', 'section_id', 'height', 'weight', 
+  'id', 'year_id', 'section_id', 'height', 'weight',
   'size_shirt', 'size_pants', 'size_shoes',
 ];
 

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { listStyles } from '../../../constants/Styles';
 import { Inscription, Student } from '../../../services-odoo/personService';
@@ -9,12 +9,24 @@ import { InfoRow, InfoSection } from '../../list';
 
 interface InscriptionsTabProps {
   student: Student;
+  loading?: boolean;
 }
 
-export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student }) => {
+export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student, loading = false }) => {
   const [expandedInscription, setExpandedInscription] = useState<number | null>(null);
-  
+
   const displayInscriptions = (student.inscriptions || []) as Inscription[];
+
+  if (loading) {
+    return (
+      <InfoSection title="Inscripciones del Estudiante">
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.emptyText}>Cargando inscripciones...</Text>
+        </View>
+      </InfoSection>
+    );
+  }
 
   if (displayInscriptions.length === 0) {
     return (
@@ -37,18 +49,18 @@ export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student }) => 
         .map((inscription, index) => {
           const isExpanded = expandedInscription === inscription.id;
           const isActive = inscription.state === 'done';
-          
+
           return (
-            <View 
+            <View
               key={inscription.id}
               style={[
                 listStyles.card,
                 styles.inscriptionCard,
                 {
-                  borderLeftColor: 
+                  borderLeftColor:
                     inscription.state === 'done' ? Colors.success :
-                    inscription.state === 'cancel' ? Colors.error :
-                    Colors.warning,
+                      inscription.state === 'cancel' ? Colors.error :
+                        Colors.warning,
                 }
               ]}
             >
@@ -62,55 +74,55 @@ export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student }) => 
                       <Text style={styles.activeBadgeText}>ACTIVA</Text>
                     </View>
                   )}
-                  
+
                   <Text style={styles.inscriptionName} numberOfLines={2}>
                     {inscription.name || `Inscripción ${index + 1}`}
                   </Text>
-                  
+
                   <Text style={[listStyles.cardDetail, styles.inscriptionDetail]}>
                     {inscription.year_id} • {inscription.section_id} • {formatInscriptionType(inscription.type)}
                   </Text>
-                  
+
                   <Text style={[listStyles.cardDetail, styles.inscriptionDate]}>
-                    <Ionicons name="calendar-outline" size={14} color={Colors.textSecondary} /> 
+                    <Ionicons name="calendar-outline" size={14} color={Colors.textSecondary} />
                     Fecha: {inscription.inscription_date}
                   </Text>
                 </View>
-                
+
                 <View style={styles.inscriptionActions}>
-                  <View 
+                  <View
                     style={[
                       listStyles.statusBadge,
                       {
-                        backgroundColor: 
+                        backgroundColor:
                           inscription.state === 'done' ? Colors.success + '20' :
-                          inscription.state === 'cancel' ? Colors.error + '20' :
-                          Colors.warning + '20',
+                            inscription.state === 'cancel' ? Colors.error + '20' :
+                              Colors.warning + '20',
                       }
                     ]}
                   >
                     <Text style={[
                       listStyles.statusText,
                       {
-                        color: 
+                        color:
                           inscription.state === 'done' ? Colors.success :
-                          inscription.state === 'cancel' ? Colors.error :
-                          Colors.warning,
+                            inscription.state === 'cancel' ? Colors.error :
+                              Colors.warning,
                       }
                     ]}>
-                      {inscription.state === 'done' ? 'Inscrito' : 
-                       inscription.state === 'cancel' ? 'Cancelada' : 'Borrador'}
+                      {inscription.state === 'done' ? 'Inscrito' :
+                        inscription.state === 'cancel' ? 'Cancelada' : 'Borrador'}
                     </Text>
                   </View>
-                  
-                  <Ionicons 
-                    name={isExpanded ? "chevron-up" : "chevron-down"} 
-                    size={24} 
-                    color={Colors.textSecondary} 
+
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={24}
+                    color={Colors.textSecondary}
                   />
                 </View>
               </TouchableOpacity>
-              
+
               {isExpanded && (
                 <View style={styles.expandedContent}>
                   {(inscription.from_school || inscription.observations || inscription.uninscription_date) && (
@@ -118,45 +130,45 @@ export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student }) => 
                       <View style={styles.sectionSpacer}>
                         <Text style={listStyles.editSectionTitle}>Información General</Text>
                       </View>
-                      
+
                       {inscription.from_school && (
                         <InfoRow label="Procedencia" value={inscription.from_school} icon="business" />
                       )}
-                      
+
                       {inscription.observations && (
                         <InfoRow label="Observaciones" value={inscription.observations} icon="document-text" />
                       )}
-                      
+
                       {inscription.uninscription_date && (
                         <InfoRow label="Fecha de Desinscripción" value={inscription.uninscription_date} icon="calendar-outline" />
                       )}
-                      
+
                       <View style={styles.sectionSpacer} />
                     </>
                   )}
-                  
+
                   {(inscription.height || inscription.weight || inscription.size_shirt) && (
                     <>
                       <View style={styles.sectionSpacer}>
                         <Text style={listStyles.editSectionTitle}>Tallas Registradas</Text>
                       </View>
-                      
+
                       {inscription.height && <InfoRow label="Altura" value={`${formatNumber(inscription.height, 2)} m`} icon="resize" />}
                       {inscription.weight && <InfoRow label="Peso" value={`${formatNumber(inscription.weight, 1)} kg`} icon="fitness" />}
                       {inscription.size_shirt && <InfoRow label="Talla Camisa" value={formatShirtSize(inscription.size_shirt)} icon="shirt" />}
                       {inscription.size_pants && <InfoRow label="Talla Pantalón" value={formatNumber(inscription.size_pants, 0)} icon="body" />}
                       {inscription.size_shoes && <InfoRow label="Talla Zapatos" value={formatNumber(inscription.size_shoes, 0)} icon="footsteps" />}
-                      
+
                       <View style={styles.sectionSpacer} />
                     </>
                   )}
-                  
+
                   {inscription.parent_singnature && (
                     <>
                       <View style={styles.sectionSpacer}>
                         <Text style={listStyles.editSectionTitle}>Firma del Representante</Text>
                       </View>
-                      
+
                       <Image
                         source={{ uri: `data:image/jpeg;base64,${inscription.parent_singnature}` }}
                         style={styles.signatureImage}

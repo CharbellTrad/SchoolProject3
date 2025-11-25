@@ -9,9 +9,10 @@ interface StudentCardProps {
   student: Student;
   onView: () => void;
   onEdit: () => void;
+  isOfflineMode?: boolean;
 }
 
-export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, onView, onEdit }) => {
+export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, onView, onEdit, isOfflineMode = false }) => {
   return (
     <View style={listStyles.card}>
       <View style={listStyles.cardMain}>
@@ -55,14 +56,40 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, on
       </View>
 
       <View style={listStyles.cardActions}>
-        <TouchableOpacity style={listStyles.actionButton} onPress={onView}>
-          <Ionicons name="eye-outline" size={20} color={Colors.primary} />
-          <Text style={listStyles.actionButtonText}>Ver</Text>
+        <TouchableOpacity
+          style={listStyles.actionButton}
+          onPress={onView}
+          disabled={isOfflineMode}
+        >
+          <Ionicons
+            name="eye-outline"
+            size={20}
+            color={isOfflineMode ? Colors.textTertiary : Colors.primary}
+          />
+          <Text style={[
+            listStyles.actionButtonText,
+            isOfflineMode && { color: Colors.textTertiary }
+          ]}>
+            Ver
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={listStyles.actionButton} onPress={onEdit}>
-          <Ionicons name="create-outline" size={20} color={Colors.secondary} />
-          <Text style={[listStyles.actionButtonText, { color: Colors.secondary }]}>Editar</Text>
+        <TouchableOpacity
+          style={listStyles.actionButton}
+          onPress={onEdit}
+          disabled={isOfflineMode}
+        >
+          <Ionicons
+            name="create-outline"
+            size={20}
+            color={isOfflineMode ? Colors.textTertiary : Colors.secondary}
+          />
+          <Text style={[
+            listStyles.actionButtonText,
+            { color: isOfflineMode ? Colors.textTertiary : Colors.secondary }
+          ]}>
+            Editar
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -72,6 +99,7 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, on
     prevProps.student.id === nextProps.student.id &&
     prevProps.student.name === nextProps.student.name &&
     prevProps.student.is_active === nextProps.student.is_active &&
-    prevProps.student.vat === nextProps.student.vat
+    prevProps.student.vat === nextProps.student.vat &&
+    prevProps.isOfflineMode === nextProps.isOfflineMode
   );
 });

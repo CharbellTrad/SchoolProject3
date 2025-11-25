@@ -50,12 +50,12 @@ export const useParentManagement = (
    */
   const handleSearchParents = useCallback(async (query: string) => {
     setSearchQuery(query);
-    
+
     if (query.trim().length < 3) {
       setSearchResults([]);
       return;
     }
-    
+
     setSearching(true);
 
     try {
@@ -100,7 +100,7 @@ export const useParentManagement = (
       showAlert('Ya agregado', 'Este representante ya está asociado al estudiante');
       return;
     }
-    
+
     setParents([...parents, parent]);
     setShowSearchParent(false);
     setSearchQuery('');
@@ -153,25 +153,25 @@ export const useParentManagement = (
       born_date: formatDateToDisplay(parentToEdit.born_date),
     };
     setCurrentParent(formattedParent);
-    
+
     if (parentToEdit.image_1920) {
       setImage('parent_photo', parentToEdit.image_1920, 'parent_photo.jpg');
     } else {
       clearImage('parent_photo');
     }
-    
+
     if (parentToEdit.ci_document) {
       setImage('parent_ci_document', parentToEdit.ci_document, parentToEdit.ci_document_filename || 'ci.jpg');
     } else {
       clearImage('parent_ci_document');
     }
-    
+
     if (parentToEdit.parent_singnature) {
       setImage('parent_signature', parentToEdit.parent_singnature, 'signature.jpg');
     } else {
       clearImage('parent_signature');
     }
-    
+
     setEditingParentIndex(index);
     setShowAddParent(true);
   }, [parents, setImage, clearImage]);
@@ -182,23 +182,23 @@ export const useParentManagement = (
    */
   const removeParent = useCallback(async (index: number, studentId: number) => {
     const parentToRemove = parents[index];
-    
+
     // Si es un representante nuevo (sin ID), eliminar directamente
     if (!parentToRemove.id) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
       return;
     }
-    
+
     const wasOriginallyAssociated = originalParentIds.includes(parentToRemove.id);
-    
+
     // Si NO era original, solo quitarlo de la lista
     if (!wasOriginallyAssociated) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
       return;
     }
-    
+
     // Para representantes originales, necesitamos validar con el servidor
     try {
       // 1️⃣ Verificar conexión primero
@@ -217,12 +217,12 @@ export const useParentManagement = (
 
       // 2️⃣ Validar si se puede eliminar
       const validation = await canDeleteParent(parentToRemove.id, studentId);
-      
+
       if (!validation.canUnlink) {
         showAlert('No se puede realizar esta acción', validation.message || 'Error al verificar el representante');
         return;
       }
-      
+
       // Si no se puede eliminar completamente, solo desvincular
       if (!validation.canDelete) {
         showAlert(
@@ -241,7 +241,7 @@ export const useParentManagement = (
         );
         return;
       }
-      
+
       // Si se puede eliminar, dar opciones
       showAlert(
         'Eliminar Representante',
@@ -310,8 +310,9 @@ export const useParentManagement = (
     clearImage('parent_ci_document');
     clearImage('parent_signature');
     setShowAddParent(false);
+    setShowSearchParent(false);
     setEditingParentIndex(null);
-    
+
     setErrors((prev: Record<string, string>) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach(key => {

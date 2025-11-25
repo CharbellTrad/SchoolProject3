@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { listStyles } from '../../../constants/Styles';
 import { Student } from '../../../services-odoo/personService';
@@ -9,10 +9,22 @@ import { InfoRow, InfoSection } from '../../list';
 
 interface ParentsTabProps {
   student: Student;
+  loading?: boolean;
 }
 
-export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
+export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false }) => {
   const [expandedParent, setExpandedParent] = useState<number | null>(null);
+
+  if (loading) {
+    return (
+      <InfoSection title="Representantes del Estudiante">
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.emptyText}>Cargando representantes...</Text>
+        </View>
+      </InfoSection>
+    );
+  }
 
   if (!student.parents || student.parents.length === 0) {
     return (
@@ -29,9 +41,9 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
     <InfoSection title="Representantes del Estudiante">
       {student.parents.map((parent) => {
         const isExpanded = expandedParent === parent.id;
-        const isYes = (value?: string) => 
+        const isYes = (value?: string) =>
           value?.toLowerCase() === 'si' || value?.toLowerCase() === 'sí';
-        
+
         return (
           <View key={parent.id} style={listStyles.card}>
             <TouchableOpacity
@@ -40,15 +52,15 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
             >
               <View style={listStyles.avatarContainer}>
                 {parent.image_1920 ? (
-                  <Image 
-                    source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }} 
-                    style={styles.parentAvatar} 
+                  <Image
+                    source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+                    style={styles.parentAvatar}
                   />
                 ) : (
                   <Ionicons name="person" size={32} color={Colors.primary} />
                 )}
               </View>
-              
+
               <View style={listStyles.cardInfo}>
                 <Text style={listStyles.cardName} numberOfLines={1}>{parent.name}</Text>
                 <Text style={listStyles.cardDetail}>
@@ -58,14 +70,14 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                   <Ionicons name="call" size={14} color={Colors.textSecondary} /> {formatPhone(parent.phone)}
                 </Text>
               </View>
-              
-              <Ionicons 
-                name={isExpanded ? "chevron-up" : "chevron-down"} 
-                size={24} 
-                color={Colors.textSecondary} 
+
+              <Ionicons
+                name={isExpanded ? "chevron-up" : "chevron-down"}
+                size={24}
+                color={Colors.textSecondary}
               />
             </TouchableOpacity>
-            
+
             {isExpanded && (
               <View style={styles.expandedContent}>
                 <InfoRow label="Fecha de Nacimiento" value={formatDateToDisplay(parent.born_date)} icon="calendar" />
@@ -74,26 +86,26 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                 <InfoRow label="Email" value={parent.email || "No disponible"} icon="mail" />
                 <InfoRow label="Teléfono Residencia" value={formatPhone(parent.resident_number)} icon="home" />
                 <InfoRow label="Teléfono Emergencia" value={formatPhone(parent.emergency_phone_number)} icon="warning" />
-                
+
                 {parent.street && <InfoRow label="Dirección" value={parent.street} icon="location" />}
-                
+
                 <InfoRow label="¿Vive con el estudiante?" value={formatYesNo(parent.live_with_student)} icon="home" />
                 <InfoRow label="¿Tiene empleo?" value={formatYesNo(parent.active_job)} icon="briefcase" />
-                
+
                 {isYes(parent.active_job) && (
                   <>
                     {parent.job_place && <InfoRow label="Lugar de Trabajo" value={parent.job_place} icon="business" />}
                     {parent.job && <InfoRow label="Cargo" value={parent.job} icon="briefcase" />}
                   </>
                 )}
-                
+
                 {parent.ci_document && (
                   <View style={styles.documentSection}>
                     <Text style={listStyles.editSectionTitle}>Cédula de Identidad</Text>
-                    <Image 
-                      source={{ uri: `data:image/jpeg;base64,${parent.ci_document}` }} 
-                      style={styles.documentImage} 
-                      resizeMode="contain" 
+                    <Image
+                      source={{ uri: `data:image/jpeg;base64,${parent.ci_document}` }}
+                      style={styles.documentImage}
+                      resizeMode="contain"
                     />
                   </View>
                 )}
@@ -101,10 +113,10 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                 {parent.parent_singnature && (
                   <View style={styles.documentSection}>
                     <Text style={listStyles.editSectionTitle}>Firma</Text>
-                    <Image 
-                      source={{ uri: `data:image/jpeg;base64,${parent.parent_singnature}` }} 
-                      style={styles.signatureImage} 
-                      resizeMode="contain" 
+                    <Image
+                      source={{ uri: `data:image/jpeg;base64,${parent.parent_singnature}` }}
+                      style={styles.signatureImage}
+                      resizeMode="contain"
                     />
                   </View>
                 )}
