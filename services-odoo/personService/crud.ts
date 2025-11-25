@@ -4,12 +4,12 @@ import * as odooApi from '../apiService';
 import { CacheKeys, cacheManager } from '../cache/cacheManager';
 import { optimisticManager } from '../cache/optimisticUpdates';
 import { ENROLLMENT_TYPES, MODELS, STUDENT_FIELDS } from './constants';
+import { invalidateStudentsPaginationCache } from './loader';
 import { normalizeRecord, prepareStudentForOdoo } from './normalizer';
 import type { PersonServiceResult, Student } from './types';
 
 /**
- * Crea un nuevo estudiante con actualización optimista y compresión de imágenes
- * La UI se actualiza instantáneamente, luego sincroniza en segundo plano
+ * Crea un nuevo estudiante con actualización optimista y compresión
  */
 export const saveStudent = async (
   student: Omit<Student, 'id'>
@@ -22,7 +22,7 @@ export const saveStudent = async (
   }
 
   try {
-    // 🗜️ 2. Comprimir imágenes en paralelo (antes de enviar)
+    // 🗜️ 2. Comprimir imágenes en paralelo
     const imagesToCompress: Record<string, string> = {};
     
     if (student.image_1920) imagesToCompress.image_1920 = student.image_1920;
@@ -66,29 +66,21 @@ export const saveStudent = async (
       boletin_informative: student.boletin_informative,
       born_document_filename: student.born_document_filename,
       is_active: student.is_active,
-      // Usar imágenes comprimidas
       image_1920: compressedImages.image_1920 || false,
       ci_document: compressedImages.ci_document || false,
       born_document: compressedImages.born_document || false,
     };
 
-    // 4. Crear en Odoo (en segundo plano)
+    // 4. Crear en Odoo
     const createResult = await odooApi.create(MODELS.PARTNER, values);
 
     if (!createResult.success) {
-      // ↩️ Rollback en caso de error
       rollback();
       
       if (createResult.error?.isSessionExpired) {
-        return {
-          success: false,
-          message: 'Tu sesión ha expirado',
-        };
+        return { success: false, message: 'Tu sesión ha expirado' };
       }
-      return {
-        success: false,
-        message: odooApi.extractOdooErrorMessage(createResult.error),
-      };
+      return { success: false, message: odooApi.extractOdooErrorMessage(createResult.error) };
     }
 
     // 5. Leer estudiante creado
@@ -97,16 +89,16 @@ export const saveStudent = async (
 
     if (!readResult.success || !readResult.data) {
       rollback();
-      return {
-        success: false,
-        message: 'Error al leer el estudiante creado',
-      };
+      return { success: false, message: 'Error al leer el estudiante creado' };
     }
 
     const newStudent = normalizeRecord(readResult.data[0]);
 
     // ✅ 6. Reemplazar temporal por real
     optimisticManager.replaceTempStudent(tempId, newStudent);
+
+    // 🔥 7. INVALIDAR CACHÉ DE PAGINACIÓN
+    invalidateStudentsPaginationCache();
 
     if (__DEV__) {
       console.timeEnd(`⏱️ saveStudent (background sync)`);
@@ -121,16 +113,12 @@ export const saveStudent = async (
     };
   } catch (error: any) {
     rollback();
-    return {
-      success: false,
-      message: odooApi.extractOdooErrorMessage(error),
-    };
+    return { success: false, message: odooApi.extractOdooErrorMessage(error) };
   }
 };
 
 /**
- * Actualiza un estudiante con actualización optimista y compresión
- * Reduce tiempo de ~30s a <1s (UI) + 2-3s (background)
+ * ⚡ ACTUALIZA ESTUDIANTE CON INVALIDACIÓN INMEDIATA DE CACHÉ
  */
 export const updateStudent = async (
   id: number,
@@ -140,7 +128,7 @@ export const updateStudent = async (
   const { rollback } = optimisticManager.updateStudentOptimistic(id, studentData);
 
   if (__DEV__) {
-    console.time(`⏱️ updateStudent:${id} (background)`);
+    console.time(`⏱️ updateStudent:${id}`);
   }
 
   try {
@@ -192,55 +180,47 @@ export const updateStudent = async (
     // 3. Preparar datos para Odoo
     const preparedValues = prepareStudentForOdoo(values);
 
-    // 4. Actualización en Odoo (background)
+    // 4. Actualización en Odoo
     const updateResult = await odooApi.update(MODELS.PARTNER, [id], preparedValues);
 
     if (!updateResult.success) {
-      // ↩️ Rollback en caso de error
       rollback();
       
       if (updateResult.error?.isSessionExpired) {
-        return {
-          success: false,
-          message: 'Tu sesión ha expirado',
-        };
+        return { success: false, message: 'Tu sesión ha expirado' };
       }
-      return {
-        success: false,
-        message: odooApi.extractOdooErrorMessage(updateResult.error),
-      };
+      return { success: false, message: odooApi.extractOdooErrorMessage(updateResult.error) };
     }
 
-    // 5. Leer datos actualizados (solo campos esenciales)
+    // 5. Leer datos actualizados
     const readResult = await odooApi.read(MODELS.PARTNER, [id], STUDENT_FIELDS);
 
     if (!readResult.success || !readResult.data) {
       rollback();
-      return {
-        success: false,
-        message: 'Error al leer el estudiante actualizado',
-      };
+      return { success: false, message: 'Error al leer el estudiante actualizado' };
     }
 
     const updatedStudent = normalizeRecord(readResult.data[0]);
 
-    // ✅ 6. Confirmar actualización optimista con datos reales
-    const cachedStudents = cacheManager.get<Student[]>(CacheKeys.students());
-    if (cachedStudents) {
-      const index = cachedStudents.findIndex(s => s.id === id);
+    // ✅ 6. Actualizar caché de paginación
+    const cachedResult = cacheManager.get<any>(`${CacheKeys.students()}_page_1_size_10`);
+    if (cachedResult?.students) {
+      const index = cachedResult.students.findIndex((s: Student) => s.id === id);
       if (index !== -1) {
-        cachedStudents[index] = updatedStudent;
-        cacheManager.set(CacheKeys.students(), cachedStudents, 10 * 60 * 1000);
+        cachedResult.students[index] = updatedStudent;
+        cacheManager.set(`${CacheKeys.students()}_page_1_size_10`, cachedResult, 5 * 60 * 1000);
       }
     }
 
-    // Invalidar cachés específicos
+    // 🔥 7. INVALIDAR TODOS LOS CACHÉS RELACIONADOS
     cacheManager.invalidate(CacheKeys.student(id));
     cacheManager.invalidate(CacheKeys.studentParents(id));
     cacheManager.invalidate(CacheKeys.studentInscriptions(id));
+    invalidateStudentsPaginationCache();
 
     if (__DEV__) {
-      console.timeEnd(`⏱️ updateStudent:${id} (background)`);
+      console.timeEnd(`⏱️ updateStudent:${id}`);
+      console.log('✅ Estudiante actualizado y caché invalidado');
     }
 
     return {
@@ -253,10 +233,7 @@ export const updateStudent = async (
     if (__DEV__) {
       console.error('❌ Error en updateStudent:', error);
     }
-    return {
-      success: false,
-      message: odooApi.extractOdooErrorMessage(error),
-    };
+    return { success: false, message: odooApi.extractOdooErrorMessage(error) };
   }
 };
 
@@ -269,20 +246,13 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
       console.time(`⏱️ deleteStudent:${id}`);
     }
 
-    // Leer información del estudiante
     const studentResult = await odooApi.read(MODELS.PARTNER, [id], ['inscription_ids', 'parents_ids']);
 
     if (!studentResult.success || !studentResult.data || studentResult.data.length === 0) {
       if (studentResult.error?.isSessionExpired) {
-        return {
-          success: false,
-          message: 'Tu sesión ha expirado',
-        };
+        return { success: false, message: 'Tu sesión ha expirado' };
       }
-      return {
-        success: false,
-        message: 'Estudiante no encontrado',
-      };
+      return { success: false, message: 'Estudiante no encontrado' };
     }
 
     const student = studentResult.data[0];
@@ -302,12 +272,12 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
           const inscriptionNames = activeInscriptions.map((insc: any) => insc.name).join(', ');
           return {
             success: false,
-            message: `No se puede eliminar el estudiante porque tiene ${activeInscriptions.length} inscripción(es) activa(s): ${inscriptionNames}.\n\nDebe cancelar o desinscribir al estudiante primero.`,
+            message: `No se puede eliminar el estudiante porque tiene ${activeInscriptions.length} inscripción(es) activa(s): ${inscriptionNames}.`,
           };
         }
 
-        // Eliminar evaluaciones en paralelo
-        const evaluationDeletions = student.inscription_ids.map(async (inscriptionId: number) => {
+        // Eliminar evaluaciones e inscripciones
+        await Promise.all(student.inscription_ids.map(async (inscriptionId: number) => {
           try {
             const evaluationsResult = await odooApi.searchRead(
               'school.evaluation.score',
@@ -316,29 +286,26 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
               1000
             );
 
-            if (evaluationsResult.success && evaluationsResult.data && evaluationsResult.data.length > 0) {
+            if (evaluationsResult.success && evaluationsResult.data?.length > 0) {
               const evaluationIds = evaluationsResult.data.map((e: any) => e.id);
               await odooApi.deleteRecords('school.evaluation.score', evaluationIds);
             }
           } catch (evalError) {
-            if (__DEV__) {
-              console.error(`⚠️ Error eliminando evaluaciones:`, evalError);
-            }
+            if (__DEV__) console.error(`⚠️ Error eliminando evaluaciones:`, evalError);
           }
-        });
+        }));
 
-        await Promise.all(evaluationDeletions);
         await odooApi.deleteRecords(MODELS.INSCRIPTION, student.inscription_ids);
       }
     }
 
-    // Procesar padres en paralelo
+    // Procesar padres
     if (student.parents_ids && student.parents_ids.length > 0) {
-      const parentDeletions = student.parents_ids.map(async (parentId: number) => {
+      await Promise.all(student.parents_ids.map(async (parentId: number) => {
         try {
           const parentResult = await odooApi.read(MODELS.PARTNER, [parentId], ['students_ids', 'name']);
 
-          if (parentResult.success && parentResult.data && parentResult.data.length > 0) {
+          if (parentResult.success && parentResult.data?.length > 0) {
             const parentData = parentResult.data[0];
             const studentsIds = parentData.students_ids || [];
 
@@ -347,57 +314,41 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
             }
           }
         } catch (parentError) {
-          if (__DEV__) {
-            console.error(`⚠️ Error procesando padre:`, parentError);
-          }
+          if (__DEV__) console.error(`⚠️ Error procesando padre:`, parentError);
         }
-      });
-
-      await Promise.all(parentDeletions);
+      }));
     }
 
-    // ⚡ Actualización optimista ANTES de eliminar en servidor
+    // ⚡ Actualización optimista ANTES de eliminar
     const { rollback } = optimisticManager.deleteStudentOptimistic(id);
 
     // Eliminar el estudiante
     const deleteResult = await odooApi.deleteRecords(MODELS.PARTNER, [id]);
 
     if (!deleteResult.success) {
-      // ↩️ Rollback si falla
       rollback();
       
       if (deleteResult.error?.isSessionExpired) {
-        return {
-          success: false,
-          message: 'Tu sesión ha expirado',
-        };
+        return { success: false, message: 'Tu sesión ha expirado' };
       }
-      return {
-        success: false,
-        message: odooApi.extractOdooErrorMessage(deleteResult.error),
-      };
+      return { success: false, message: odooApi.extractOdooErrorMessage(deleteResult.error) };
     }
 
-    // ✅ Limpiar caché (confirmación)
+    // ✅ Limpiar caché
     cacheManager.invalidate(CacheKeys.student(id));
     cacheManager.invalidatePattern(`student:${id}:`);
+    invalidateStudentsPaginationCache();
 
     if (__DEV__) {
       console.timeEnd(`⏱️ deleteStudent:${id}`);
-      console.log('✅ Estudiante eliminado');
+      console.log('✅ Estudiante eliminado y caché limpiado');
     }
 
-    return {
-      success: true,
-      message: 'Estudiante eliminado exitosamente',
-    };
+    return { success: true, message: 'Estudiante eliminado exitosamente' };
   } catch (error: any) {
     if (__DEV__) {
       console.error('❌ Error fatal en deleteStudent:', error);
     }
-    return {
-      success: false,
-      message: odooApi.extractOdooErrorMessage(error),
-    };
+    return { success: false, message: odooApi.extractOdooErrorMessage(error) };
   }
 };

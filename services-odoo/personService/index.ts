@@ -5,4 +5,3 @@ export * from './normalizer';
 export * from './parent';
 export type * from './types';
 export * from './validation';
-
