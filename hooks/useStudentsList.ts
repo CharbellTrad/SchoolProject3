@@ -31,8 +31,9 @@ export const useStudentsList = () => {
   }, [students]);
 
   /**
-   * Carga datos de estudiantes
-   * Cache SOLO en modo offline (o lectura inicial si falla red)
+   * ⚡ CARGA DATOS DE ESTUDIANTES
+   * - ONLINE: Siempre obtiene datos FRESCOS del servidor (ignora caché)
+   * - OFFLINE: Usa caché si está disponible
    */
   const loadData = useCallback(async (forceReload: boolean = false) => {
     if (forceReload) {
@@ -43,7 +44,7 @@ export const useStudentsList = () => {
 
     try {
       if (__DEV__) {
-        console.log('🔄 Cargando estudiantes...');
+        console.log('🔄 Cargando lista de estudiantes...');
       }
 
       // 1️⃣ Verificar conexión
@@ -51,16 +52,16 @@ export const useStudentsList = () => {
 
       if (!serverHealth.ok) {
         if (__DEV__) {
-          console.log('🔴 Servidor no disponible');
+          console.log('🔴 Servidor no disponible - Modo Offline');
         }
 
         setIsOfflineMode(true);
 
-        // Intentar caché (Modo Offline)
+        // 📦 Intentar caché (Modo Offline)
         const cachedData = cacheManager.get<Student[]>(CacheKeys.students());
         if (cachedData && cachedData.length > 0) {
           if (__DEV__) {
-            console.log(`📦 Cargando ${cachedData.length} estudiantes desde caché (modo offline)`);
+            console.log(`📦 ${cachedData.length} estudiantes cargados desde caché (offline)`);
           }
           setStudents(cachedData);
           showAlert(
@@ -88,22 +89,26 @@ export const useStudentsList = () => {
         return;
       }
 
-      // 3️⃣ Cargar datos (Online)
+      // 3️⃣ MODO ONLINE: Cargar datos SIEMPRE desde el servidor
       setIsOfflineMode(false);
 
-      // Usamos loadAllStudentsSummary que ya maneja la lógica de cargar solo resumen
-      // forceReload=true evita leer del caché en el servicio, asegurando datos frescos
+      if (__DEV__) {
+        console.log('🌐 Modo Online - Cargando desde servidor...');
+      }
+
+      // ✅ SIEMPRE forzar recarga cuando estamos online
       const data = await loadAllStudentsSummary(true);
       setStudents(data);
 
       if (__DEV__) {
-        console.log(`✅ ${data.length} estudiantes cargados`);
+        console.log(`✅ ${data.length} estudiantes cargados desde servidor`);
       }
     } catch (error) {
       if (__DEV__) console.error('❌ Error loading students:', error);
 
       setIsOfflineMode(true);
 
+      // Intentar caché en caso de error
       const cachedData = cacheManager.get<Student[]>(CacheKeys.students());
       if (cachedData && cachedData.length > 0) {
         setStudents(cachedData);
@@ -168,7 +173,7 @@ export const useStudentsList = () => {
             const result = await deleteStudent(student.id);
 
             if (result.success) {
-              // Recargar lista
+              // 🔄 Recargar lista desde servidor
               loadData(true);
               showAlert('Éxito', 'Estudiante eliminado correctamente');
             } else {
@@ -181,12 +186,10 @@ export const useStudentsList = () => {
   }, [isOfflineMode, loadData]);
 
   /**
-   * Pull-to-refresh: Recarga completa desde servidor
+   * 🔄 Pull-to-refresh: Recarga completa desde servidor
    */
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
     await loadData(true);
-    setRefreshing(false);
   }, [loadData]);
 
   return {
