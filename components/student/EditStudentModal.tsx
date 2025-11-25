@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { listStyles } from '../../constants/Styles';
 import { useParentManagement, useStudentEdit } from '../../hooks';
 import * as authService from '../../services-odoo/authService';
-import { deleteParent, saveParent, Student, updateParent, updateStudent } from '../../services-odoo/personService';
+import { deleteParent, loadStudentFullDetails, saveParent, Student, updateParent, updateStudent } from '../../services-odoo/personService';
 import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../utils/formatHelpers';
 import { validateStudentField } from '../../validators/fieldValidators';
 import { showAlert } from '../showAlert';
@@ -38,6 +38,47 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<EditTab>('general');
   const [isLoading, setIsLoading] = useState(false);
+  const [fullStudent, setFullStudent] = useState<Student | null>(null);
+  const [loadingFullDetails, setLoadingFullDetails] = useState(false);
+
+  // ⚡ Cargar detalles completos cuando el modal se abre
+  useEffect(() => {
+    if (!visible) {
+      setActiveTab('general');
+      setFullStudent(null);
+      return;
+    }
+
+    if (!student) return;
+
+    // 🌐 Cargar detalles completos desde servidor
+    const loadFullDetails = async () => {
+      setLoadingFullDetails(true);
+      
+      if (__DEV__) {
+        console.log(`🔍 Cargando detalles completos para edición del estudiante ${student.id}`);
+      }
+
+      try {
+        const details = await loadStudentFullDetails(student.id);
+        setFullStudent(details);
+        
+        if (__DEV__) {
+          console.log(`✅ Detalles completos cargados para editar estudiante ${student.id}`);
+        }
+      } catch (error) {
+        if (__DEV__) {
+          console.error('❌ Error cargando detalles completos:', error);
+        }
+        // En caso de error, usar datos básicos
+        setFullStudent(student);
+      } finally {
+        setLoadingFullDetails(false);
+      }
+    };
+
+    loadFullDetails();
+  }, [visible, student]);
 
   const {
     formData,
@@ -55,7 +96,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     getImage,
     clearImage,
     loadingParents,
-  } = useStudentEdit(student);
+  } = useStudentEdit(fullStudent); // 👈 Usar fullStudent en lugar de student
 
   const parentManagement = useParentManagement(
     parents,
@@ -69,7 +110,29 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     clearImage
   );
 
-  if (!formData) return null;
+  // Mostrar loading mientras carga detalles
+  if (loadingFullDetails || !formData) {
+    return (
+      <Modal visible={visible} animationType="slide" transparent={true}>
+        <View style={listStyles.modalOverlay}>
+          <View style={listStyles.modalContent}>
+            <View style={listStyles.modalHeader}>
+              <Text style={listStyles.modalTitle}>Cargando...</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={28} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={{ marginTop: 16, color: Colors.textSecondary }}>
+                Cargando información del estudiante...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -156,7 +219,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             console.error('❌ Error al eliminar representante:', error);
           }
 
-          // Detectar error de red
           if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
             showAlert(
               'Error de conexión',
@@ -185,7 +247,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         };
 
         try {
-          // Actualizar representante existente
           if (parent.id) {
             const parentData: Partial<typeof parent> = {
               ...parent,
@@ -207,9 +268,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
                 return;
               }
             }
-          }
-          // Crear nuevo representante
-          else {
+          } else {
             if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone) {
               continue;
             }
@@ -257,7 +316,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             console.error('❌ Error procesando representante:', error);
           }
 
-          // Detectar error de red
           if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
             showAlert(
               'Error de conexión',
@@ -315,7 +373,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         console.error('❌ Error al guardar:', error);
       }
 
-      // Detectar error de red
       if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
         showAlert(
           'Error de conexión',

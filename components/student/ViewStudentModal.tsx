@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { listStyles } from '../../constants/Styles';
@@ -25,6 +25,24 @@ const TABS = [
   { id: 'documents' as ViewTab, label: 'Documentos', icon: 'document' },
 ];
 
+// 🧠 Caché en memoria para estudiantes consultados en la sesión actual
+const studentDetailsCache = new Map<number, { 
+  student: Student; 
+  timestamp: number;
+  sessionId: string; // Para invalidar al salir y volver a entrar
+}>();
+
+let currentSessionId = Date.now().toString();
+
+// Limpiar caché al salir de la lista (cuando el componente padre se desmonta)
+export const invalidateViewCache = () => {
+  currentSessionId = Date.now().toString();
+  studentDetailsCache.clear();
+  if (__DEV__) {
+    console.log('🗑️ Caché de vistas invalidado (salió de la lista)');
+  }
+};
+
 export const ViewStudentModal: React.FC<ViewStudentModalProps> = ({
   visible,
   student,
@@ -34,37 +52,70 @@ export const ViewStudentModal: React.FC<ViewStudentModalProps> = ({
   const [activeTab, setActiveTab] = useState<ViewTab>('general');
   const [fullStudent, setFullStudent] = useState<Student | null>(null);
   const [loadingFullDetails, setLoadingFullDetails] = useState(false);
+  const lastStudentIdRef = useRef<number | null>(null);
 
   // ⚡ Cargar detalles completos cuando el modal se abre
   useEffect(() => {
     if (!visible) {
       setActiveTab('general');
-      setFullStudent(null);
+      lastStudentIdRef.current = null;
       return;
     }
 
     if (!student) return;
+
+    // 🚀 Si es el mismo estudiante que antes, no recargar
+    if (lastStudentIdRef.current === student.id && fullStudent?.id === student.id) {
+      if (__DEV__) {
+        console.log(`⚡ Usando datos ya cargados del estudiante ${student.id} (mismo estudiante)`);
+      }
+      return;
+    }
+
+    lastStudentIdRef.current = student.id;
+
+    // 🧠 Verificar caché en memoria
+    const cached = studentDetailsCache.get(student.id);
+    if (cached && cached.sessionId === currentSessionId) {
+      if (__DEV__) {
+        const age = Math.round((Date.now() - cached.timestamp) / 1000);
+        console.log(`📦 Usando caché en memoria del estudiante ${student.id} (age: ${age}s)`);
+      }
+      setFullStudent(cached.student);
+      return;
+    }
 
     // 🌐 Cargar detalles completos desde servidor
     const loadFullDetails = async () => {
       setLoadingFullDetails(true);
       
       if (__DEV__) {
-        console.log(`🔍 Cargando detalles completos del estudiante ${student.id}`);
+        console.log(`🔍 Cargando detalles completos del estudiante ${student.id} desde servidor`);
       }
 
       try {
         const details = await loadStudentFullDetails(student.id);
-        setFullStudent(details);
         
-        if (__DEV__) {
-          console.log(`✅ Detalles completos cargados para estudiante ${student.id}`);
+        if (details) {
+          setFullStudent(details);
+          
+          // 💾 Guardar en caché de sesión
+          studentDetailsCache.set(student.id, {
+            student: details,
+            timestamp: Date.now(),
+            sessionId: currentSessionId
+          });
+          
+          if (__DEV__) {
+            console.log(`✅ Detalles cargados y guardados en caché para estudiante ${student.id}`);
+          }
+        } else {
+          setFullStudent(student);
         }
       } catch (error) {
         if (__DEV__) {
           console.error('❌ Error cargando detalles completos:', error);
         }
-        // En caso de error, usar datos básicos
         setFullStudent(student);
       } finally {
         setLoadingFullDetails(false);
@@ -72,7 +123,7 @@ export const ViewStudentModal: React.FC<ViewStudentModalProps> = ({
     };
 
     loadFullDetails();
-  }, [visible, student]);
+  }, [visible, student, fullStudent]);
 
   // ⚡ Cargar padres e inscripciones on-demand
   const { parents, inscriptions, loading: loadingRelated } = useStudentDetails({
