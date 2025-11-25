@@ -11,8 +11,9 @@ import * as authService from '../../services-odoo/authService';
 import { formatTimeAgo } from '../../utils/formatHelpers';
 
 export default function AdminDashboard() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, handleSessionExpired } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false); // 👈 NUEVO
 
   /**
    * Función que se ejecuta al deslizar hacia abajo
@@ -25,16 +26,33 @@ export default function AdminDashboard() {
         console.log('🔄 Refrescando dashboard...');
       }
 
+      // 1️⃣ Verificar conexión al servidor primero
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        if (__DEV__) {
+          console.log('🔴 Servidor no disponible durante refresh');
+        }
+        setIsOfflineMode(true); // 🔴 Activar modo offline
+        showAlert(
+          'Sin conexión',
+          'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+        );
+        return;
+      }
+
+      // 2️⃣ Verificar sesión
       const validSession = await authService.verifySession();
 
       if (!validSession) {
         if (__DEV__) {
           console.log('❌ Sesión no válida durante refresh');
         }
-        await logout();
+        handleSessionExpired();
         return;
       }
 
+      // 3️⃣ Actualizar información del usuario
       if (updateUser) {
         await updateUser({
           fullName: validSession.fullName,
@@ -42,6 +60,8 @@ export default function AdminDashboard() {
         });
       }
 
+      setIsOfflineMode(false); // 🟢 Desactivar modo offline
+      
       if (__DEV__) {
         console.log('✅ Dashboard actualizado');
       }
@@ -49,14 +69,15 @@ export default function AdminDashboard() {
       if (__DEV__) {
         console.log('❌ Error al refrescar:', error);
       }
+      setIsOfflineMode(true); // 🔴 Activar modo offline por error
       showAlert(
         'Error',
-        'No se pudo actualizar la información. Verifica tu conexión.'
+        'No se pudo actualizar la información. Verifica tu conexión e intenta nuevamente.'
       );
     } finally {
       setRefreshing(false);
     }
-  }, [logout, updateUser]);
+  }, [handleSessionExpired, updateUser]);
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -114,6 +135,16 @@ export default function AdminDashboard() {
           }
         >
           <View style={styles.dashboardContent}>
+            {/* 🔴 Banner de Modo Offline */}
+            {isOfflineMode && (
+              <View style={styles.offlineBanner}>
+                <Ionicons name="cloud-offline" size={20} color="#fff" />
+                <Text style={styles.offlineText}>
+                  Modo sin conexión - Algunas funciones pueden no estar disponibles
+                </Text>
+              </View>
+            )}
+
             <Text style={styles.sectionTitle}>Gestión Académica</Text>
 
             <View style={styles.cardsGrid}>
@@ -122,6 +153,7 @@ export default function AdminDashboard() {
                 title="Nueva Persona"
                 description="Registrar estudiantes, o personal académico en el sistema"
                 color="#3b82f6"
+                disabled={isOfflineMode}
                 onPress={() => router.push('/admin/academic-management/register-person/select-role' as any)}
               />
               
@@ -130,6 +162,7 @@ export default function AdminDashboard() {
                 title="Nueva Sección o Materia"
                 description="Gestionar secciones y materias del año"
                 color="#10b981"
+                disabled={isOfflineMode}
                 onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
               />
               
@@ -146,6 +179,7 @@ export default function AdminDashboard() {
                 title="Directorio Académico"
                 description="Gestionar secciones o materias disponibles en el sistema"
                 color="#f59e0b"
+                disabled={isOfflineMode}
                 onPress={() => router.push('/admin/academic-management/list-section-subject/select-option' as any)}
               />
             </View>
@@ -158,6 +192,7 @@ export default function AdminDashboard() {
                 title="Gestionar Usuarios"
                 description="Crear y administrar usuarios con acceso"
                 color="#ef4444"
+                disabled={isOfflineMode}
                 onPress={() => router.push('/admin/prueba' as any)}
               />
               
@@ -166,6 +201,7 @@ export default function AdminDashboard() {
                 title="Reportes"
                 description="Ver estadísticas y reportes del sistema"
                 color="#06b6d4"
+                disabled={isOfflineMode}
                 onPress={() => {}}
               />
               
@@ -174,6 +210,7 @@ export default function AdminDashboard() {
                 title="Año Escolar"
                 description="Gestionar períodos y año escolar"
                 color="#ec4899"
+                disabled={isOfflineMode}
                 onPress={() => {}}
               />
               
@@ -182,6 +219,7 @@ export default function AdminDashboard() {
                 title="Configuración"
                 description="Ajustes generales del sistema"
                 color="#6366f1"
+                disabled={isOfflineMode}
                 onPress={() => {}}
               />
             </View>
@@ -225,17 +263,38 @@ interface DashboardCardProps {
   title: string;
   description: string;
   color: string;
+  disabled?: boolean; // 👈 NUEVO
   onPress: () => void;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ icon, title, description, color, onPress }) => {
+const DashboardCard: React.FC<DashboardCardProps> = ({ icon, title, description, color, disabled, onPress }) => {
+  const handlePress = () => {
+    if (disabled) {
+      showAlert(
+        'Sin conexión',
+        'Esta función requiere conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+      );
+      return;
+    }
+    onPress();
+  };
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[styles.card, disabled && styles.cardDisabled]} 
+      onPress={handlePress} 
+      activeOpacity={disabled ? 1 : 0.7}
+    >
       <View style={[styles.cardIcon, { backgroundColor: color + '15' }]}>
-        <Ionicons name={icon} size={28} color={color} />
+        <Ionicons name={icon} size={28} color={disabled ? Colors.textSecondary : color} />
       </View>
-      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
       <Text style={styles.cardDescription}>{description}</Text>
+      {disabled && (
+        <View style={styles.offlineIndicator}>
+          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -338,6 +397,22 @@ const styles = StyleSheet.create({
   dashboardContent: {
     padding: 20,
   },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 20,
+    gap: 8,
+  },
+  offlineText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -362,6 +437,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    position: 'relative',
+  },
+  cardDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f5f5f5',
   },
   cardIcon: {
     width: 56,
@@ -377,10 +457,18 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 6,
   },
+  cardTitleDisabled: {
+    color: Colors.textSecondary,
+  },
   cardDescription: {
     fontSize: 13,
     color: Colors.textSecondary,
     lineHeight: 18,
+  },
+  offlineIndicator: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   infoSection: {
     backgroundColor: '#fff',

@@ -11,8 +11,10 @@ import { Button } from '../../../../components/ui/Button';
 import Colors from '../../../../constants/Colors';
 import { GlobalStyles } from '../../../../constants/Styles';
 import { TabType, useFormValidation, useParentForm, useStudentForm, useTabs } from '../../../../hooks';
+import * as authService from '../../../../services-odoo/authService';
 import { saveParent, saveStudent } from '../../../../services-odoo/personService';
 import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../../../utils/formatHelpers';
+import { compressMultipleImages } from '../../../../utils/imageCompression';
 
 const TABS = [
   { id: 'general' as TabType, label: 'Información General', icon: 'person' },
@@ -127,6 +129,21 @@ export default function RegisterStudentTabsScreen() {
   };
 
   const validateAndSubmit = async () => {
+    // 1️⃣ Verificar conexión PRIMERO
+    const serverHealth = await authService.checkServerHealth();
+
+    if (!serverHealth.ok) {
+      if (__DEV__) {
+        console.log('🔴 Servidor no disponible para guardar');
+      }
+      showAlert(
+        'Sin conexión',
+        'No se puede guardar el estudiante sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+      );
+      return;
+    }
+
+    // 2️⃣ Validaciones de campos
     if (parents.length === 0) {
       showAlert('Error', 'Debe agregar al menos un representante');
       changeTab('parents');
@@ -152,16 +169,31 @@ export default function RegisterStudentTabsScreen() {
       return;
     }
 
+    // ⚡ MOSTRAR FEEDBACK INMEDIATO
+    showAlert('Procesando', 'Guardando estudiante...', []);
     setIsLoading(true);
 
     try {
       const savedParentIds: number[] = [];
       
+      // 🗜️ Comprimir imágenes de padres en paralelo
       for (const parent of parents) {
         if (parent.id) {
           savedParentIds.push(parent.id);
           continue;
         }
+        
+        // Comprimir imágenes del padre si existen
+        const parentImages: Record<string, string> = {};
+        if (parent.image_1920) parentImages.image_1920 = parent.image_1920;
+        if (parent.ci_document) parentImages.ci_document = parent.ci_document;
+        if (parent.parent_singnature) parentImages.parent_singnature = parent.parent_singnature;
+        
+        const compressedParentImages = await compressMultipleImages(parentImages, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.7,
+        });
         
         const parentResult = await saveParent({
           name: parent.name!,
@@ -180,10 +212,10 @@ export default function RegisterStudentTabsScreen() {
           students_ids: [],
           user_id: null,
           active: true,
-          image_1920: parent.image_1920,
-          ci_document: parent.ci_document,
+          image_1920: compressedParentImages.image_1920,
+          ci_document: compressedParentImages.ci_document,
           ci_document_filename: parent.ci_document_filename,
-          parent_singnature: parent.parent_singnature,
+          parent_singnature: compressedParentImages.parent_singnature,
           street: parent.street,
         });
 
@@ -196,10 +228,23 @@ export default function RegisterStudentTabsScreen() {
         }
       }
 
+      // 🗜️ Comprimir imágenes del estudiante
+      const studentImages: Record<string, string> = {};
       const studentPhoto = getImage('student_photo');
       const ciDocument = getImage('ci_document');
       const bornDocument = getImage('born_document');
 
+      if (studentPhoto?.base64) studentImages.image_1920 = studentPhoto.base64;
+      if (ciDocument?.base64) studentImages.ci_document = ciDocument.base64;
+      if (bornDocument?.base64) studentImages.born_document = bornDocument.base64;
+
+      const compressedStudentImages = await compressMultipleImages(studentImages, {
+        maxWidth: 1024,
+        maxHeight: 1024,
+        quality: 0.7,
+      });
+
+      // 3️⃣ Guardar estudiante (con actualización optimista automática)
       const result = await saveStudent({
         ...studentData,
         ...birthData,
@@ -211,10 +256,10 @@ export default function RegisterStudentTabsScreen() {
         born_complication: normalizeYesNo(birthData.born_complication),
         sizes_json: sizesData,
         parents_ids: savedParentIds,
-        image_1920: studentPhoto?.base64,
-        ci_document: ciDocument?.base64,
+        image_1920: compressedStudentImages.image_1920,
+        ci_document: compressedStudentImages.ci_document,
         ci_document_filename: ciDocument?.filename,
-        born_document: bornDocument?.base64,
+        born_document: compressedStudentImages.born_document,
         born_document_filename: bornDocument?.filename,
         brown_folder: studentData.brown_folder,
         boletin_informative: studentData.boletin_informative,
@@ -225,15 +270,29 @@ export default function RegisterStudentTabsScreen() {
       setIsLoading(false);
 
       if (result && result.success) {
-        showAlert('✅ Registro Exitoso', 'Estudiante y representantes registrados correctamente', [
+        // ⚡ UI ya se actualizó optimísticamente
+        showAlert('✅ Registro Exitoso', 'Estudiante registrado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       } else {
         showAlert('❌ Error', result?.message || 'No se pudo registrar');
       }
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      showAlert('❌ Error', 'Ocurrió un error inesperado');
+      
+      if (__DEV__) {
+        console.error('❌ Error al guardar:', error);
+      }
+
+      // Detectar error de red
+      if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+        showAlert(
+          'Error de conexión',
+          'Se perdió la conexión durante el guardado. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+      } else {
+        showAlert('❌ Error', 'Ocurrió un error inesperado al guardar el estudiante');
+      }
     }
   };
 

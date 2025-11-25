@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EmptyState, SearchBar, StatsCards } from '../../../../components/list';
 import { EditStudentModal, StudentCard, ViewStudentModal } from '../../../../components/student';
 import Colors from '../../../../constants/Colors';
@@ -19,6 +19,7 @@ export default function StudentsListScreen() {
     filteredStudents,
     activeStudentsCount,
     students,
+    isOfflineMode,
     setSearchQuery,
     loadData,
     handleDelete,
@@ -71,6 +72,16 @@ export default function StudentsListScreen() {
         </LinearGradient>
 
         <View style={listStyles.content}>
+          {/* 🔴 Banner de Modo Offline */}
+          {isOfflineMode && (
+            <View style={styles.offlineBanner}>
+              <Ionicons name="cloud-offline" size={20} color="#fff" />
+              <Text style={styles.offlineText}>
+                Modo sin conexión - Mostrando datos guardados
+              </Text>
+            </View>
+          )}
+
           <StatsCards
             total={students.length}
             active={activeStudentsCount}
@@ -98,10 +109,21 @@ export default function StudentsListScreen() {
             }
           >
             {filteredStudents.length === 0 ? (
-              <EmptyState 
-                hasSearchQuery={!!searchQuery}
-                entityName="estudiantes"
-              />
+              // 👇 Opción 2: Estado vacío diferente para modo offline
+              isOfflineMode && students.length === 0 ? (
+                <View style={styles.emptyOfflineContainer}>
+                  <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
+                  <Text style={styles.emptyOfflineTitle}>Sin conexión</Text>
+                  <Text style={styles.emptyOfflineText}>
+                    No hay datos guardados. Conecta a internet para cargar estudiantes.
+                  </Text>
+                </View>
+              ) : (
+                <EmptyState 
+                  hasSearchQuery={!!searchQuery}
+                  entityName="estudiantes"
+                />
+              )
             ) : (
               filteredStudents.map((student) => (
                 <StudentCard
@@ -139,3 +161,41 @@ export default function StudentsListScreen() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  offlineText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  emptyOfflineContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyOfflineTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyOfflineText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});

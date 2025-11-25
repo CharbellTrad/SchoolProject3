@@ -13,6 +13,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   updateUser?: (updates: Partial<UserSession>) => Promise<void>;
+  handleSessionExpired: () => void; // 👈 AGREGADO
 }
 
 /**

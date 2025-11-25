@@ -1,3 +1,7 @@
+/**
+ * Hook para monitorear y manejar sesiones expiradas
+ */
+
 import { useCallback, useEffect, useRef } from 'react';
 import { showAlert } from '../../components/showAlert';
 import { UserSession } from '../../types/auth';
@@ -32,6 +36,9 @@ export const useSessionMonitor = ({
    * Muestra la alerta de sesión expirada
    */
   const showSessionExpiredAlert = useCallback(() => {
+    if (__DEV__) {
+      console.log('🔒 [showSessionExpiredAlert] Mostrando alerta');
+    }
 
     // Marcar como manejado
     setSessionExpiredHandled(true);
@@ -47,6 +54,10 @@ export const useSessionMonitor = ({
         {
           text: 'Aceptar',
           onPress: () => {
+            if (__DEV__) {
+              console.log('✅ [onPress Aceptar] Reseteando estados');
+            }
+            
             // Resetear el estado cuando se presiona Aceptar
             setSessionExpiredHandled(false);
             pendingSessionExpiredRef.current = false;
@@ -54,15 +65,24 @@ export const useSessionMonitor = ({
         },
       ],
     );
-  }, [setSessionExpiredHandled, setUser]);
+  }, [setSessionExpiredHandled, setUser]); // 👈 REMOVIDO isSessionExpiredHandled de las dependencias
 
   /**
    * Maneja cuando la sesión expira durante el uso de la app
    */
   const handleSessionExpired = useCallback(() => {
+    if (__DEV__) {
+      console.log('⚠️ [handleSessionExpired] Llamado');
+      console.log('   - isSessionExpiredHandled:', isSessionExpiredHandled);
+      console.log('   - isAppReady:', isAppReady);
+      console.log('   - pendingSessionExpiredRef:', pendingSessionExpiredRef.current);
+    }
 
     // Evitar mostrar múltiples alertas
     if (isSessionExpiredHandled) {
+      if (__DEV__) {
+        console.log('⚠️ Alerta ya manejada, IGNORANDO');
+      }
       return;
     }
 
@@ -87,7 +107,17 @@ export const useSessionMonitor = ({
    * Efecto para mostrar la alerta pendiente cuando la app esté lista
    */
   useEffect(() => {
+    if (__DEV__) {
+      console.log('📡 [useEffect] Verificando condiciones');
+      console.log('   - isAppReady:', isAppReady);
+      console.log('   - pendingSessionExpiredRef:', pendingSessionExpiredRef.current);
+      console.log('   - isSessionExpiredHandled:', isSessionExpiredHandled);
+    }
+
     if (isAppReady && pendingSessionExpiredRef.current && !isSessionExpiredHandled) {
+      if (__DEV__) {
+        console.log('✅ Condiciones cumplidas, mostrando alerta pendiente');
+      }
       showSessionExpiredAlert();
       // Limpiar la referencia pendiente
       pendingSessionExpiredRef.current = false;

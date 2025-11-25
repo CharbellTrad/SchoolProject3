@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { showAlert } from '../components/showAlert';
+import * as authService from '../services-odoo/authService';
 import { canDeleteParent, Parent, ParentFormData, searchParents } from '../services-odoo/personService';
 import { formatDateToDisplay } from '../utils/formatHelpers';
 import { validateParentField } from '../validators/fieldValidators';
@@ -10,7 +11,7 @@ export const useParentManagement = (
   originalParentIds: number[],
   parentsToDelete: number[],
   setParentsToDelete: (ids: number[]) => void,
-  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>, // ✅ Tipo correcto
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
   getImage: (key: string) => { base64?: string; filename?: string } | undefined,
   setImage: (key: string, base64: string, filename: string) => void,
   clearImage: (key: string) => void
@@ -40,9 +41,13 @@ export const useParentManagement = (
   const updateParentField = useCallback((field: string, value: string) => {
     setCurrentParent(prev => ({ ...prev, [field]: value }));
     const error = validateParentField(field, value);
-    setErrors((prev: Record<string, string>) => ({ ...prev, [`parent_${field}`]: error })); // ✅ Tipo explícito
+    setErrors((prev: Record<string, string>) => ({ ...prev, [`parent_${field}`]: error }));
   }, [setErrors]);
 
+  /**
+   * Busca representantes existentes
+   * ✅ Verifica conexión antes de buscar
+   */
   const handleSearchParents = useCallback(async (query: string) => {
     setSearchQuery(query);
     
@@ -52,12 +57,42 @@ export const useParentManagement = (
     }
     
     setSearching(true);
-    const results = await searchParents(query);
-    const filteredResults = results.filter(
-      result => !parents.some(p => p.id === result.id)
-    );
-    setSearchResults(filteredResults);
-    setSearching(false);
+
+    try {
+      // 1️⃣ Verificar conexión primero
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        if (__DEV__) {
+          console.log('🔴 Servidor no disponible para búsqueda');
+        }
+        showAlert(
+          'Sin conexión',
+          'No se puede buscar representantes sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+        setSearchResults([]);
+        setSearching(false);
+        return;
+      }
+
+      // 2️⃣ Realizar búsqueda
+      const results = await searchParents(query);
+      const filteredResults = results.filter(
+        result => !parents.some(p => p.id === result.id)
+      );
+      setSearchResults(filteredResults);
+    } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Error buscando representantes:', error);
+      }
+      showAlert(
+        'Error',
+        'No se pudo realizar la búsqueda. Verifica tu conexión e intenta nuevamente.'
+      );
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
   }, [parents]);
 
   const addExistingParent = useCallback((parent: Parent) => {
@@ -80,7 +115,7 @@ export const useParentManagement = (
     requiredFields.forEach(field => {
       const error = validateParentField(field, currentParent[field as keyof typeof currentParent] as string);
       if (error) {
-        setErrors((prev: Record<string, string>) => ({ ...prev, [`parent_${field}`]: error })); // ✅ Tipo explícito
+        setErrors((prev: Record<string, string>) => ({ ...prev, [`parent_${field}`]: error }));
         isValid = false;
       }
     });
@@ -141,9 +176,14 @@ export const useParentManagement = (
     setShowAddParent(true);
   }, [parents, setImage, clearImage]);
 
+  /**
+   * Elimina o desvincula un representante
+   * ✅ Verifica conexión antes de validar eliminación
+   */
   const removeParent = useCallback(async (index: number, studentId: number) => {
     const parentToRemove = parents[index];
     
+    // Si es un representante nuevo (sin ID), eliminar directamente
     if (!parentToRemove.id) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
@@ -152,73 +192,102 @@ export const useParentManagement = (
     
     const wasOriginallyAssociated = originalParentIds.includes(parentToRemove.id);
     
+    // Si NO era original, solo quitarlo de la lista
     if (!wasOriginallyAssociated) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
       return;
     }
     
-    const validation = await canDeleteParent(parentToRemove.id, studentId);
-    
-    if (!validation.canUnlink) {
-      showAlert('No se puede realizar esta acción', validation.message || 'Error al verificar el representante');
-      return;
-    }
-    
-    if (!validation.canDelete) {
+    // Para representantes originales, necesitamos validar con el servidor
+    try {
+      // 1️⃣ Verificar conexión primero
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        if (__DEV__) {
+          console.log('🔴 Servidor no disponible para eliminar');
+        }
+        showAlert(
+          'Sin conexión',
+          'No se puede eliminar representantes sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+        return;
+      }
+
+      // 2️⃣ Validar si se puede eliminar
+      const validation = await canDeleteParent(parentToRemove.id, studentId);
+      
+      if (!validation.canUnlink) {
+        showAlert('No se puede realizar esta acción', validation.message || 'Error al verificar el representante');
+        return;
+      }
+      
+      // Si no se puede eliminar completamente, solo desvincular
+      if (!validation.canDelete) {
+        showAlert(
+          validation.hasOtherChildren ? 'Desvincular Representante' : 'No se puede eliminar',
+          `${validation.message}\n\nSe desvinculará del estudiante actual.`,
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'Desvincular',
+              onPress: () => {
+                setParents(parents.filter((_, i) => i !== index));
+                showAlert('Éxito', 'El representante será desvinculado al guardar');
+              },
+            },
+          ]
+        );
+        return;
+      }
+      
+      // Si se puede eliminar, dar opciones
       showAlert(
-        validation.hasOtherChildren ? 'Desvincular Representante' : 'No se puede eliminar',
-        `${validation.message}\n\nSe desvinculará del estudiante actual.`,
+        'Eliminar Representante',
+        `¿Qué desea hacer con ${parentToRemove.name}?`,
         [
           { text: 'Cancelar', style: 'cancel' },
           {
-            text: 'Desvincular',
+            text: 'Solo Desvincular',
             onPress: () => {
               setParents(parents.filter((_, i) => i !== index));
               showAlert('Éxito', 'El representante será desvinculado al guardar');
             },
           },
+          {
+            text: 'Eliminar Permanentemente',
+            style: 'destructive',
+            onPress: () => {
+              showAlert(
+                '⚠️ Confirmar Eliminación',
+                `Esta acción eliminará a ${parentToRemove.name} COMPLETAMENTE del sistema al guardar.\n\n¿Está seguro?`,
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Sí, Eliminar',
+                    style: 'destructive',
+                    onPress: () => {
+                      setParentsToDelete([...parentsToDelete, parentToRemove.id!]);
+                      setParents(parents.filter((_, i) => i !== index));
+                      showAlert('Éxito', 'El representante será eliminado permanentemente al guardar');
+                    },
+                  },
+                ]
+              );
+            },
+          },
         ]
       );
-      return;
+    } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Error al validar eliminación:', error);
+      }
+      showAlert(
+        'Error',
+        'No se pudo validar la eliminación del representante. Verifica tu conexión e intenta nuevamente.'
+      );
     }
-    
-    showAlert(
-      'Eliminar Representante',
-      `¿Qué desea hacer con ${parentToRemove.name}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Solo Desvincular',
-          onPress: () => {
-            setParents(parents.filter((_, i) => i !== index));
-            showAlert('Éxito', 'El representante será desvinculado al guardar');
-          },
-        },
-        {
-          text: 'Eliminar Permanentemente',
-          style: 'destructive',
-          onPress: () => {
-            showAlert(
-              '⚠️ Confirmar Eliminación',
-              `Esta acción eliminará a ${parentToRemove.name} COMPLETAMENTE del sistema al guardar.\n\n¿Está seguro?`,
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Sí, Eliminar',
-                  style: 'destructive',
-                  onPress: () => {
-                    setParentsToDelete([...parentsToDelete, parentToRemove.id!]);
-                    setParents(parents.filter((_, i) => i !== index));
-                    showAlert('Éxito', 'El representante será eliminado permanentemente al guardar');
-                  },
-                },
-              ]
-            );
-          },
-        },
-      ]
-    );
   }, [parents, originalParentIds, parentsToDelete, setParents, setParentsToDelete]);
 
   const resetForm = useCallback(() => {
@@ -243,7 +312,7 @@ export const useParentManagement = (
     setShowAddParent(false);
     setEditingParentIndex(null);
     
-    setErrors((prev: Record<string, string>) => { // ✅ Tipo explícito
+    setErrors((prev: Record<string, string>) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach(key => {
         if (key.startsWith('parent_')) {

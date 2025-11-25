@@ -125,6 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     loading,
     updateUser,
+    handleSessionExpired, // 👈 EXPONER handleSessionExpired
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

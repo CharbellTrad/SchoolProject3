@@ -4,6 +4,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, S
 import Colors from '../../constants/Colors';
 import { listStyles } from '../../constants/Styles';
 import { useParentManagement, useStudentEdit } from '../../hooks';
+import * as authService from '../../services-odoo/authService';
 import { deleteParent, saveParent, Student, updateParent, updateStudent } from '../../services-odoo/personService';
 import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../utils/formatHelpers';
 import { validateStudentField } from '../../validators/fieldValidators';
@@ -113,6 +114,21 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   const handleSave = async () => {
+    // 1️⃣ Verificar conexión PRIMERO
+    const serverHealth = await authService.checkServerHealth();
+
+    if (!serverHealth.ok) {
+      if (__DEV__) {
+        console.log('🔴 Servidor no disponible para actualizar');
+      }
+      showAlert(
+        'Sin conexión',
+        'No se puede actualizar el estudiante sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+      );
+      return;
+    }
+
+    // 2️⃣ Validaciones
     if (!validateForm()) {
       showAlert('Error', 'Complete todos los campos requeridos correctamente');
       return;
@@ -125,12 +141,29 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
 
     setIsLoading(true);
+    
     try {
+      // 3️⃣ Eliminar representantes marcados para eliminación
       for (const parentId of parentsToDelete) {
         try {
+          if (__DEV__) {
+            console.log(`🗑️ Eliminando representante ID: ${parentId}`);
+          }
           await deleteParent(parentId);
         } catch (error: any) {
-          showAlert('Error al eliminar representante', error.message || 'No se pudo eliminar el representante');
+          if (__DEV__) {
+            console.error('❌ Error al eliminar representante:', error);
+          }
+          
+          // Detectar error de red
+          if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+            showAlert(
+              'Error de conexión',
+              'Se perdió la conexión al intentar eliminar un representante. Por favor, verifica tu conexión e intenta nuevamente.'
+            );
+          } else {
+            showAlert('Error al eliminar representante', error.message || 'No se pudo eliminar el representante');
+          }
           setIsLoading(false);
           return;
         }
@@ -138,6 +171,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       
       const savedParentIds: number[] = [];
       
+      // 4️⃣ Actualizar o crear representantes
       for (const parent of parents) {
         const commonData = {
           born_date: formatDateToOdoo(parent.born_date || ''),
@@ -149,62 +183,94 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
           emergency_phone_number: parent.emergency_phone_number || '',
         };
 
-        if (parent.id) {
-          const parentData: Partial<typeof parent> = {
-            ...parent,
-            ...commonData,
-          };
+        try {
+          // Actualizar representante existente
+          if (parent.id) {
+            const parentData: Partial<typeof parent> = {
+              ...parent,
+              ...commonData,
+            };
 
-          if (typeof parent.id === 'number') {
-            const result = await updateParent(parent.id, parentData);
+            if (typeof parent.id === 'number') {
+              if (__DEV__) {
+                console.log(`📝 Actualizando representante ID: ${parent.id}`);
+              }
+              
+              const result = await updateParent(parent.id, parentData);
+              
+              if (result.success && result.parent) {
+                savedParentIds.push(result.parent.id);
+              } else {
+                showAlert('Error al actualizar representante', result.message || 'No se pudo actualizar el representante');
+                setIsLoading(false);
+                return;
+              }
+            }
+          } 
+          // Crear nuevo representante
+          else {
+            if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone) {
+              continue;
+            }
+
+            if (__DEV__) {
+              console.log(`➕ Creando nuevo representante: ${parent.name}`);
+            }
+
+            const newParentData: any = {
+              name: parent.name,
+              vat: parent.vat,
+              nationality: parent.nationality,
+              born_date: commonData.born_date,
+              sex: commonData.sex,
+              email: parent.email,
+              phone: commonData.phone,
+              resident_number: commonData.resident_number,
+              emergency_phone_number: commonData.emergency_phone_number,
+              live_with_student: commonData.live_with_student,
+              active_job: commonData.active_job,
+              job_place: parent.job_place || '',
+              job: parent.job || '',
+              students_ids: [formData.id],
+              user_id: null,
+              active: true,
+              image_1920: parent.image_1920,
+              ci_document: parent.ci_document,
+              ci_document_filename: parent.ci_document_filename,
+              parent_singnature: parent.parent_singnature,
+              street: parent.street || '',
+            };
+
+            const result = await saveParent(newParentData);
+            
             if (result.success && result.parent) {
               savedParentIds.push(result.parent.id);
             } else {
-              showAlert('Error al actualizar representante', result.message || 'No se pudo actualizar el representante');
+              showAlert('Error al crear representante', result.message || 'No se pudo crear el representante');
               setIsLoading(false);
               return;
             }
           }
-        } else {
-          if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone) {
-            continue;
+        } catch (error: any) {
+          if (__DEV__) {
+            console.error('❌ Error procesando representante:', error);
           }
-
-          const newParentData: any = {
-            name: parent.name,
-            vat: parent.vat,
-            nationality: parent.nationality,
-            born_date: commonData.born_date,
-            sex: commonData.sex,
-            email: parent.email,
-            phone: commonData.phone,
-            resident_number: commonData.resident_number,
-            emergency_phone_number: commonData.emergency_phone_number,
-            live_with_student: commonData.live_with_student,
-            active_job: commonData.active_job,
-            job_place: parent.job_place || '',
-            job: parent.job || '',
-            students_ids: [formData.id],
-            user_id: null,
-            active: true,
-            image_1920: parent.image_1920,
-            ci_document: parent.ci_document,
-            ci_document_filename: parent.ci_document_filename,
-            parent_singnature: parent.parent_singnature,
-            street: parent.street || '',
-          };
-
-          const result = await saveParent(newParentData);
-          if (result.success && result.parent) {
-            savedParentIds.push(result.parent.id);
+          
+          // Detectar error de red
+          if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+            showAlert(
+              'Error de conexión',
+              'Se perdió la conexión al procesar los representantes. Por favor, verifica tu conexión e intenta nuevamente.'
+            );
           } else {
-            showAlert('Error al crear representante', result.message || 'No se pudo crear el representante');
-            setIsLoading(false);
-            return;
+            showAlert('Error', error.message || 'Error al procesar representante');
           }
+          setIsLoading(false);
+          return;
         }
       }
 
+      // 5️⃣ Actualizar estudiante
       const updateData: Partial<Student> = {
         ...formData,
         born_date: formatDateToOdoo(formData.born_date),
@@ -231,7 +297,12 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         born_document_filename: getImage('born_document')?.filename || formData.born_document_filename,
       };
 
+      if (__DEV__) {
+        console.log('📝 Actualizando estudiante...');
+      }
+
       const result = await updateStudent(formData.id, updateData);
+      
       if (result.success) {
         showAlert('Éxito', 'Estudiante actualizado correctamente');
         onSave();
@@ -239,7 +310,19 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         showAlert('Error al actualizar estudiante', result.message || 'No se pudo actualizar');
       }
     } catch (error: any) {
-      showAlert('Error', error.message || 'Ocurrió un error inesperado');
+      if (__DEV__) {
+        console.error('❌ Error al guardar:', error);
+      }
+      
+      // Detectar error de red
+      if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+        showAlert(
+          'Error de conexión',
+          'Se perdió la conexión durante la actualización. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+      } else {
+        showAlert('Error', error.message || 'Ocurrió un error inesperado');
+      }
     } finally {
       setIsLoading(false);
     }

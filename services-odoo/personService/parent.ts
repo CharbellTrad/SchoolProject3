@@ -1,28 +1,35 @@
 import * as odooApi from '../apiService';
+import { CacheKeys, cacheManager, withCache } from '../cache/cacheManager';
 import { ENROLLMENT_TYPES, MODELS, PARENT_FIELDS } from './constants';
 import { normalizeRecord, prepareParentForOdoo } from './normalizer';
 import type { Parent, PersonServiceResult } from './types';
 
 /**
- * Carga todos los padres/representantes
+ * Carga todos los padres/representantes (con caché)
  */
 export const loadParents = async (): Promise<Parent[]> => {
   try {
-    const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.PARENT]];
-    const result = await odooApi.searchRead(MODELS.PARTNER, domain, PARENT_FIELDS, 1000);
+    return await withCache(
+      CacheKeys.parents(),
+      async () => {
+        const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.PARENT]];
+        const result = await odooApi.searchRead(MODELS.PARTNER, domain, PARENT_FIELDS, 1000);
 
-    if (!result.success) {
-      if (result.error?.isSessionExpired) {
-        return [];
-      }
-      if (__DEV__) {
-        console.error('Error obteniendo representantes:', result.error);
-      }
-      return [];
-    }
+        if (!result.success) {
+          if (result.error?.isSessionExpired) {
+            return [];
+          }
+          if (__DEV__) {
+            console.error('Error obteniendo representantes:', result.error);
+          }
+          return [];
+        }
 
-    const records = result.data || [];
-    return records.map(normalizeRecord);
+        const records = result.data || [];
+        return records.map(normalizeRecord);
+      },
+      5 * 60 * 1000 // 5 minutos
+    );
   } catch (error: any) {
     if (__DEV__) {
       console.error('Error obteniendo representantes:', error.message);
@@ -32,25 +39,37 @@ export const loadParents = async (): Promise<Parent[]> => {
 };
 
 /**
- * Busca padres por nombre o cédula
+ * Busca padres por nombre o cédula (con caché por query)
  */
 export const searchParents = async (query: string): Promise<Parent[]> => {
   try {
-    const domain = ['|', ['name', 'ilike', query], ['vat', 'ilike', query]];
-    const searchResult = await odooApi.search(MODELS.PARTNER, domain, 20);
-
-    if (!searchResult.success || !searchResult.data || searchResult.data.length === 0) {
+    if (!query || query.trim().length < 3) {
       return [];
     }
 
-    const parentIds = searchResult.data;
-    const parentsResult = await odooApi.read(MODELS.PARTNER, parentIds, PARENT_FIELDS);
+    const normalizedQuery = query.trim().toLowerCase();
 
-    if (!parentsResult.success || !parentsResult.data) {
-      return [];
-    }
+    return await withCache(
+      CacheKeys.parentSearch(normalizedQuery),
+      async () => {
+        const domain = ['|', ['name', 'ilike', query], ['vat', 'ilike', query]];
+        const searchResult = await odooApi.search(MODELS.PARTNER, domain, 20);
 
-    return parentsResult.data.map(normalizeRecord);
+        if (!searchResult.success || !searchResult.data || searchResult.data.length === 0) {
+          return [];
+        }
+
+        const parentIds = searchResult.data;
+        const parentsResult = await odooApi.read(MODELS.PARTNER, parentIds, PARENT_FIELDS);
+
+        if (!parentsResult.success || !parentsResult.data) {
+          return [];
+        }
+
+        return parentsResult.data.map(normalizeRecord);
+      },
+      2 * 60 * 1000 // 2 minutos (búsquedas cambian frecuentemente)
+    );
   } catch (error: any) {
     if (__DEV__) {
       console.error('❌ Error en searchParents:', error);
@@ -60,7 +79,7 @@ export const searchParents = async (query: string): Promise<Parent[]> => {
 };
 
 /**
- * Crea un nuevo padre/representante
+ * Crea un nuevo padre/representante (con invalidación de caché)
  */
 export const saveParent = async (
   parent: Omit<Parent, 'id'>
@@ -116,6 +135,14 @@ export const saveParent = async (
       };
     }
 
+    // ✅ Invalidar cachés relevantes
+    cacheManager.invalidate(CacheKeys.parents());
+    cacheManager.invalidatePattern('parent:search:'); // Invalida todas las búsquedas
+
+    if (__DEV__) {
+      console.log('✅ Padre creado, caché invalidado');
+    }
+
     return {
       success: true,
       data: normalizeRecord(readResult.data[0]),
@@ -131,7 +158,7 @@ export const saveParent = async (
 };
 
 /**
- * Actualiza un padre/representante existente
+ * Actualiza un padre/representante existente (optimizado)
  */
 export const updateParent = async (
   id: number,
@@ -139,22 +166,14 @@ export const updateParent = async (
 ): Promise<PersonServiceResult<Parent>> => {
   try {
     if (__DEV__) {
-      console.log('📝 Datos recibidos para actualizar padre:', Object.keys(parentData));
+      console.time(`⏱️ updateParent:${id}`);
     }
 
-    // Excluir campos calculados localmente
+    // Excluir campos calculados
     const { age, avatar_128, ...validData } = parentData;
-
-    if (__DEV__) {
-      console.log('✅ Campos válidos para Odoo:', Object.keys(validData));
-    }
 
     // Preparar datos para Odoo
     const preparedValues = prepareParentForOdoo(validData);
-
-    if (__DEV__) {
-      console.log('🚀 Enviando a Odoo:', Object.keys(preparedValues));
-    }
 
     const updateResult = await odooApi.update(MODELS.PARTNER, [id], preparedValues);
 
@@ -180,10 +199,30 @@ export const updateParent = async (
       };
     }
 
+    const updatedParent = normalizeRecord(readResult.data[0]);
+
+    // ✅ Actualización inteligente del caché
+    const cachedParents = cacheManager.get<Parent[]>(CacheKeys.parents());
+    if (cachedParents) {
+      const index = cachedParents.findIndex(p => p.id === id);
+      if (index !== -1) {
+        cachedParents[index] = updatedParent;
+        cacheManager.set(CacheKeys.parents(), cachedParents, 5 * 60 * 1000);
+      }
+    }
+
+    // Invalidar cachés específicos
+    cacheManager.invalidate(CacheKeys.parent(id));
+    cacheManager.invalidatePattern('parent:search:');
+
+    if (__DEV__) {
+      console.timeEnd(`⏱️ updateParent:${id}`);
+    }
+
     return {
       success: true,
-      data: normalizeRecord(readResult.data[0]),
-      parent: normalizeRecord(readResult.data[0]),
+      data: updatedParent,
+      parent: updatedParent,
       message: 'Representante actualizado exitosamente',
     };
   } catch (error: any) {
@@ -198,7 +237,7 @@ export const updateParent = async (
 };
 
 /**
- * Elimina un padre/representante
+ * Elimina un padre/representante (con limpieza de caché)
  */
 export const deleteParent = async (id: number): Promise<PersonServiceResult> => {
   try {
@@ -215,6 +254,15 @@ export const deleteParent = async (id: number): Promise<PersonServiceResult> => 
         success: false,
         message: odooApi.extractOdooErrorMessage(deleteResult.error),
       };
+    }
+
+    // ✅ Limpiar caché
+    cacheManager.invalidate(CacheKeys.parents());
+    cacheManager.invalidate(CacheKeys.parent(id));
+    cacheManager.invalidatePattern('parent:search:');
+
+    if (__DEV__) {
+      console.log('✅ Padre eliminado, caché limpiado');
     }
 
     return {

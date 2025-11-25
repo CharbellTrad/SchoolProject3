@@ -1,3 +1,4 @@
+import * as NavigationBar from 'expo-navigation-bar'
 import { Slot, useRouter, useSegments } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import LottieView from "lottie-react-native"
@@ -175,15 +176,23 @@ const bottomPosition =
  * Layout principal con Provider
  */
 export default function RootLayout() {
+  useEffect(() => {
+    // Solo para Android
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync('#FFFFFF');
+      NavigationBar.setButtonStyleAsync('dark');
+    }
+  }, []);
+
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ backgroundColor: '#FFFFFF' }}>
       <AppReadyProvider>
         <AuthProvider>
           <RootLayoutNav />
         </AuthProvider>
       </AppReadyProvider>
     </SafeAreaProvider>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
