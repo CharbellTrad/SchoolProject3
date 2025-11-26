@@ -127,7 +127,7 @@ export const useParentManagement = (
 
     const parentWithImages: ParentFormData = {
       ...currentParent,
-      image_1920: getImage('parent_photo')?.base64 || currentParent.image_1920,
+      image_128: getImage('parent_photo')?.base64 || currentParent.image_128,
       ci_document: getImage('parent_ci_document')?.base64 || currentParent.ci_document,
       ci_document_filename: getImage('parent_ci_document')?.filename || currentParent.ci_document_filename,
       parent_singnature: getImage('parent_signature')?.base64 || currentParent.parent_singnature,
@@ -154,8 +154,8 @@ export const useParentManagement = (
     };
     setCurrentParent(formattedParent);
 
-    if (parentToEdit.image_1920) {
-      setImage('parent_photo', parentToEdit.image_1920, 'parent_photo.jpg');
+    if (parentToEdit.image_128) {
+      setImage('parent_photo', parentToEdit.image_128, 'parent_photo.jpg');
     } else {
       clearImage('parent_photo');
     }

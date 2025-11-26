@@ -6,26 +6,28 @@ import Colors from '../../constants/Colors';
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
-  placeholder: string;
+  placeholder?: string;
+  onClear?: () => void; // ✅ NUEVO
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ 
-  value, 
-  onChangeText, 
-  placeholder 
+export const SearchBar: React.FC<SearchBarProps> = ({
+  value,
+  onChangeText,
+  placeholder = 'Buscar...',
+  onClear,
 }) => {
   return (
     <View style={styles.container}>
-      <Ionicons name="search" size={20} color={Colors.textSecondary} />
+      <Ionicons name="search" size={20} color={Colors.textSecondary} style={styles.icon} />
       <TextInput
         style={styles.input}
-        placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        placeholderTextColor={Colors.textTertiary}
+        placeholder={placeholder}
+        placeholderTextColor={Colors.textSecondary}
       />
-      {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText('')}>
+      {value.length > 0 && onClear && (
+        <TouchableOpacity onPress={onClear} style={styles.clearButton}>
           <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
         </TouchableOpacity>
       )}
@@ -38,20 +40,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 20,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
+  icon: {
+    marginRight: 8,
+  },
   input: {
     flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
+    height: 44,
+    fontSize: 14,
     color: Colors.textPrimary,
+  },
+  clearButton: {
+    padding: 4,
   },
 });

@@ -26,10 +26,6 @@ export const useStudentsList = () => {
     );
   }, [searchQuery, students]);
 
-  const activeStudentsCount = useMemo(() => {
-    return students.filter((s) => s.is_active).length;
-  }, [students]);
-
   /**
    * ⚡ CARGA DATOS DE ESTUDIANTES
    * - ONLINE: Siempre obtiene datos FRESCOS del servidor (ignora caché)
@@ -213,7 +209,6 @@ export const useStudentsList = () => {
     students,
     searchQuery,
     filteredStudents,
-    activeStudentsCount,
     isOfflineMode,
     setSearchQuery,
     loadData,

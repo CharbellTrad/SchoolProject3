@@ -94,7 +94,7 @@ export default function RegisterStudentTabsScreen() {
 
     const parentWithImages = {
       ...currentParent,
-      image_1920: getImage('parent_photo')?.base64,
+      image_128: getImage('parent_photo')?.base64,
       ci_document: getImage('parent_ci_document')?.base64,
       ci_document_filename: getImage('parent_ci_document')?.filename,
       parent_singnature: getImage('parent_signature')?.base64,
@@ -110,8 +110,8 @@ export default function RegisterStudentTabsScreen() {
   const handleEditParent = (index: number, parent: any) => {
     startEditingParent(index, parent);
     
-    if (parent.image_1920) {
-      setImage('parent_photo', parent.image_1920, 'parent_photo.jpg');
+    if (parent.image_128) {
+      setImage('parent_photo', parent.image_128, 'parent_photo.jpg');
     }
     if (parent.ci_document) {
       setImage('parent_ci_document', parent.ci_document, parent.ci_document_filename || 'ci.jpg');
@@ -185,7 +185,7 @@ export default function RegisterStudentTabsScreen() {
         
         // Comprimir imágenes del padre si existen
         const parentImages: Record<string, string> = {};
-        if (parent.image_1920) parentImages.image_1920 = parent.image_1920;
+        if (parent.image_128) parentImages.image_128 = parent.image_128;
         if (parent.ci_document) parentImages.ci_document = parent.ci_document;
         if (parent.parent_singnature) parentImages.parent_singnature = parent.parent_singnature;
         
@@ -212,7 +212,7 @@ export default function RegisterStudentTabsScreen() {
           students_ids: [],
           user_id: null,
           active: true,
-          image_1920: compressedParentImages.image_1920,
+          image_128: compressedParentImages.image_128,
           ci_document: compressedParentImages.ci_document,
           ci_document_filename: parent.ci_document_filename,
           parent_singnature: compressedParentImages.parent_singnature,
@@ -234,7 +234,7 @@ export default function RegisterStudentTabsScreen() {
       const ciDocument = getImage('ci_document');
       const bornDocument = getImage('born_document');
 
-      if (studentPhoto?.base64) studentImages.image_1920 = studentPhoto.base64;
+      if (studentPhoto?.base64) studentImages.image_128 = studentPhoto.base64;
       if (ciDocument?.base64) studentImages.ci_document = ciDocument.base64;
       if (bornDocument?.base64) studentImages.born_document = bornDocument.base64;
 
@@ -256,7 +256,7 @@ export default function RegisterStudentTabsScreen() {
         born_complication: normalizeYesNo(birthData.born_complication),
         sizes_json: sizesData,
         parents_ids: savedParentIds,
-        image_1920: compressedStudentImages.image_1920,
+        image_128: compressedStudentImages.image_128,
         ci_document: compressedStudentImages.ci_document,
         ci_document_filename: ciDocument?.filename,
         born_document: compressedStudentImages.born_document,

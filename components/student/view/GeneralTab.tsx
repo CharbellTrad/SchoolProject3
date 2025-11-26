@@ -11,11 +11,11 @@ interface GeneralTabProps {
 export const GeneralTab: React.FC<GeneralTabProps> = ({ student }) => {
   return (
     <>
-      {student.image_1920 && (
+      {student.image_128 && (
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Image
-            source={{ uri: `data:image/jpeg;base64,${student.image_1920}` }}
-            style={{ width: 120, height: 120, borderRadius: 60 }}
+            source={{ uri: `data:image/jpeg;base64,${student.image_128}` }}
+            style={{ width: 120, height: 120, borderRadius: 12 }}
           />
         </View>
       )}

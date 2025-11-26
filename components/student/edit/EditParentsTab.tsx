@@ -116,9 +116,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                 onPress={() => onSelectExistingParent(parent)}
               >
                 <View style={styles.parentCardContent}>
-                  {parent.image_1920 ? (
+                  {parent.image_128 ? (
                     <Image
-                      source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+                      source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                       style={styles.parentAvatar}
                     />
                   ) : (
@@ -377,9 +377,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
         parents.map((parent, index) => (
           <View key={parent.id || index} style={listStyles.card}>
             <View style={styles.parentCardContent}>
-              {parent.image_1920 ? (
+              {parent.image_128 ? (
                 <Image
-                  source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+                  source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                   style={styles.parentAvatar}
                 />
               ) : (
@@ -481,12 +481,12 @@ const styles = StyleSheet.create({
   parentAvatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius:8,
   },
   avatarPlaceholder: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
     backgroundColor: Colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',

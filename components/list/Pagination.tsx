@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
@@ -14,41 +14,58 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
+  const [windowStart, setWindowStart] = useState(1);
+  const WINDOW_SIZE = 6;
+
+  // Sincronizar ventana con página actual al cambiar de página manualmente
+  useEffect(() => {
+    const windowEnd = windowStart + WINDOW_SIZE - 1;
+    
+    // Si la página actual está fuera de la ventana visible, ajustar
+    if (currentPage < windowStart || currentPage > windowEnd) {
+      // Calcular nueva ventana centrada en la página actual
+      const newStart = Math.max(1, currentPage - Math.floor(WINDOW_SIZE / 2));
+      setWindowStart(newStart);
+    }
+  }, [currentPage, windowStart]);
+
   if (totalPages <= 1) return null;
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
+  const getPageNumbers = (): number[] => {
+    const pages: number[] = [];
+    const end = Math.min(windowStart + WINDOW_SIZE - 1, totalPages);
     
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      
-      if (currentPage > 3) pages.push('...');
-      
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-        pages.push(i);
-      }
-      
-      if (currentPage < totalPages - 2) pages.push('...');
-      
-      pages.push(totalPages);
+    for (let i = windowStart; i <= end; i++) {
+      pages.push(i);
     }
     
     return pages;
   };
 
+  const handlePrevWindow = () => {
+    const newStart = Math.max(1, windowStart - WINDOW_SIZE);
+    setWindowStart(newStart);
+  };
+
+  const handleNextWindow = () => {
+    const newStart = Math.min(totalPages - WINDOW_SIZE + 1, windowStart + WINDOW_SIZE);
+    setWindowStart(Math.max(1, newStart));
+  };
+
+  const canGoPrev = windowStart > 1;
+  const canGoNext = windowStart + WINDOW_SIZE - 1 < totalPages;
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.arrow, currentPage === 1 && styles.arrowDisabled]}
-        onPress={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        style={[styles.arrow, !canGoPrev && styles.arrowDisabled]}
+        onPress={handlePrevWindow}
+        disabled={!canGoPrev}
       >
         <Ionicons 
           name="chevron-back" 
           size={20} 
-          color={currentPage === 1 ? Colors.textTertiary : Colors.primary} 
+          color={canGoPrev ? Colors.primary : Colors.textTertiary} 
         />
       </TouchableOpacity>
 
@@ -57,16 +74,14 @@ export const Pagination: React.FC<PaginationProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.pagesContainer}
       >
-        {getPageNumbers().map((page, index) => (
+        {getPageNumbers().map((page) => (
           <TouchableOpacity
-            key={index}
+            key={page}
             style={[
               styles.pageButton,
               page === currentPage && styles.pageButtonActive,
-              page === '...' && styles.pageButtonDots,
             ]}
-            onPress={() => typeof page === 'number' && onPageChange(page)}
-            disabled={page === '...'}
+            onPress={() => onPageChange(page)}
           >
             <Text
               style={[
@@ -81,14 +96,14 @@ export const Pagination: React.FC<PaginationProps> = ({
       </ScrollView>
 
       <TouchableOpacity
-        style={[styles.arrow, currentPage === totalPages && styles.arrowDisabled]}
-        onPress={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        style={[styles.arrow, !canGoNext && styles.arrowDisabled]}
+        onPress={handleNextWindow}
+        disabled={!canGoNext}
       >
         <Ionicons 
           name="chevron-forward" 
           size={20} 
-          color={currentPage === totalPages ? Colors.textTertiary : Colors.primary} 
+          color={canGoNext ? Colors.primary : Colors.textTertiary} 
         />
       </TouchableOpacity>
     </View>
@@ -106,6 +121,8 @@ const styles = StyleSheet.create({
   pagesContainer: {
     gap: 8,
     paddingHorizontal: 8,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   arrow: {
     width: 40,
@@ -114,10 +131,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 2,
   },
   arrowDisabled: {
@@ -131,17 +144,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   pageButtonActive: {
     backgroundColor: Colors.primary,
-  },
-  pageButtonDots: {
-    backgroundColor: 'transparent',
-    shadowOpacity: 0,
-    elevation: 0,
   },
   pageText: {
     fontSize: 14,

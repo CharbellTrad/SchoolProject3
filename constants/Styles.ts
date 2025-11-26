@@ -187,7 +187,7 @@ export const GlobalStyles = StyleSheet.create({
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -298,7 +298,7 @@ export const listStyles = StyleSheet.create({
   avatarContainer: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
     backgroundColor: Colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',

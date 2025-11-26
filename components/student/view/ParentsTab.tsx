@@ -51,9 +51,9 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
               style={listStyles.cardMain}
             >
               <View style={listStyles.avatarContainer}>
-                {parent.image_1920 ? (
+                {parent.image_128 ? (
                   <Image
-                    source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+                    source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                     style={styles.parentAvatar}
                   />
                 ) : (
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   parentAvatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
   },
   expandedContent: {
     paddingHorizontal: 16,

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { showAlert } from '../components/showAlert';
+import * as authService from '../services-odoo/authService'; // ✅ AGREGADO
 import { Parent, searchParents } from '../services-odoo/personService';
 import { formatDateToDisplay } from '../utils/formatHelpers';
 
@@ -33,23 +34,54 @@ export const useParentForm = () => {
     setCurrentParent(prev => ({ ...prev, [field]: value }));
   }, []);
 
+  /**
+   * ✅ Busca representantes existentes CON VERIFICACIÓN DE CONEXIÓN
+   */
   const handleSearchParents = useCallback(async (query: string) => {
     setSearchQuery(query);
-    
+
     if (query.trim().length < 3) {
       setSearchResults([]);
       return;
     }
-    
+
     setSearching(true);
-    const results = await searchParents(query);
-    
-    const filteredResults = results.filter(
-      result => !parents.some(p => p.id === result.id)
-    );
-    
-    setSearchResults(filteredResults);
-    setSearching(false);
+
+    try {
+      // 1️⃣ Verificar conexión primero
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        if (__DEV__) {
+          console.log('🔴 Servidor no disponible para búsqueda de representantes');
+        }
+        showAlert(
+          'Sin conexión',
+          'No se puede buscar representantes sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+        setSearchResults([]);
+        setSearching(false);
+        return;
+      }
+
+      // 2️⃣ Realizar búsqueda
+      const results = await searchParents(query);
+      const filteredResults = results.filter(
+        result => !parents.some(p => p.id === result.id)
+      );
+      setSearchResults(filteredResults);
+    } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Error buscando representantes:', error);
+      }
+      showAlert(
+        'Error',
+        'No se pudo realizar la búsqueda. Verifica tu conexión e intenta nuevamente.'
+      );
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
   }, [parents]);
 
   const addExistingParent = useCallback((parent: Parent) => {

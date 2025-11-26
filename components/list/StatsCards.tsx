@@ -4,19 +4,14 @@ import Colors from '../../constants/Colors';
 
 interface StatsCardsProps {
   total: number;
-  active: number;
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ total, active }) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ total }) => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.number}>{total}</Text>
         <Text style={styles.label}>Total</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.number}>{active}</Text>
-        <Text style={styles.label}>Activos</Text>
       </View>
     </View>
   );

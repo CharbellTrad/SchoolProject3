@@ -22,9 +22,9 @@ export const ParentCard: React.FC<ParentCardProps> = ({
     <View style={GlobalStyles.cardSmall}>
       <View style={styles.header}>
         <View style={[GlobalStyles.avatar, GlobalStyles.avatarPrimary]}>
-          {parent.image_1920 ? (
+          {parent.image_128 ? (
             <Image
-              source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+              source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
               style={styles.avatarImage}
             />
           ) : (
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
   },
   info: {
     flex: 1,

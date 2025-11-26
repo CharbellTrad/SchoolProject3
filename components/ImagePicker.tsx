@@ -294,14 +294,14 @@ const styles = StyleSheet.create({
   circularContainer: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    borderRadius: 12,
   },
   image: {
     width: '100%',
     height: '100%',
   },
   circularImage: {
-    borderRadius: 60,
+    borderRadius: 12,
   },
   placeholder: {
     width: '100%',
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary + '10',
   },
   circularPlaceholder: {
-    borderRadius: 60,
+    borderRadius: 12,
   },
   documentPreview: {
     alignItems: 'center',

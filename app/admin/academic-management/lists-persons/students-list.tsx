@@ -16,14 +16,16 @@ export default function StudentsListScreen() {
   const {
     students,
     loading,
+    initialLoading,
     refreshing,
     searchQuery,
+    searchMode, // ✅ NUEVO
     totalStudents,
-    activeStudents,
     currentPage,
     totalPages,
     isOfflineMode,
     setSearchQuery,
+    exitSearchMode, // ✅ NUEVO
     goToPage,
     onRefresh,
     handleDelete,
@@ -32,7 +34,6 @@ export default function StudentsListScreen() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-
 
   const handleView = (student: Student) => {
     setSelectedStudent(student);
@@ -44,10 +45,11 @@ export default function StudentsListScreen() {
     setShowEditModal(true);
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <View style={listStyles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Cargando estudiantes...</Text>
       </View>
     );
   }
@@ -66,7 +68,7 @@ export default function StudentsListScreen() {
           <TouchableOpacity
             style={[
               listStyles.addButton,
-              isOfflineMode && styles.disabledButton  // 👈 Agregar estilo cuando está offline
+              isOfflineMode && styles.disabledButton
             ]}
             onPress={() => {
               if (isOfflineMode) {
@@ -78,14 +80,13 @@ export default function StudentsListScreen() {
               }
               router.push('/admin/academic-management/register-person/register-student');
             }}
-            disabled={isOfflineMode}  // 👈 Deshabilitar el botón
+            disabled={isOfflineMode}
           >
             <Ionicons name="add" size={24} color={isOfflineMode ? '#9ca3af' : '#fff'} />
           </TouchableOpacity>
         </LinearGradient>
 
         <View style={listStyles.content}>
-          {/* Banner de Modo Offline */}
           {isOfflineMode && (
             <View style={styles.offlineBanner}>
               <Ionicons name="cloud-offline" size={20} color="#fff" />
@@ -95,22 +96,35 @@ export default function StudentsListScreen() {
             </View>
           )}
 
-          <StatsCards
-            total={totalStudents}
-            active={activeStudents}
-          />
+          {!searchMode && (
+            <StatsCards
+              total={totalStudents}
+            />
+          )}
 
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Buscar por nombre o cédula..."
+            onClear={exitSearchMode} // ✅ NUEVO
           />
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
+          {!searchMode && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+            />
+          )}
+
+          {loading && !initialLoading && students.length === 0 && (
+            <View style={styles.pageLoadingContainer}>
+              <ActivityIndicator size="small" color={Colors.primary} />
+              <Text style={styles.pageLoadingText}>
+                {searchMode ? `Buscando "${searchQuery}"...` : `Cargando página ${currentPage} de ${totalPages}...`}
+              </Text>
+            </View>
+          )}
 
           <ScrollView
             style={listStyles.listContainer}
@@ -136,9 +150,17 @@ export default function StudentsListScreen() {
                     No hay datos guardados. Conecta a internet para cargar estudiantes.
                   </Text>
                 </View>
+              ) : searchMode && searchQuery.trim().length < 3 ? (
+                <View style={styles.emptySearchContainer}>
+                  <Ionicons name="search-outline" size={80} color={Colors.textSecondary} />
+                  <Text style={styles.emptySearchTitle}>Escribe para buscar</Text>
+                  <Text style={styles.emptySearchText}>
+                    Ingresa al menos 3 caracteres para comenzar la búsqueda
+                  </Text>
+                </View>
               ) : (
                 <EmptyState
-                  hasSearchQuery={!!searchQuery}
+                  hasSearchQuery={searchMode && searchQuery.trim().length >= 3}
                   entityName="estudiantes"
                 />
               )
@@ -182,6 +204,23 @@ export default function StudentsListScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  pageLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  pageLoadingText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,9 +256,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  // 👇 NUEVO: Estilo para botón deshabilitado
+  emptySearchContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptySearchTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySearchText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   disabledButton: {
     opacity: 0.5,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
+

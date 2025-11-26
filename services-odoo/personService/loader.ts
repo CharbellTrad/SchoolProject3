@@ -90,6 +90,45 @@ export const loadAllStudentsSummary = async (forceReload: boolean = false): Prom
   }
 };
 
+
+/**
+ * ⚡ OBTIENE CONTEOS DE ESTUDIANTES (sin datos)
+ * - Usado para carga inicial rápida
+ * - Retorna: { total: número total, activeCount: número de activos }
+ */
+export const getStudentsTotalCount = async (): Promise<{ total: number; activeCount: number }> => {
+  try {
+    if (__DEV__) {
+      console.time('⏱️ getStudentsTotalCount');
+    }
+
+    const baseDomain = [['type_enrollment', '=', ENROLLMENT_TYPES.STUDENT]];
+    const activeDomain = [...baseDomain, ['is_active', '=', true]];
+    
+    // 🌐 Obtener ambos conteos en paralelo
+    const [totalResult, activeResult] = await Promise.all([
+      odooApi.searchCount(MODELS.PARTNER, baseDomain),
+      odooApi.searchCount(MODELS.PARTNER, activeDomain)
+    ]);
+    
+    const total = totalResult.success ? (totalResult.data || 0) : 0;
+    const activeCount = activeResult.success ? (activeResult.data || 0) : 0;
+
+    if (__DEV__) {
+      console.timeEnd('⏱️ getStudentsTotalCount');
+      console.log(`📊 Total: ${total} estudiantes | Activos: ${activeCount}`);
+    }
+
+    return { total, activeCount };
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error('❌ Error obteniendo conteos:', error);
+    }
+    return { total: 0, activeCount: 0 };
+  }
+};
+
+
 /**
  * ⚡ CARGA ESTUDIANTES CON PAGINACIÓN
  * - ONLINE: Obtiene página específica desde servidor
@@ -103,18 +142,9 @@ export const loadStudentsPaginated = async (
 ): Promise<{ students: Student[]; total: number; page: number; pageSize: number }> => {
   try {
     const offset = (page - 1) * pageSize;
-    const cacheKey = `${CacheKeys.students()}_page_${page}_size_${pageSize}`;
 
-    // 📦 Usar caché si no es forceReload
-    if (!forceReload) {
-      const cached = cacheManager.get<{ students: Student[]; total: number }>(cacheKey);
-      if (cached) {
-        if (__DEV__) {
-          console.log(`📦 Página ${page} desde caché`);
-        }
-        return { ...cached, page, pageSize };
-      }
-    }
+    // ✅ ELIMINADO: Ya no verifica caché aquí
+    // ❌ ANTES: if (!forceReload) { verificaba caché }
 
     if (__DEV__) {
       console.time(`⏱️ loadStudentsPaginated page:${page}`);
@@ -122,7 +152,7 @@ export const loadStudentsPaginated = async (
 
     const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.STUDENT]];
 
-    // 🌐 Cargar página específica desde servidor
+    // 🌐 SIEMPRE cargar página específica desde servidor
     const result = await odooApi.searchRead(
       MODELS.PARTNER,
       domain,
@@ -140,25 +170,17 @@ export const loadStudentsPaginated = async (
       if (__DEV__) {
         console.error('❌ Error cargando página:', result.error);
       }
-      
-      // Fallback: intentar caché
-      const cached = cacheManager.get<{ students: Student[]; total: number }>(cacheKey);
-      if (cached) {
-        return { ...cached, page, pageSize };
-      }
-      
       return { students: [], total: 0, page, pageSize };
     }
 
     const students = (result.data || []).map(normalizeRecord);
 
-    // 💾 Guardar en caché
-    const cacheData = { students, total };
-    cacheManager.set(cacheKey, cacheData, 5 * 60 * 1000); // 5 minutos
+    // ✅ ELIMINADO: Ya no guarda en caché
+    // ❌ ANTES: cacheManager.set(cacheKey, cacheData, ...);
 
     if (__DEV__) {
       console.timeEnd(`⏱️ loadStudentsPaginated page:${page}`);
-      console.log(`✅ Página ${page}: ${students.length}/${total} estudiantes`);
+      console.log(`✅ Página ${page}: ${students.length}/${total} estudiantes (DATOS FRESCOS)`);
     }
 
     return { students, total, page, pageSize };

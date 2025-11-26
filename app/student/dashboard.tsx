@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 8,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',

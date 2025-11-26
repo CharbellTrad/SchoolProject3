@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { showAlert } from '../components/showAlert';
 import { useAuth } from '../contexts/AuthContext';
+import * as odooApi from '../services-odoo/apiService';
 import * as authService from '../services-odoo/authService';
 import {
-    Student,
-    canDeleteStudent,
-    deleteStudent,
-    loadStudentsPaginated,
-    searchStudentsPaginated
+  Student,
+  canDeleteStudent,
+  deleteStudent,
+  loadStudentsPaginated,
+  searchStudentsGlobal,
 } from '../services-odoo/personService';
 
 const ITEMS_PER_PAGE = 5;
@@ -16,29 +17,74 @@ export const useStudentsPagination = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState(false); // ✅ NUEVO
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   const { handleSessionExpired } = useAuth();
 
-  // ✅ Calcular total de páginas
   const totalPages = Math.ceil(totalStudents / ITEMS_PER_PAGE);
 
-  // ✅ Estadísticas (basadas en datos actuales de la página)
-  const activeStudents = useMemo(
-    () => students.filter(s => s.is_active).length,
-    [students]
-  );
-
-  // 🔄 Cargar página actual
-  const loadCurrentPage = useCallback(async (forceReload = false) => {
-    if (forceReload) setRefreshing(true);
-    else setLoading(true);
+  // ⚡ Carga inicial: obtiene solo el total
+  const loadInitialData = useCallback(async () => {
+    setInitialLoading(true);
 
     try {
-      // 1️⃣ Verificar conexión
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        setIsOfflineMode(true);
+        showAlert(
+          'Sin conexión',
+          'No se puede conectar con el servidor. Verifica tu conexión.'
+        );
+        setInitialLoading(false);
+        return;
+      }
+
+      const validSession = await authService.verifySession();
+      if (!validSession) {
+        handleSessionExpired();
+        setInitialLoading(false);
+        return;
+      }
+
+      setIsOfflineMode(false);
+
+      const domain = [['type_enrollment', '=', 'student']];
+      const countResult = await odooApi.searchCount('res.partner', domain);
+      const total = countResult.success ? (countResult.data || 0) : 0;
+      
+      setTotalStudents(total);
+
+      if (__DEV__) {
+        console.log(`✅ Carga inicial completa: ${total} estudiantes totales`);
+      }
+
+      setInitialLoading(false);
+    } catch (error) {
+      if (__DEV__) console.error('❌ Error en carga inicial:', error);
+      setIsOfflineMode(true);
+      setInitialLoading(false);
+    }
+  }, [handleSessionExpired]);
+
+  // 📄 Cargar página actual (modo paginación)
+  const loadCurrentPage = useCallback(async (forceReload = false) => {
+    if (initialLoading && !forceReload) return;
+    if (searchMode) return; // ✅ No cargar páginas en modo búsqueda
+
+    if (forceReload) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+      setStudents([]);
+    }
+
+    try {
       const serverHealth = await authService.checkServerHealth();
 
       if (!serverHealth.ok) {
@@ -48,11 +94,9 @@ export const useStudentsPagination = () => {
           'No se puede conectar con el servidor. Verifica tu conexión.'
         );
         setStudents([]);
-        setTotalStudents(0);
         return;
       }
 
-      // 2️⃣ Verificar sesión
       const validSession = await authService.verifySession();
       if (!validSession) {
         handleSessionExpired();
@@ -61,55 +105,140 @@ export const useStudentsPagination = () => {
 
       setIsOfflineMode(false);
 
-      // 3️⃣ Cargar según si hay búsqueda o no
-      let result;
-      if (searchQuery.trim().length >= 2) {
-        result = await searchStudentsPaginated(searchQuery, currentPage, ITEMS_PER_PAGE);
-      } else {
-        result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, forceReload);
+      const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, forceReload);
+      setStudents(result.students);
+      
+      if (forceReload) {
+        setTotalStudents(result.total);
       }
 
-      setStudents(result.students);
-      setTotalStudents(result.total);
-
       if (__DEV__) {
-        console.log(`✅ Página ${currentPage}: ${result.students.length}/${result.total}`);
+        console.log(`✅ Página ${currentPage}: ${result.students.length}/${result.total || totalStudents}`);
       }
     } catch (error) {
       if (__DEV__) console.error('❌ Error loading page:', error);
       setIsOfflineMode(true);
       setStudents([]);
-      setTotalStudents(0);
     } finally {
       if (forceReload) setRefreshing(false);
       else setLoading(false);
     }
-  }, [currentPage, searchQuery, handleSessionExpired]);
+  }, [currentPage, handleSessionExpired, initialLoading, totalStudents, searchMode]);
 
-  // ⚡ Cargar al montar o cambiar página/búsqueda
-  useEffect(() => {
-    loadCurrentPage();
-  }, [loadCurrentPage]);
-
-  // 📄 Cambiar página
-  const goToPage = useCallback((page: number) => {
-    if (page < 1 || page > totalPages || page === currentPage) return;
-    setCurrentPage(page);
-  }, [totalPages, currentPage]);
-
-  // 🔍 Al buscar, volver a página 1
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
+  // 🔍 Búsqueda global (sin paginación)
+  const performSearch = useCallback(async (query: string) => {
+    if (query.trim().length < 3) {
+      setStudents([]);
+      return;
     }
-  }, [searchQuery]);
 
-  // 🔄 Refresh
+    setLoading(true);
+
+    try {
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        setIsOfflineMode(true);
+        showAlert(
+          'Sin conexión',
+          'No se puede buscar sin conexión a internet.'
+        );
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
+      const validSession = await authService.verifySession();
+      if (!validSession) {
+        handleSessionExpired();
+        setLoading(false);
+        return;
+      }
+
+      setIsOfflineMode(false);
+
+      const results = await searchStudentsGlobal(query, 50);
+      setStudents(results);
+
+      if (__DEV__) {
+        console.log(`🔍 Búsqueda: ${results.length} resultados para "${query}"`);
+      }
+    } catch (error) {
+      if (__DEV__) console.error('❌ Error en búsqueda:', error);
+      setStudents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [handleSessionExpired]);
+
+  // ✅ Entrar en modo búsqueda
+  const enterSearchMode = useCallback(() => {
+    setSearchMode(true);
+    setStudents([]);
+    if (__DEV__) {
+      console.log('🔍 Modo búsqueda activado');
+    }
+  }, []);
+
+  // ✅ Salir del modo búsqueda
+  const exitSearchMode = useCallback(() => {
+    setSearchMode(false);
+    setSearchQuery('');
+    setStudents([]);
+    setCurrentPage(1);
+    if (__DEV__) {
+      console.log('📄 Modo paginación restaurado');
+    }
+  }, []);
+
+  // Carga inicial
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Cargar página (solo en modo paginación)
+  useEffect(() => {
+    if (!initialLoading && !searchMode) {
+      loadCurrentPage();
+    }
+  }, [currentPage, initialLoading, searchMode]);
+
+  // Manejar cambios en searchQuery
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      // Entrar en modo búsqueda
+      if (!searchMode) {
+        enterSearchMode();
+      }
+      // Realizar búsqueda si hay 3+ caracteres
+      if (searchQuery.trim().length >= 3) {
+        performSearch(searchQuery);
+      } else {
+        setStudents([]);
+      }
+    } else if (searchMode) {
+      // Si se borra todo el query, salir del modo búsqueda
+      exitSearchMode();
+    }
+  }, [searchQuery, searchMode, enterSearchMode, exitSearchMode, performSearch]);
+
+  const goToPage = useCallback((page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage || searchMode) return;
+    setCurrentPage(page);
+  }, [totalPages, currentPage, searchMode]);
+
   const onRefresh = useCallback(async () => {
-    await loadCurrentPage(true);
-  }, [loadCurrentPage]);
+    if (searchMode) {
+      // En modo búsqueda, rehacer la búsqueda
+      if (searchQuery.trim().length >= 3) {
+        await performSearch(searchQuery);
+      }
+    } else {
+      // En modo paginación, recargar página
+      await loadCurrentPage(true);
+    }
+  }, [searchMode, searchQuery, performSearch, loadCurrentPage]);
 
-  // 🗑️ Eliminar estudiante
   const handleDelete = useCallback(async (student: Student) => {
     if (isOfflineMode) {
       showAlert(
@@ -144,7 +273,11 @@ export const useStudentsPagination = () => {
             const result = await deleteStudent(student.id);
 
             if (result.success) {
-              await loadCurrentPage(true);
+              if (searchMode && searchQuery.trim().length >= 3) {
+                await performSearch(searchQuery);
+              } else {
+                await loadCurrentPage(true);
+              }
               showAlert('Éxito', 'Estudiante eliminado correctamente');
             } else {
               showAlert('Error', result.message || 'No se pudo eliminar');
@@ -153,19 +286,21 @@ export const useStudentsPagination = () => {
         },
       ]
     );
-  }, [isOfflineMode, loadCurrentPage]);
+  }, [isOfflineMode, searchMode, searchQuery, performSearch, loadCurrentPage]);
 
   return {
     students,
     loading,
+    initialLoading,
     refreshing,
     searchQuery,
+    searchMode, // ✅ NUEVO
     totalStudents,
-    activeStudents,
     currentPage,
     totalPages,
     isOfflineMode,
     setSearchQuery,
+    exitSearchMode, // ✅ NUEVO
     goToPage,
     onRefresh,
     handleDelete,
