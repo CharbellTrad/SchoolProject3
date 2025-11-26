@@ -36,9 +36,6 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
     return formatted;
   };
 
-  const isYes = (value?: string) => 
-    value?.toLowerCase() === 'si' || value?.toLowerCase() === 'sí';
-
   return (
     <>
       <ImagePickerComponent
@@ -164,25 +161,24 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
         required
       />
 
-      {isYes(parent.active_job) && (
-        <>
-          <Input
-            label="Lugar de Trabajo"
-            placeholder="Empresa ABC"
-            value={parent.job_place}
-            onChangeText={(text) => onFieldChange('job_place', text)}
-            leftIcon="business"
-          />
+      {/* ✅ CAMBIO: Campos siempre visibles y obligatorios */}
+      <Input
+        label="Lugar de Trabajo *"
+        placeholder="Empresa ABC"
+        value={parent.job_place}
+        onChangeText={(text) => onFieldChange('job_place', text)}
+        leftIcon="business"
+        error={errors.parent_job_place}
+      />
 
-          <Input
-            label="Cargo"
-            placeholder="Ingeniero, Docente..."
-            value={parent.job}
-            onChangeText={(text) => onFieldChange('job', text)}
-            leftIcon="briefcase"
-          />
-        </>
-      )}
+      <Input
+        label="Cargo *"
+        placeholder="Ingeniero, Docente..."
+        value={parent.job}
+        onChangeText={(text) => onFieldChange('job', text)}
+        leftIcon="briefcase"
+        error={errors.parent_job}
+      />
 
       <View style={FormStyles.section}>
         <ImagePickerComponent

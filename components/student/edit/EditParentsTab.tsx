@@ -71,9 +71,6 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
     return formatted;
   };
 
-  const isYes = (value?: string) =>
-    value?.toLowerCase() === 'si' || value?.toLowerCase() === 'sí';
-
   if (showSearchParent) {
     return (
       <View style={listStyles.editSection}>
@@ -288,25 +285,24 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
           required
         />
 
-        {isYes(currentParent.active_job) && (
-          <>
-            <Input
-              label="Lugar de Trabajo"
-              placeholder="Empresa ABC"
-              value={currentParent.job_place}
-              onChangeText={(text) => onParentFieldChange('job_place', text)}
-              leftIcon="business"
-            />
+        {/* ✅ CAMBIO: Campos siempre visibles y obligatorios */}
+        <Input
+          label="Lugar de Trabajo *"
+          placeholder="Empresa ABC"
+          value={currentParent.job_place}
+          onChangeText={(text) => onParentFieldChange('job_place', text)}
+          leftIcon="business"
+          error={errors.parent_job_place}
+        />
 
-            <Input
-              label="Cargo"
-              placeholder="Ingeniero, Docente..."
-              value={currentParent.job}
-              onChangeText={(text) => onParentFieldChange('job', text)}
-              leftIcon="briefcase"
-            />
-          </>
-        )}
+        <Input
+          label="Cargo *"
+          placeholder="Ingeniero, Docente..."
+          value={currentParent.job}
+          onChangeText={(text) => onParentFieldChange('job', text)}
+          leftIcon="briefcase"
+          error={errors.parent_job}
+        />
 
         <View style={styles.documentSection}>
           <Text style={styles.documentLabel}>Cédula de Identidad del Representante</Text>

@@ -109,7 +109,8 @@ export const useParentManagement = (
   }, [parents, setParents]);
 
   const addOrUpdateParent = useCallback(() => {
-    const requiredFields = ['name', 'vat', 'nationality', 'born_date', 'sex', 'email', 'phone', 'emergency_phone_number', 'live_with_student', 'active_job'];
+    // ✅ CAMBIO: Agregados 'job_place' y 'job' a los campos requeridos
+    const requiredFields = ['name', 'vat', 'nationality', 'born_date', 'sex', 'email', 'phone', 'emergency_phone_number', 'live_with_student', 'active_job', 'job_place', 'job'];
     let isValid = true;
 
     requiredFields.forEach(field => {

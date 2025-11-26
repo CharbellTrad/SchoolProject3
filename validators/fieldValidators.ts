@@ -321,17 +321,20 @@ export const validateParentField = (field: string, value: string): string => {
 
     // LUGAR DE TRABAJO
     case 'job_place':
-      if (value && value.trim() && value.trim().length < 3) {
+      if (!value || !value.trim()) return 'El lugar de trabajo es requerido';
+      if (value.trim().length < 3) {
         return 'El lugar de trabajo debe tener al menos 3 caracteres';
       }
       break;
 
     // CARGO
     case 'job':
-      if (value && value.trim() && value.trim().length < 3) {
+      if (!value || !value.trim()) return 'El cargo es requerido';
+      if (value.trim().length < 3) {
         return 'El cargo debe tener al menos 3 caracteres';
       }
       break;
+
 
     default:
       return '';

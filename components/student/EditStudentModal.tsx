@@ -269,7 +269,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
               }
             }
           } else {
-            if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone) {
+            // ✅ CAMBIO: Agregados job_place y job como campos obligatorios
+            if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone || !parent.job_place || !parent.job) {
               continue;
             }
 

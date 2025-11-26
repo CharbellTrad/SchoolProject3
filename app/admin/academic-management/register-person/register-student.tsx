@@ -79,10 +79,11 @@ export default function RegisterStudentTabsScreen() {
   };
 
   const handleAddParent = () => {
+    // ✅ CAMBIO: Agregados 'job_place' y 'job' a los campos requeridos
     const requiredFields = [
       'name', 'vat', 'nationality', 'born_date', 'sex', 
       'email', 'phone', 'emergency_phone_number', 
-      'live_with_student', 'active_job'
+      'live_with_student', 'active_job', 'job_place', 'job'
     ];
 
     const isValid = validateFields(requiredFields, currentParent, true);

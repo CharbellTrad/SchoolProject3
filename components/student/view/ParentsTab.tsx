@@ -41,8 +41,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
     <InfoSection title="Representantes del Estudiante">
       {student.parents.map((parent) => {
         const isExpanded = expandedParent === parent.id;
-        const isYes = (value?: string) =>
-          value?.toLowerCase() === 'si' || value?.toLowerCase() === 'sí';
 
         return (
           <View key={parent.id} style={listStyles.card}>
@@ -93,12 +91,9 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
                 <InfoRow label="¿Vive con el estudiante?" value={formatYesNo(parent.live_with_student)} icon="home" />
                 <InfoRow label="¿Tiene empleo?" value={formatYesNo(parent.active_job)} icon="briefcase" />
 
-                {isYes(parent.active_job) && (
-                  <>
-                    {parent.job_place && <InfoRow label="Lugar de Trabajo" value={parent.job_place} icon="business" />}
-                    {parent.job && <InfoRow label="Cargo" value={parent.job} icon="briefcase" />}
-                  </>
-                )}
+                {/* ✅ CAMBIO: Campos siempre visibles */}
+                <InfoRow label="Lugar de Trabajo" value={parent.job_place || "No disponible"} icon="business" />
+                <InfoRow label="Cargo" value={parent.job || "No disponible"} icon="briefcase" />
 
                 {parent.ci_document && (
                   <View style={styles.documentSection}>
