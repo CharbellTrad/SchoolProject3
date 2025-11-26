@@ -131,39 +131,63 @@ export const getStudentsTotalCount = async (): Promise<{ total: number; activeCo
 
 /**
  * ⚡ CARGA ESTUDIANTES CON PAGINACIÓN
- * - ONLINE: Obtiene página específica desde servidor
- * - OFFLINE: Usa caché completo y pagina localmente
+ * - ONLINE: Obtiene página específica desde servidor Y guarda en caché
+ * - OFFLINE: Usa caché de página si existe
  * - Retorna: { students, total, page, pageSize }
  */
 export const loadStudentsPaginated = async (
   page: number = 1,
   pageSize: number = 5,
-  forceReload: boolean = false
+  isOffline: boolean = false
 ): Promise<{ students: Student[]; total: number; page: number; pageSize: number }> => {
   try {
     const offset = (page - 1) * pageSize;
+    const pageCacheKey = CacheKeys.studentsPage(page, pageSize);
+    const metaCacheKey = CacheKeys.studentsPaginationMeta();
 
-    // ✅ ELIMINADO: Ya no verifica caché aquí
-    // ❌ ANTES: if (!forceReload) { verificaba caché }
+    // ✅ MODO OFFLINE: Intentar usar caché
+    if (isOffline) {
+      const cachedPage = cacheManager.get<Student[]>(pageCacheKey);
+      const cachedMeta = cacheManager.get<{ total: number }>(metaCacheKey);
 
+      if (cachedPage && cachedMeta) {
+        if (__DEV__) {
+          console.log(`📦 [OFFLINE] Página ${page} desde caché: ${cachedPage.length} estudiantes`);
+        }
+        return {
+          students: cachedPage,
+          total: cachedMeta.total,
+          page,
+          pageSize
+        };
+      } else {
+        if (__DEV__) {
+          console.log(`⚠️ [OFFLINE] No hay caché para página ${page}`);
+        }
+        return { students: [], total: 0, page, pageSize };
+      }
+    }
+
+    // 🌐 MODO ONLINE: SIEMPRE cargar desde servidor
     if (__DEV__) {
       console.time(`⏱️ loadStudentsPaginated page:${page}`);
     }
 
     const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.STUDENT]];
 
-    // 🌐 SIEMPRE cargar página específica desde servidor
-    const result = await odooApi.searchRead(
-      MODELS.PARTNER,
-      domain,
-      STUDENT_SUMMARY_FIELDS,
-      pageSize,
-      offset,
-      'name asc'
-    );
+    // Obtener datos de la página y total en paralelo
+    const [result, countResult] = await Promise.all([
+      odooApi.searchRead(
+        MODELS.PARTNER,
+        domain,
+        STUDENT_SUMMARY_FIELDS,
+        pageSize,
+        offset,
+        'name asc'
+      ),
+      odooApi.searchCount(MODELS.PARTNER, domain)
+    ]);
 
-    // Obtener total de registros
-    const countResult = await odooApi.searchCount(MODELS.PARTNER, domain);
     const total = countResult.success ? (countResult.data || 0) : 0;
 
     if (!result.success) {
@@ -175,12 +199,13 @@ export const loadStudentsPaginated = async (
 
     const students = (result.data || []).map(normalizeRecord);
 
-    // ✅ ELIMINADO: Ya no guarda en caché
-    // ❌ ANTES: cacheManager.set(cacheKey, cacheData, ...);
+    // 💾 GUARDAR EN CACHÉ para uso offline futuro
+    cacheManager.set(pageCacheKey, students, 24 * 60 * 60 * 1000); // 24 horas
+    cacheManager.set(metaCacheKey, { total }, 24 * 60 * 60 * 1000);
 
     if (__DEV__) {
       console.timeEnd(`⏱️ loadStudentsPaginated page:${page}`);
-      console.log(`✅ Página ${page}: ${students.length}/${total} estudiantes (DATOS FRESCOS)`);
+      console.log(`✅ [ONLINE] Página ${page}: ${students.length}/${total} estudiantes (guardado en caché)`);
     }
 
     return { students, total, page, pageSize };
@@ -202,7 +227,7 @@ export const searchStudentsPaginated = async (
 ): Promise<{ students: Student[]; total: number; page: number; pageSize: number }> => {
   try {
     if (!query || query.trim().length < 2) {
-      return loadStudentsPaginated(page, pageSize);
+      return loadStudentsPaginated(page, pageSize, false);
     }
 
     const offset = (page - 1) * pageSize;
@@ -382,7 +407,8 @@ const batchLoadInscriptions = async (inscriptionIds: number[]): Promise<Inscript
  * 🗑️ INVALIDAR CACHÉ
  */
 export const invalidateStudentsPaginationCache = (): void => {
-  cacheManager.invalidatePattern('students');
+  cacheManager.invalidatePattern('students:page');
+  cacheManager.invalidatePattern('students:pagination');
   cacheManager.invalidatePattern('student:');
 
   if (__DEV__) {

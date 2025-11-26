@@ -55,6 +55,7 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
                   <Image
                     source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                     style={styles.parentAvatar}
+                    resizeMode='cover'
                   />
                 ) : (
                   <Ionicons name="person" size={32} color={Colors.primary} />
@@ -105,7 +106,7 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
                     <Image
                       source={{ uri: `data:image/jpeg;base64,${parent.ci_document}` }}
                       style={styles.documentImage}
-                      resizeMode="contain"
+                      resizeMode='contain'
                     />
                   </View>
                 )}
@@ -116,7 +117,7 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
                     <Image
                       source={{ uri: `data:image/jpeg;base64,${parent.parent_singnature}` }}
                       style={styles.signatureImage}
-                      resizeMode="contain"
+                      resizeMode='contain'
                     />
                   </View>
                 )}

@@ -120,6 +120,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                     <Image
                       source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                       style={styles.parentAvatar}
+                      resizeMode='cover'
                     />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
@@ -381,6 +382,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                   style={styles.parentAvatar}
+                  resizeMode='cover'
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>

@@ -21,6 +21,7 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, on
             <Image
               source={{ uri: `data:image/jpeg;base64,${student.image_128}` }}
               style={{ width: 50, height: 50, borderRadius: 8 }}
+              resizeMode='cover' // ✅ CAMBIO: Muestra la imagen completa
             />
           ) : (
             <Ionicons name="person" size={28} color={Colors.primary} />
@@ -100,7 +101,7 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, on
     prevProps.student.name === nextProps.student.name &&
     prevProps.student.is_active === nextProps.student.is_active &&
     prevProps.student.vat === nextProps.student.vat &&
-    prevProps.student.image_128 === nextProps.student.image_128 && // ✅ AGREGADO
+    prevProps.student.image_128 === nextProps.student.image_128 &&
     prevProps.isOfflineMode === nextProps.isOfflineMode
   );
 });

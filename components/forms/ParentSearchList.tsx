@@ -72,6 +72,7 @@ export const ParentSearchList: React.FC<ParentSearchListProps> = ({
                     <Image
                       source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
                       style={styles.avatarImage}
+                      resizeMode='cover'
                     />
                   ) : (
                     <Ionicons name="person" size={28} color={Colors.secondary} />

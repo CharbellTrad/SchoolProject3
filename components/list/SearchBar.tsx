@@ -7,7 +7,7 @@ interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  onClear?: () => void; // ✅ NUEVO
+  onClear?: () => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginBottom: 16,
+    marginBottom: 2, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

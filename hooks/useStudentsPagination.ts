@@ -21,7 +21,7 @@ export const useStudentsPagination = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchMode, setSearchMode] = useState(false); // ✅ NUEVO
+  const [searchMode, setSearchMode] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   const { handleSessionExpired } = useAuth();
@@ -37,10 +37,25 @@ export const useStudentsPagination = () => {
 
       if (!serverHealth.ok) {
         setIsOfflineMode(true);
-        showAlert(
-          'Sin conexión',
-          'No se puede conectar con el servidor. Verifica tu conexión.'
-        );
+        
+        // ✅ Intentar cargar página 1 desde caché
+        const result = await loadStudentsPaginated(1, ITEMS_PER_PAGE, true);
+        
+        if (result.students.length > 0) {
+          setStudents(result.students);
+          setTotalStudents(result.total);
+          setCurrentPage(1);
+          
+          if (__DEV__) {
+            console.log(`📦 [OFFLINE] Cargado desde caché: ${result.students.length} estudiantes`);
+          }
+        } else {
+          showAlert(
+            'Sin conexión',
+            'No hay datos guardados. Conecta a internet para cargar estudiantes.'
+          );
+        }
+        
         setInitialLoading(false);
         return;
       }
@@ -75,7 +90,7 @@ export const useStudentsPagination = () => {
   // 📄 Cargar página actual (modo paginación)
   const loadCurrentPage = useCallback(async (forceReload = false) => {
     if (initialLoading && !forceReload) return;
-    if (searchMode) return; // ✅ No cargar páginas en modo búsqueda
+    if (searchMode) return; // No cargar páginas en modo búsqueda
 
     if (forceReload) {
       setRefreshing(true);
@@ -89,11 +104,19 @@ export const useStudentsPagination = () => {
 
       if (!serverHealth.ok) {
         setIsOfflineMode(true);
-        showAlert(
-          'Sin conexión',
-          'No se puede conectar con el servidor. Verifica tu conexión.'
-        );
-        setStudents([]);
+        
+        // ✅ MODO OFFLINE: Intentar cargar desde caché
+        const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, true);
+        
+        setStudents(result.students);
+        
+        if (result.students.length === 0) {
+          showAlert(
+            'Sin conexión',
+            `No hay datos guardados para la página ${currentPage}. Solo puedes ver páginas que hayas visitado anteriormente con conexión.`
+          );
+        }
+        
         return;
       }
 
@@ -105,7 +128,8 @@ export const useStudentsPagination = () => {
 
       setIsOfflineMode(false);
 
-      const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, forceReload);
+      // 🌐 MODO ONLINE: Cargar desde servidor (automáticamente guardará en caché)
+      const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, false);
       setStudents(result.students);
       
       if (forceReload) {
@@ -125,7 +149,7 @@ export const useStudentsPagination = () => {
     }
   }, [currentPage, handleSessionExpired, initialLoading, totalStudents, searchMode]);
 
-  // 🔍 Búsqueda global (sin paginación)
+  // 🔍 Búsqueda global (sin paginación) - SOLO ONLINE
   const performSearch = useCallback(async (query: string) => {
     if (query.trim().length < 3) {
       setStudents([]);
@@ -294,13 +318,13 @@ export const useStudentsPagination = () => {
     initialLoading,
     refreshing,
     searchQuery,
-    searchMode, // ✅ NUEVO
+    searchMode,
     totalStudents,
     currentPage,
     totalPages,
     isOfflineMode,
     setSearchQuery,
-    exitSearchMode, // ✅ NUEVO
+    exitSearchMode,
     goToPage,
     onRefresh,
     handleDelete,

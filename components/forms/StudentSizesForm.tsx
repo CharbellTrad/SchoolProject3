@@ -24,7 +24,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
             <Image
               source={require('../../assets/images/body-diagram.png')}
               style={styles.image}
-              resizeMode="contain"
+              resizeMode='contain'
             />
           </View>
 

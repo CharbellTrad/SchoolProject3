@@ -218,7 +218,7 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
               <Image
                 source={{ uri: value.startsWith('data:') ? value : `data:image/jpeg;base64,${value}` }}
                 style={[styles.image, circular && styles.circularImage]}
-                resizeMode="cover"
+                resizeMode='cover'
               />
             ) : (
               <View style={[styles.placeholder, circular && styles.circularPlaceholder]}>

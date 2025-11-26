@@ -26,6 +26,7 @@ export const ParentCard: React.FC<ParentCardProps> = ({
             <Image
               source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
               style={styles.avatarImage}
+              resizeMode='cover'
             />
           ) : (
             <Ionicons name="person" size={32} color={Colors.primary} />

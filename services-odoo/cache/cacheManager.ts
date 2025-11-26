@@ -173,6 +173,10 @@ export const CacheKeys = {
   studentParents: (id: number) => `student:${id}:parents`,
   studentInscriptions: (id: number) => `student:${id}:inscriptions`,
   
+  // ✅ NUEVO: Paginación de estudiantes
+  studentsPage: (page: number, pageSize: number) => `students:page:${page}:size:${pageSize}`,
+  studentsPaginationMeta: () => 'students:pagination:meta',
+  
   // Padres
   parents: () => 'parents:all',
   parent: (id: number) => `parent:${id}`,

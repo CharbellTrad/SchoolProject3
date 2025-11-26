@@ -40,7 +40,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ student }) => {
           <Image
             source={{ uri: `data:image/jpeg;base64,${student.ci_document}` }}
             style={styles.documentImage}
-            resizeMode="contain"
+            resizeMode='contain'
           />
         ) : (
           <Text style={styles.notAvailable}>No disponible</Text>
@@ -53,7 +53,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ student }) => {
           <Image
             source={{ uri: `data:image/jpeg;base64,${student.born_document}` }}
             style={styles.documentImage}
-            resizeMode="contain"
+            resizeMode='contain'
           />
         ) : (
           <Text style={styles.notAvailable}>No disponible</Text>

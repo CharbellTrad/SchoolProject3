@@ -172,7 +172,7 @@ export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student, loadi
                       <Image
                         source={{ uri: `data:image/jpeg;base64,${inscription.parent_singnature}` }}
                         style={styles.signatureImage}
-                        resizeMode="contain"
+                        resizeMode='contain'
                       />
                       {inscription.parent_siganture_date && (
                         <Text style={styles.signatureDate}>
