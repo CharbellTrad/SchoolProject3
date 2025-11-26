@@ -51,7 +51,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
     if (!student) return;
 
-    // 🌐 Cargar detalles completos desde servidor
+    // 🌐 Cargar detalles completos desde servidor (SIEMPRE)
     const loadFullDetails = async () => {
       setLoadingFullDetails(true);
       
@@ -78,7 +78,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     };
 
     loadFullDetails();
-  }, [visible, student]);
+  }, [visible, student]); // ✅ Se recarga cada vez que visible o student cambian
 
   const {
     formData,

@@ -1,38 +1,38 @@
+import { showAlert } from '@/components/showAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { EmptyState, SearchBar, StatsCards } from '../../../../components/list';
+import { EmptyState, Pagination, SearchBar, StatsCards } from '../../../../components/list';
 import { EditStudentModal, StudentCard, ViewStudentModal } from '../../../../components/student';
 import Colors from '../../../../constants/Colors';
 import { listStyles } from '../../../../constants/Styles';
-import { useStudentsList } from '../../../../hooks';
+import { useStudentsPagination } from '../../../../hooks/useStudentsPagination';
 import { Student } from '../../../../services-odoo/personService';
 
 export default function StudentsListScreen() {
   const {
+    students,
     loading,
     refreshing,
     searchQuery,
-    filteredStudents,
-    activeStudentsCount,
-    students,
+    totalStudents,
+    activeStudents,
+    currentPage,
+    totalPages,
     isOfflineMode,
     setSearchQuery,
-    loadData,
-    handleDelete,
+    goToPage,
     onRefresh,
-  } = useStudentsList();
+    handleDelete,
+  } = useStudentsPagination();
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    loadData(false);
-  }, [loadData]);
 
   const handleView = (student: Student) => {
     setSelectedStudent(student);
@@ -64,10 +64,23 @@ export default function StudentsListScreen() {
           </TouchableOpacity>
           <Text style={listStyles.headerTitle}>Matrículas</Text>
           <TouchableOpacity
-            style={listStyles.addButton}
-            onPress={() => router.push('/admin/academic-management/register-person/register-student')}
+            style={[
+              listStyles.addButton,
+              isOfflineMode && styles.disabledButton  // 👈 Agregar estilo cuando está offline
+            ]}
+            onPress={() => {
+              if (isOfflineMode) {
+                showAlert(
+                  'Sin conexión',
+                  'No puedes crear estudiantes sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+                );
+                return;
+              }
+              router.push('/admin/academic-management/register-person/register-student');
+            }}
+            disabled={isOfflineMode}  // 👈 Deshabilitar el botón
           >
-            <Ionicons name="add" size={24} color="#fff" />
+            <Ionicons name="add" size={24} color={isOfflineMode ? '#9ca3af' : '#fff'} />
           </TouchableOpacity>
         </LinearGradient>
 
@@ -83,14 +96,20 @@ export default function StudentsListScreen() {
           )}
 
           <StatsCards
-            total={students.length}
-            active={activeStudentsCount}
+            total={totalStudents}
+            active={activeStudents}
           />
 
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Buscar por nombre o cédula..."
+          />
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
           />
 
           <ScrollView
@@ -108,8 +127,8 @@ export default function StudentsListScreen() {
               />
             }
           >
-            {filteredStudents.length === 0 ? (
-              isOfflineMode && students.length === 0 ? (
+            {students.length === 0 ? (
+              isOfflineMode ? (
                 <View style={styles.emptyOfflineContainer}>
                   <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
                   <Text style={styles.emptyOfflineTitle}>Sin conexión</Text>
@@ -124,7 +143,7 @@ export default function StudentsListScreen() {
                 />
               )
             ) : (
-              filteredStudents.map((student) => (
+              students.map((student) => (
                 <StudentCard
                   key={student.id}
                   student={student}
@@ -153,7 +172,7 @@ export default function StudentsListScreen() {
           onClose={() => setShowEditModal(false)}
           onSave={() => {
             setShowEditModal(false);
-            loadData();
+            onRefresh();
           }}
           onDelete={handleDelete}
         />
@@ -197,5 +216,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  // 👇 NUEVO: Estilo para botón deshabilitado
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 });

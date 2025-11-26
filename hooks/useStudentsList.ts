@@ -75,6 +75,13 @@ export const useStudentsList = () => {
             'No se puede conectar con el servidor y no hay datos guardados localmente. Por favor, verifica tu conexión a internet.'
           );
         }
+        
+        // ✅ CRÍTICO: Detener el loading/refreshing ANTES de hacer return
+        if (forceReload) {
+          setRefreshing(false);
+        } else {
+          setLoading(false);
+        }
         return;
       }
 
@@ -86,6 +93,13 @@ export const useStudentsList = () => {
           console.log('❌ Sesión inválida');
         }
         handleSessionExpired();
+        
+        // ✅ CRÍTICO: Detener el loading/refreshing antes de return
+        if (forceReload) {
+          setRefreshing(false);
+        } else {
+          setLoading(false);
+        }
         return;
       }
 
@@ -124,6 +138,7 @@ export const useStudentsList = () => {
         );
       }
     } finally {
+      // ✅ Siempre detener loading/refreshing al final
       if (forceReload) {
         setRefreshing(false);
       } else {

@@ -240,7 +240,8 @@ export const listStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   listContainer: {
     flex: 1,

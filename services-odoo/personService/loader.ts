@@ -91,6 +91,138 @@ export const loadAllStudentsSummary = async (forceReload: boolean = false): Prom
 };
 
 /**
+ * ⚡ CARGA ESTUDIANTES CON PAGINACIÓN
+ * - ONLINE: Obtiene página específica desde servidor
+ * - OFFLINE: Usa caché completo y pagina localmente
+ * - Retorna: { students, total, page, pageSize }
+ */
+export const loadStudentsPaginated = async (
+  page: number = 1,
+  pageSize: number = 5,
+  forceReload: boolean = false
+): Promise<{ students: Student[]; total: number; page: number; pageSize: number }> => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const cacheKey = `${CacheKeys.students()}_page_${page}_size_${pageSize}`;
+
+    // 📦 Usar caché si no es forceReload
+    if (!forceReload) {
+      const cached = cacheManager.get<{ students: Student[]; total: number }>(cacheKey);
+      if (cached) {
+        if (__DEV__) {
+          console.log(`📦 Página ${page} desde caché`);
+        }
+        return { ...cached, page, pageSize };
+      }
+    }
+
+    if (__DEV__) {
+      console.time(`⏱️ loadStudentsPaginated page:${page}`);
+    }
+
+    const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.STUDENT]];
+
+    // 🌐 Cargar página específica desde servidor
+    const result = await odooApi.searchRead(
+      MODELS.PARTNER,
+      domain,
+      STUDENT_SUMMARY_FIELDS,
+      pageSize,
+      offset,
+      'name asc'
+    );
+
+    // Obtener total de registros
+    const countResult = await odooApi.searchCount(MODELS.PARTNER, domain);
+    const total = countResult.success ? (countResult.data || 0) : 0;
+
+    if (!result.success) {
+      if (__DEV__) {
+        console.error('❌ Error cargando página:', result.error);
+      }
+      
+      // Fallback: intentar caché
+      const cached = cacheManager.get<{ students: Student[]; total: number }>(cacheKey);
+      if (cached) {
+        return { ...cached, page, pageSize };
+      }
+      
+      return { students: [], total: 0, page, pageSize };
+    }
+
+    const students = (result.data || []).map(normalizeRecord);
+
+    // 💾 Guardar en caché
+    const cacheData = { students, total };
+    cacheManager.set(cacheKey, cacheData, 5 * 60 * 1000); // 5 minutos
+
+    if (__DEV__) {
+      console.timeEnd(`⏱️ loadStudentsPaginated page:${page}`);
+      console.log(`✅ Página ${page}: ${students.length}/${total} estudiantes`);
+    }
+
+    return { students, total, page, pageSize };
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error('❌ Error en loadStudentsPaginated:', error);
+    }
+    return { students: [], total: 0, page, pageSize };
+  }
+};
+
+/**
+ * 🔍 BÚSQUEDA GLOBAL PAGINADA (para cuando hay filtro de búsqueda)
+ */
+export const searchStudentsPaginated = async (
+  query: string,
+  page: number = 1,
+  pageSize: number = 5
+): Promise<{ students: Student[]; total: number; page: number; pageSize: number }> => {
+  try {
+    if (!query || query.trim().length < 2) {
+      return loadStudentsPaginated(page, pageSize);
+    }
+
+    const offset = (page - 1) * pageSize;
+    
+    const domain = [
+      ['type_enrollment', '=', ENROLLMENT_TYPES.STUDENT],
+      '|',
+      ['name', 'ilike', query],
+      ['vat', 'ilike', query]
+    ];
+
+    // Obtener total de coincidencias
+    const countResult = await odooApi.searchCount(MODELS.PARTNER, domain);
+    const total = countResult.success ? (countResult.data || 0) : 0;
+
+    // Obtener página actual de resultados
+    const result = await odooApi.searchRead(
+      MODELS.PARTNER,
+      domain,
+      STUDENT_SUMMARY_FIELDS,
+      pageSize,
+      offset,
+      'name asc'
+    );
+
+    if (!result.success) {
+      return { students: [], total: 0, page, pageSize };
+    }
+
+    const students = (result.data || []).map(normalizeRecord);
+
+    return { students, total, page, pageSize };
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error('❌ Error en searchStudentsPaginated:', error);
+    }
+    return { students: [], total: 0, page, pageSize };
+  }
+};
+
+
+/**
  * ⚡ CARGA DETALLES COMPLETOS DE UN ESTUDIANTE
  * - Se usa al VER o EDITAR
  * - SIEMPRE obtiene datos FRESCOS del servidor (NO USA CACHÉ)
@@ -228,14 +360,13 @@ const batchLoadInscriptions = async (inscriptionIds: number[]): Promise<Inscript
  * 🗑️ INVALIDAR CACHÉ
  */
 export const invalidateStudentsPaginationCache = (): void => {
-  cacheManager.invalidatePattern('students_');
+  cacheManager.invalidatePattern('students');
   cacheManager.invalidatePattern('student:');
 
   if (__DEV__) {
-    console.log('🗑️ Caché de estudiantes invalidado');
+    console.log('🗑️ Caché de paginación invalidado');
   }
 };
-
 /**
  * Carga los padres de un estudiante específico
  * - SIEMPRE desde servidor (NO USA CACHÉ)
@@ -301,6 +432,8 @@ export const loadStudentInscriptions = async (studentId: number, inscriptionIds:
 /**
  * RETROCOMPATIBILIDAD: loadStudents
  */
+
+
 export const loadStudents = async (): Promise<Student[]> => {
   return await loadAllStudentsSummary(true); // Siempre forzar recarga
 };

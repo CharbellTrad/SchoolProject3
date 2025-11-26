@@ -5,7 +5,7 @@ import LottieView from "lottie-react-native"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Dimensions, LogBox, Platform, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 import splashAnimation from "../assets/lotties/splashAnimation.json"
 import Colors from "../constants/Colors"
 import { AppReadyProvider, useAppReady } from "../contexts/AppReady"
@@ -161,9 +161,9 @@ function RootLayoutNav() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+    <View style={{ flex: 1}}>
       <Slot />
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -185,7 +185,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider style={{ backgroundColor: '#FFFFFF' }}>
+    <SafeAreaProvider>
       <AppReadyProvider>
         <AuthProvider>
           <RootLayoutNav />

@@ -12,7 +12,7 @@ export const loadParents = async (): Promise<Parent[]> => {
     return await withCache(
       CacheKeys.parents(),
       async () => {
-        const domain = [['type_enrollment', '=', ENROLLMENT_TYPES.PARENT]];
+        const domain = [ ['type_enrollment', '=', ENROLLMENT_TYPES.PARENT], ['is_enrollment', '=', true] ];
         const result = await odooApi.searchRead(MODELS.PARTNER, domain, PARENT_FIELDS, 1000);
 
         if (!result.success) {
@@ -40,6 +40,7 @@ export const loadParents = async (): Promise<Parent[]> => {
 
 /**
  * Busca padres por nombre o cédula (con caché por query)
+ * ✅ SOLO busca contactos que sean PADRES (type_enrollment='parent' y is_enrollment=true)
  */
 export const searchParents = async (query: string): Promise<Parent[]> => {
   try {
@@ -52,7 +53,15 @@ export const searchParents = async (query: string): Promise<Parent[]> => {
     return await withCache(
       CacheKeys.parentSearch(normalizedQuery),
       async () => {
-        const domain = ['|', ['name', 'ilike', query], ['vat', 'ilike', query]];
+        // ✅ Dominio actualizado: SOLO buscar representantes
+        const domain = [
+          ['type_enrollment', '=', ENROLLMENT_TYPES.PARENT],
+          ['is_enrollment', '=', true],
+          '|',
+          ['name', 'ilike', query],
+          ['vat', 'ilike', query]
+        ];
+        
         const searchResult = await odooApi.search(MODELS.PARTNER, domain, 20);
 
         if (!searchResult.success || !searchResult.data || searchResult.data.length === 0) {
