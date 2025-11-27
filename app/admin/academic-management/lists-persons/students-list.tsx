@@ -4,11 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EmptyState, Pagination, SearchBar, StatsCards } from '../../../../components/list';
 import { EditStudentModal, StudentCard, ViewStudentModal } from '../../../../components/student';
 import Colors from '../../../../constants/Colors';
-import { listStyles } from '../../../../constants/Styles';
 import { useStudentsPagination } from '../../../../hooks/useStudentsPagination';
 import { Student } from '../../../../services-odoo/personService';
 
@@ -19,13 +18,13 @@ export default function StudentsListScreen() {
     initialLoading,
     refreshing,
     searchQuery,
-    searchMode, // ✅ NUEVO
+    searchMode,
     totalStudents,
     currentPage,
     totalPages,
     isOfflineMode,
     setSearchQuery,
-    exitSearchMode, // ✅ NUEVO
+    exitSearchMode,
     goToPage,
     onRefresh,
     handleDelete,
@@ -47,7 +46,7 @@ export default function StudentsListScreen() {
 
   if (initialLoading) {
     return (
-      <View style={listStyles.loadingContainer}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.loadingText}>Cargando estudiantes...</Text>
       </View>
@@ -57,56 +56,67 @@ export default function StudentsListScreen() {
   return (
     <>
       <Head>
-        <title>Lista de Matrículas</title>
+        <title>Lista de Estudiantes</title>
       </Head>
-      <View style={listStyles.container}>
-        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={listStyles.header}>
-          <TouchableOpacity style={listStyles.backButton} onPress={() => router.back()}>
+      <View style={styles.container}>
+        <LinearGradient 
+          colors={[Colors.primary, Colors.primaryDark]} 
+          style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={listStyles.headerTitle}>Matrículas</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Estudiantes</Text>
+            <Text style={styles.headerSubtitle}>{totalStudents} registrados</Text>
+          </View>
           <TouchableOpacity
             style={[
-              listStyles.addButton,
+              styles.addButton,
               isOfflineMode && styles.disabledButton
             ]}
             onPress={() => {
               if (isOfflineMode) {
                 showAlert(
                   'Sin conexión',
-                  'No puedes crear estudiantes sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
+                  'No puedes crear estudiantes sin conexión a internet.'
                 );
                 return;
               }
               router.push('/admin/academic-management/register-person/register-student');
             }}
             disabled={isOfflineMode}
+            activeOpacity={0.7}
           >
             <Ionicons name="add" size={24} color={isOfflineMode ? '#9ca3af' : '#fff'} />
           </TouchableOpacity>
         </LinearGradient>
 
-        <View style={listStyles.content}>
+        <View style={styles.content}>
           {isOfflineMode && (
             <View style={styles.offlineBanner}>
               <Ionicons name="cloud-offline" size={20} color="#fff" />
               <Text style={styles.offlineText}>
-                Modo sin conexión - Mostrando datos guardados
+                Sin conexión • Mostrando datos guardados
               </Text>
             </View>
           )}
 
           {!searchMode && (
-            <StatsCards
-              total={totalStudents}
-            />
+            <StatsCards total={totalStudents} />
           )}
 
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Buscar por nombre o cédula..."
-            onClear={exitSearchMode} // ✅ NUEVO
+            onClear={exitSearchMode}
           />
 
           {!searchMode && (
@@ -121,15 +131,16 @@ export default function StudentsListScreen() {
             <View style={styles.pageLoadingContainer}>
               <ActivityIndicator size="small" color={Colors.primary} />
               <Text style={styles.pageLoadingText}>
-                {searchMode ? `Buscando "${searchQuery}"...` : `Cargando página ${currentPage} de ${totalPages}...`}
+                {searchMode ? `Buscando "${searchQuery}"...` : `Cargando página ${currentPage}...`}
               </Text>
             </View>
           )}
 
           <ScrollView
-            style={listStyles.listContainer}
+            style={styles.listContainer}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={true}
+            contentContainerStyle={styles.listContent}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -143,19 +154,23 @@ export default function StudentsListScreen() {
           >
             {students.length === 0 ? (
               isOfflineMode ? (
-                <View style={styles.emptyOfflineContainer}>
-                  <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
-                  <Text style={styles.emptyOfflineTitle}>Sin conexión</Text>
-                  <Text style={styles.emptyOfflineText}>
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconContainer}>
+                    <Ionicons name="cloud-offline-outline" size={64} color={Colors.textTertiary} />
+                  </View>
+                  <Text style={styles.emptyTitle}>Sin conexión</Text>
+                  <Text style={styles.emptyText}>
                     No hay datos guardados. Conecta a internet para cargar estudiantes.
                   </Text>
                 </View>
               ) : searchMode && searchQuery.trim().length < 3 ? (
-                <View style={styles.emptySearchContainer}>
-                  <Ionicons name="search-outline" size={80} color={Colors.textSecondary} />
-                  <Text style={styles.emptySearchTitle}>Escribe para buscar</Text>
-                  <Text style={styles.emptySearchText}>
-                    Ingresa al menos 3 caracteres para comenzar la búsqueda
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconContainer}>
+                    <Ionicons name="search-outline" size={64} color={Colors.textTertiary} />
+                  </View>
+                  <Text style={styles.emptyTitle}>Escribe para buscar</Text>
+                  <Text style={styles.emptyText}>
+                    Ingresa al menos 3 caracteres para comenzar
                   </Text>
                 </View>
               ) : (
@@ -175,6 +190,7 @@ export default function StudentsListScreen() {
                 />
               ))
             )}
+            <View style={{ height: 20 }} />
           </ScrollView>
         </View>
 
@@ -204,80 +220,150 @@ export default function StudentsListScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
   loadingText: {
     marginTop: 16,
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.textSecondary,
+    fontWeight: '600',
   },
-  pageLoadingContainer: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 60 : 70,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
-  pageLoadingText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f59e0b',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 20,
+    gap: 10,
+    ...Platform.select({
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   offlineText: {
     color: '#fff',
     fontSize: 14,
+    fontWeight: '700',
+    flex: 1,
+    letterSpacing: 0.2,
+  },
+  pageLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    gap: 10,
+  },
+  pageLoadingText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
     fontWeight: '600',
+  },
+  listContainer: {
     flex: 1,
   },
-  emptyOfflineContainer: {
+  listContent: {
+    paddingBottom: 20,
+  },
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    paddingVertical: 80,
+    paddingHorizontal: 40,
   },
-  emptyOfflineTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyOfflineText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  emptySearchContainer: {
-    alignItems: 'center',
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.backgroundTertiary,
     justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  emptySearchTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 12,
+    letterSpacing: -0.3,
   },
-  emptySearchText: {
-    fontSize: 14,
+  emptyText: {
+    fontSize: 15,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
-  },
-  disabledButton: {
-    opacity: 0.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    lineHeight: 22,
+    fontWeight: '500',
   },
 });
-

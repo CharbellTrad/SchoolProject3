@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import { FormStyles, GlobalStyles } from '../../constants/Styles';
+import { StyleSheet, Text, View } from 'react-native';
+import Colors from '../../constants/Colors';
 import { StudentFormData } from '../../hooks/useStudentForm';
 import { ImagePickerComponent } from '../ImagePicker';
 import { BloodTypeSelectorDropdown, GenderSelectorDropdown, NationalitySelectorDropdown, StudentLivesSelector } from '../selectors';
@@ -33,132 +33,169 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
   };
 
   return (
-    <View style={GlobalStyles.contentPadding}>
-      <ImagePickerComponent
-        label="Foto del Estudiante"
-        value={studentPhoto}
-        onImageSelected={onImageSelected}
-        circular={true}
-      />
-
-      <Text style={GlobalStyles.subsectionTitle}>Datos Personales</Text>
-
-      <Input
-        label="Nombre Completo *"
-        placeholder="Juan Pérez"
-        value={data.name}
-        onChangeText={(text) => onFieldChange('name', text)}
-        leftIcon="person"
-        error={errors.name}
-      />
-
-      <View style={FormStyles.rowInputs}>
-        <View style={FormStyles.halfInput}>
-          <NationalitySelectorDropdown
-            value={data.nationality}
-            onChange={(value) => onFieldChange('nationality', value)}
-            error={errors.nationality}
-          />
-        </View>
-        <View style={FormStyles.halfInput}>
-          <Input
-            label="Cédula *"
-            placeholder="12345678"
-            value={data.vat}
-            onChangeText={(text) => onFieldChange('vat', text)}
-            leftIcon="card"
-            error={errors.vat}
-            keyboardType="numeric"
-          />
-        </View>
+    <View style={styles.container}>
+      <View style={styles.photoSection}>
+        <ImagePickerComponent
+          label="Foto del Estudiante"
+          value={studentPhoto}
+          onImageSelected={onImageSelected}
+          circular={true}
+        />
       </View>
 
-      <View style={FormStyles.rowInputs}>
-        <View style={FormStyles.halfInput}>
-          <Input
-            label="Fecha de Nacimiento *"
-            placeholder="DD-MM-AAAA"
-            value={data.born_date}
-            onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
-            leftIcon="calendar"
-            error={errors.born_date}
-            maxLength={10}
-            keyboardType="numeric"
-          />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Datos Personales</Text>
+
+        <Input
+          label="Nombre Completo *"
+          placeholder="Ej: Juan Pérez García"
+          value={data.name}
+          onChangeText={(text) => onFieldChange('name', text)}
+          leftIcon="person-outline"
+          error={errors.name}
+        />
+
+        <View style={styles.row}>
+          <View style={styles.halfInput}>
+            <NationalitySelectorDropdown
+              value={data.nationality}
+              onChange={(value) => onFieldChange('nationality', value)}
+              error={errors.nationality}
+            />
+          </View>
+          <View style={styles.halfInput}>
+            <Input
+              label="Cédula *"
+              placeholder="12345678"
+              value={data.vat}
+              onChangeText={(text) => onFieldChange('vat', text)}
+              leftIcon="card-outline"
+              error={errors.vat}
+              keyboardType="numeric"
+            />
+          </View>
         </View>
-        <View style={FormStyles.halfInput}>
-          <GenderSelectorDropdown
-            value={data.sex}
-            onChange={(value) => onFieldChange('sex', value)}
-            error={errors.sex}
-          />
+
+        <View style={styles.row}>
+          <View style={styles.halfInput}>
+            <Input
+              label="Fecha de Nacimiento *"
+              placeholder="DD-MM-AAAA"
+              value={data.born_date}
+              onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
+              leftIcon="calendar-outline"
+              error={errors.born_date}
+              maxLength={10}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={styles.halfInput}>
+            <GenderSelectorDropdown
+              value={data.sex}
+              onChange={(value) => onFieldChange('sex', value)}
+              error={errors.sex}
+            />
+          </View>
         </View>
+
+        <BloodTypeSelectorDropdown
+          value={data.blood_type}
+          onChange={(value) => onFieldChange('blood_type', value)}
+          error={errors.blood_type}
+        />
       </View>
 
-      <BloodTypeSelectorDropdown
-        value={data.blood_type}
-        onChange={(value) => onFieldChange('blood_type', value)}
-        error={errors.blood_type}
-      />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Información de Contacto</Text>
 
-      <Text style={GlobalStyles.subsectionTitle}>Contacto</Text>
+        <Input
+          label="Correo Electrónico *"
+          placeholder="estudiante@ejemplo.com"
+          value={data.email}
+          onChangeText={(text) => onFieldChange('email', text)}
+          leftIcon="mail-outline"
+          error={errors.email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <Input
-        label="Correo Electrónico *"
-        placeholder="correo@ejemplo.com"
-        value={data.email}
-        onChangeText={(text) => onFieldChange('email', text)}
-        leftIcon="mail"
-        error={errors.email}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <Input
+          label="Teléfono *"
+          placeholder="04141234567"
+          value={data.phone}
+          onChangeText={(text) => onFieldChange('phone', text)}
+          leftIcon="call-outline"
+          error={errors.phone}
+          keyboardType="phone-pad"
+        />
 
-      <Input
-        label="Teléfono *"
-        placeholder="04141234567"
-        value={data.phone}
-        onChangeText={(text) => onFieldChange('phone', text)}
-        leftIcon="call"
-        error={errors.phone}
-        keyboardType="phone-pad"
-      />
+        <Input
+          label="Teléfono de Residencia"
+          placeholder="02121234567"
+          value={data.resident_number}
+          onChangeText={(text) => onFieldChange('resident_number', text)}
+          leftIcon="home-outline"
+          keyboardType="phone-pad"
+        />
 
-      <Input
-        label="Teléfono de Residencia"
-        placeholder="02121234567"
-        value={data.resident_number}
-        onChangeText={(text) => onFieldChange('resident_number', text)}
-        leftIcon="home"
-        keyboardType="phone-pad"
-      />
+        <Input
+          label="Teléfono de Emergencia *"
+          placeholder="04241234567"
+          value={data.emergency_phone_number}
+          onChangeText={(text) => onFieldChange('emergency_phone_number', text)}
+          leftIcon="alert-circle-outline"
+          error={errors.emergency_phone_number}
+          keyboardType="phone-pad"
+        />
+      </View>
 
-      <Input
-        label="Teléfono de Emergencia *"
-        placeholder="04241234567"
-        value={data.emergency_phone_number}
-        onChangeText={(text) => onFieldChange('emergency_phone_number', text)}
-        leftIcon="warning"
-        error={errors.emergency_phone_number}
-        keyboardType="phone-pad"
-      />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dirección de Residencia</Text>
 
-      <Text style={GlobalStyles.subsectionTitle}>Dirección</Text>
+        <Input
+          label="Calle/Avenida *"
+          placeholder="Ej: Av. Principal, Quinta Los Pinos"
+          value={data.street}
+          onChangeText={(text) => onFieldChange('street', text)}
+          leftIcon="location-outline"
+          error={errors.street}
+          multiline
+          numberOfLines={2}
+        />
 
-      <Input
-        label="Calle/Avenida *"
-        placeholder="Av. Principal..."
-        value={data.street}
-        onChangeText={(text) => onFieldChange('street', text)}
-        leftIcon="location"
-        error={errors.street}
-      />
-
-      <StudentLivesSelector
-        value={data.student_lives}
-        onChange={(value) => onFieldChange('student_lives', value)}
-        error={errors.student_lives}
-      />
+        <StudentLivesSelector
+          value={data.student_lives}
+          onChange={(value) => onFieldChange('student_lives', value)}
+          error={errors.student_lives}
+        />
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  photoSection: {
+    marginBottom: 28,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+    letterSpacing: -0.3,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfInput: {
+    flex: 1,
+  },
+});

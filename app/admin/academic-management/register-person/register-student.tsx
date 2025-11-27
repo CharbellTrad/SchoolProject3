@@ -9,7 +9,6 @@ import { useImagePicker } from '../../../../components/ImagePicker';
 import { showAlert } from '../../../../components/showAlert';
 import { Button } from '../../../../components/ui/Button';
 import Colors from '../../../../constants/Colors';
-import { GlobalStyles } from '../../../../constants/Styles';
 import { TabType, useFormValidation, useParentForm, useStudentForm, useTabs } from '../../../../hooks';
 import * as authService from '../../../../services-odoo/authService';
 import { saveParent, saveStudent } from '../../../../services-odoo/personService';
@@ -17,11 +16,11 @@ import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../../../u
 import { compressMultipleImages } from '../../../../utils/imageCompression';
 
 const TABS = [
-  { id: 'general' as TabType, label: 'Información General', icon: 'person' },
-  { id: 'sizes' as TabType, label: 'Tallas', icon: 'resize' },
-  { id: 'birth' as TabType, label: 'Info. Nacimiento', icon: 'heart' },
-  { id: 'parents' as TabType, label: 'Representantes', icon: 'people' },
-  { id: 'documents' as TabType, label: 'Documentos', icon: 'document' },
+  { id: 'general' as TabType, label: 'General', icon: 'person-outline' },
+  { id: 'sizes' as TabType, label: 'Tallas', icon: 'resize-outline' },
+  { id: 'birth' as TabType, label: 'Nacimiento', icon: 'heart-outline' },
+  { id: 'parents' as TabType, label: 'Representantes', icon: 'people-outline' },
+  { id: 'documents' as TabType, label: 'Documentos', icon: 'document-outline' },
 ];
 
 export default function RegisterStudentTabsScreen() {
@@ -79,7 +78,6 @@ export default function RegisterStudentTabsScreen() {
   };
 
   const handleAddParent = () => {
-    // ✅ CAMBIO: Agregados 'job_place' y 'job' a los campos requeridos
     const requiredFields = [
       'name', 'vat', 'nationality', 'born_date', 'sex', 
       'email', 'phone', 'emergency_phone_number', 
@@ -130,7 +128,6 @@ export default function RegisterStudentTabsScreen() {
   };
 
   const validateAndSubmit = async () => {
-    // 1️⃣ Verificar conexión PRIMERO
     const serverHealth = await authService.checkServerHealth();
 
     if (!serverHealth.ok) {
@@ -144,7 +141,6 @@ export default function RegisterStudentTabsScreen() {
       return;
     }
 
-    // 2️⃣ Validaciones de campos
     if (parents.length === 0) {
       showAlert('Error', 'Debe agregar al menos un representante');
       changeTab('parents');
@@ -170,21 +166,18 @@ export default function RegisterStudentTabsScreen() {
       return;
     }
 
-    // ⚡ MOSTRAR FEEDBACK INMEDIATO
     showAlert('Procesando', 'Guardando estudiante...', []);
     setIsLoading(true);
 
     try {
       const savedParentIds: number[] = [];
       
-      // 🗜️ Comprimir imágenes de padres en paralelo
       for (const parent of parents) {
         if (parent.id) {
           savedParentIds.push(parent.id);
           continue;
         }
         
-        // Comprimir imágenes del padre si existen
         const parentImages: Record<string, string> = {};
         if (parent.image_128) parentImages.image_128 = parent.image_128;
         if (parent.ci_document) parentImages.ci_document = parent.ci_document;
@@ -229,7 +222,6 @@ export default function RegisterStudentTabsScreen() {
         }
       }
 
-      // 🗜️ Comprimir imágenes del estudiante
       const studentImages: Record<string, string> = {};
       const studentPhoto = getImage('student_photo');
       const ciDocument = getImage('ci_document');
@@ -245,7 +237,6 @@ export default function RegisterStudentTabsScreen() {
         quality: 0.7,
       });
 
-      // 3️⃣ Guardar estudiante (con actualización optimista automática)
       const result = await saveStudent({
         ...studentData,
         ...birthData,
@@ -271,7 +262,6 @@ export default function RegisterStudentTabsScreen() {
       setIsLoading(false);
 
       if (result && result.success) {
-        // ⚡ UI ya se actualizó optimísticamente
         showAlert('✅ Registro Exitoso', 'Estudiante registrado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
@@ -285,7 +275,6 @@ export default function RegisterStudentTabsScreen() {
         console.error('❌ Error al guardar:', error);
       }
 
-      // Detectar error de red
       if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
         showAlert(
           'Error de conexión',
@@ -378,22 +367,39 @@ export default function RegisterStudentTabsScreen() {
       <Head>
         <title>Registrar Estudiante</title>
       </Head>
-      <View style={GlobalStyles.container}>
-        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={GlobalStyles.header}>
-          <TouchableOpacity style={GlobalStyles.backButton} onPress={() => router.back()}>
+      <View style={styles.container}>
+        <LinearGradient 
+          colors={[Colors.primary, Colors.primaryDark]} 
+          style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={GlobalStyles.headerTitle}>Matrícula</Text>
-          <View style={{ width: 24 }} />
+          <Text style={styles.headerTitle}>Matrícula de Estudiante</Text>
+          <View style={{ width: 40 }} />
         </LinearGradient>
 
-        <View style={GlobalStyles.tabsContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.tabsContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabsScrollContent}
+          >
             {TABS.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
-                style={[GlobalStyles.tab, activeTab === tab.id && GlobalStyles.activeTab]}
+                style={[
+                  styles.tab, 
+                  activeTab === tab.id && styles.activeTab
+                ]}
                 onPress={() => changeTab(tab.id)}
+                activeOpacity={0.7}
               >
                 <Ionicons
                   name={tab.icon as any}
@@ -401,8 +407,8 @@ export default function RegisterStudentTabsScreen() {
                   color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
                 />
                 <Text style={[
-                  GlobalStyles.tabText,
-                  activeTab === tab.id && GlobalStyles.activeTabText
+                  styles.tabText,
+                  activeTab === tab.id && styles.activeTabText
                 ]}>
                   {tab.label}
                 </Text>
@@ -425,16 +431,16 @@ export default function RegisterStudentTabsScreen() {
             scrollEventThrottle={16}
           >
             {renderTabContent()}
-            <View style={{ height: 100 }} />
+            <View style={{ height: 120 }} />
           </ScrollView>
         </KeyboardAvoidingView>
 
-        <View style={GlobalStyles.floatingButtonContainer}>
+        <View style={styles.floatingButtonContainer}>
           <Button
             title={isLoading ? "Guardando..." : "Guardar Matrícula"}
             onPress={validateAndSubmit}
             loading={isLoading}
-            icon={isLoading ? undefined : "save"}
+            icon={isLoading ? undefined : "save-outline"}
             iconPosition="left"
             variant="primary"
             size="large"
@@ -447,6 +453,84 @@ export default function RegisterStudentTabsScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 60 : 70,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  tabsContainer: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  tabsScrollContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    marginRight: 8,
+    gap: 8,
+  },
+  activeTab: {
+    backgroundColor: Colors.primary + '15',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  activeTabText: {
+    color: Colors.primary,
+    fontWeight: '800',
+  },
   keyboardView: {
     flex: 1,
   },
@@ -456,5 +540,26 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
     flexGrow: 1,
+  },
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
 });

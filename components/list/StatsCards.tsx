@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface StatsCardsProps {
@@ -10,8 +10,10 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ total }) => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.number}>{total}</Text>
-        <Text style={styles.label}>Total</Text>
+        <View style={styles.content}>
+          <Text style={styles.number}>{total}</Text>
+          <Text style={styles.label}>Total de registros</Text>
+        </View>
       </View>
     </View>
   );
@@ -19,30 +21,45 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ total }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    gap: 12,
     marginBottom: 20,
+    alignItems: 'center',
   },
   card: {
-    flex: 1,
+    flexDirection: 'row',
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 14,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
   },
   number: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '800',
     color: Colors.primary,
-    marginBottom: 4,
+    letterSpacing: -0.5,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
   },
 });

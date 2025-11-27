@@ -141,9 +141,9 @@ function RootLayoutNav() {
             source={splashAnimation}
             autoPlay
             loop={false}
-            style={styles.lottie}
-            speed={1}
-            resizeMode="cover"
+            style={{ width: '100%', height: '100%' }}
+            // speed={1}
+            // resizeMode="cover"
             onAnimationFinish={() => {
               timerRef.current = setTimeout(() => {
                 setIsAnimationFinished(true)

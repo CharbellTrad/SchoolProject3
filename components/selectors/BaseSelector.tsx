@@ -1,9 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-
-// ============ SELECTOR GENÉRICO DROPDOWN ============
 
 interface DropdownOption {
   label: string;
@@ -32,7 +30,6 @@ export const DropdownSelector: React.FC<DropdownSelectorProps> = ({
   icon,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   const selectedOption = options.find(opt => opt.value === value);
 
   return (
@@ -40,24 +37,18 @@ export const DropdownSelector: React.FC<DropdownSelectorProps> = ({
       <Text style={styles.label}>
         {label} {required && '*'}
       </Text>
-      
       <TouchableOpacity
         style={[styles.selector, error && styles.selectorError]}
         onPress={() => setIsOpen(true)}
+        activeOpacity={0.7}
       >
         {icon && (
-          <Ionicons name={icon} size={18} color={Colors.textSecondary} style={styles.icon} />
+          <Ionicons name={icon} size={20} color={Colors.textSecondary} style={styles.icon} />
         )}
-        <Text 
-          style={[
-            styles.selectorText,
-            !selectedOption && styles.placeholder
-          ]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.selectorText, !selectedOption && styles.placeholder]}>
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={18} color={Colors.textSecondary} />
+        <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
       </TouchableOpacity>
 
       {error && (
@@ -79,11 +70,15 @@ export const DropdownSelector: React.FC<DropdownSelectorProps> = ({
           activeOpacity={1}
           onPress={() => setIsOpen(false)}
         >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle} numberOfLines={2}>{label}</Text>
-              <TouchableOpacity onPress={() => setIsOpen(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={Colors.textPrimary} />
+              <Text style={styles.modalTitle}>{label}</Text>
+              <TouchableOpacity
+                onPress={() => setIsOpen(false)}
+                style={styles.closeButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={28} color={Colors.error} />
               </TouchableOpacity>
             </View>
 
@@ -93,22 +88,25 @@ export const DropdownSelector: React.FC<DropdownSelectorProps> = ({
                   key={option.value}
                   style={[
                     styles.option,
+                    index === options.length - 1 && styles.lastOption,
                     value === option.value && styles.optionSelected,
-                    index === options.length - 1 && styles.lastOption
                   ]}
                   onPress={() => {
                     onChange(option.value);
                     setIsOpen(false);
                   }}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.optionText,
-                    value === option.value && styles.optionTextSelected
-                  ]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      value === option.value && styles.optionTextSelected,
+                    ]}
+                  >
                     {option.label}
                   </Text>
                   {value === option.value && (
-                    <Ionicons name="checkmark" size={24} color={Colors.primary} />
+                    <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -125,94 +123,112 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 8,
-    paddingLeft: 4,
+    marginBottom: 13,
+    paddingLeft: 2,
+    letterSpacing: -0.1,
   },
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderWidth: 1.6,
+    borderWidth: 2,
     borderColor: Colors.border,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingVertical: 15,
     paddingHorizontal: 16,
-    minHeight: 52,
-    gap: 6,
+    minHeight: 48,
+    gap: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   selectorError: {
     borderColor: Colors.error,
+    backgroundColor: Colors.error + '05',
   },
   icon: {
-    marginRight: 12,
+    marginRight: 4,
   },
   selectorText: {
     flex: 1,
     fontSize: 15,
     color: Colors.textPrimary,
-    fontWeight: '400',
-    lineHeight: 20,
+    fontWeight: '500',
   },
   placeholder: {
-    color: '#9ca3af',
+    color: Colors.textTertiary,
     fontWeight: '400',
   },
   errorWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
-    marginLeft: 4,
+    marginLeft: 2,
     gap: 6,
   },
   errorText: {
     color: Colors.error,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-
   // MODAL
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 18,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 420,
     maxHeight: '70%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
     overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 18,
     paddingRight: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: Colors.border,
   },
   closeButton: {
     padding: 4,
     marginLeft: 8,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: Colors.textPrimary,
     flex: 1,
     paddingRight: 8,
+    letterSpacing: -0.2,
   },
   optionsList: {
     maxHeight: 400,
@@ -224,13 +240,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#f1f5f9',
   },
   lastOption: {
     borderBottomWidth: 0,
   },
   optionSelected: {
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.primary + '12',
   },
   optionText: {
     fontSize: 15,

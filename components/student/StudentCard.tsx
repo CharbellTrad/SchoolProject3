@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-import { listStyles } from '../../constants/Styles';
 import { Student } from '../../services-odoo/personService';
 
 interface StudentCardProps {
@@ -12,96 +11,231 @@ interface StudentCardProps {
   isOfflineMode?: boolean;
 }
 
-export const StudentCard: React.FC<StudentCardProps> = React.memo(({ student, onView, onEdit, isOfflineMode = false }) => {
-  return (
-    <View style={listStyles.card}>
-      <View style={listStyles.cardMain}>
-        <View style={listStyles.avatarContainer}>
+export const StudentCard: React.FC<StudentCardProps> = React.memo(
+  ({ student, onView, onEdit, isOfflineMode = false }) => {
+    return (
+      <View style={styles.card}>
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
           {student.image_128 ? (
             <Image
               source={{ uri: `data:image/jpeg;base64,${student.image_128}` }}
-              style={{ width: 50, height: 50, borderRadius: 8 }}
-              resizeMode='cover' // ✅ CAMBIO: Muestra la imagen completa
+              style={styles.avatar}
             />
           ) : (
-            <Ionicons name="person" size={28} color={Colors.primary} />
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={28} color={Colors.primary} />
+            </View>
           )}
+          {student.is_active && <View style={styles.activeBadge} />}
         </View>
 
-        <View style={listStyles.cardInfo}>
-          <Text style={listStyles.cardName} numberOfLines={1}>
+        {/* Info */}
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>
             {student.name}
           </Text>
-          <Text style={listStyles.cardDetail}>
-            <Ionicons name="card" size={14} color={Colors.textSecondary} /> {student.nationality}-{student.vat}
+          <Text style={styles.detail} numberOfLines={1}>
+            {student.nationality}-{student.vat}
           </Text>
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusBadge,
+                student.is_active
+                  ? styles.statusActive
+                  : styles.statusInactive,
+              ]}
+            >
+              <Ionicons
+                name={student.is_active ? 'checkmark-circle' : 'close-circle'}
+                size={14}
+                color={student.is_active ? Colors.success : Colors.error}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  student.is_active
+                    ? styles.statusTextActive
+                    : styles.statusTextInactive,
+                ]}
+              >
+                {student.is_active ? 'Activo' : 'Inactivo'}
+              </Text>
+            </View>
+            {isOfflineMode && (
+              <View style={styles.offlineBadge}>
+                <Ionicons name="cloud-offline" size={12} color={Colors.warning} />
+                <Text style={styles.offlineText}>Offline</Text>
+              </View>
+            )}
+          </View>
         </View>
 
-        <View
-          style={[
-            listStyles.statusBadge,
-            {
-              backgroundColor: student.is_active ? Colors.success + '15' : Colors.error + '15',
-            },
-          ]}
-        >
-          <Text
-            style={[
-              listStyles.statusText,
-              { color: student.is_active ? Colors.success : Colors.error },
-            ]}
+        {/* Actions */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.viewBtn}
+            onPress={onView}
+            activeOpacity={0.7}
           >
-            {student.is_active ? 'Activo' : 'Inactivo'}
-          </Text>
+            <Ionicons name="eye-outline" size={18} color={Colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={onEdit}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="create-outline" size={18} color={Colors.secondary} />
+          </TouchableOpacity>
         </View>
       </View>
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.student.id === nextProps.student.id &&
+      prevProps.student.name === nextProps.student.name &&
+      prevProps.student.is_active === nextProps.student.is_active &&
+      prevProps.student.vat === nextProps.student.vat &&
+      prevProps.student.image_128 === nextProps.student.image_128 &&
+      prevProps.isOfflineMode === nextProps.isOfflineMode
+    );
+  }
+);
 
-      <View style={listStyles.cardActions}>
-        <TouchableOpacity
-          style={listStyles.actionButton}
-          onPress={onView}
-          disabled={isOfflineMode}
-        >
-          <Ionicons
-            name="eye-outline"
-            size={20}
-            color={isOfflineMode ? Colors.textTertiary : Colors.primary}
-          />
-          <Text style={[
-            listStyles.actionButtonText,
-            isOfflineMode && { color: Colors.textTertiary }
-          ]}>
-            Ver
-          </Text>
-        </TouchableOpacity>
+StudentCard.displayName = 'StudentCard';
 
-        <TouchableOpacity
-          style={listStyles.actionButton}
-          onPress={onEdit}
-          disabled={isOfflineMode}
-        >
-          <Ionicons
-            name="create-outline"
-            size={20}
-            color={isOfflineMode ? Colors.textTertiary : Colors.secondary}
-          />
-          <Text style={[
-            listStyles.actionButtonText,
-            { color: isOfflineMode ? Colors.textTertiary : Colors.secondary }
-          ]}>
-            Editar
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.student.id === nextProps.student.id &&
-    prevProps.student.name === nextProps.student.name &&
-    prevProps.student.is_active === nextProps.student.is_active &&
-    prevProps.student.vat === nextProps.student.vat &&
-    prevProps.student.image_128 === nextProps.student.image_128 &&
-    prevProps.isOfflineMode === nextProps.isOfflineMode
-  );
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  avatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.success,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  info: {
+    flex: 1,
+    minWidth: 0,
+  },
+  name: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 2,
+    letterSpacing: -0.2,
+  },
+  detail: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  statusActive: {
+    backgroundColor: Colors.success + '15',
+  },
+  statusInactive: {
+    backgroundColor: Colors.error + '15',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusTextActive: {
+    color: Colors.success,
+  },
+  statusTextInactive: {
+    color: Colors.error,
+  },
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: Colors.warning + '15',
+    gap: 4,
+  },
+  offlineText: {
+    fontSize: 11,
+    color: Colors.warning,
+    fontWeight: '600',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginLeft: 8,
+  },
+  viewBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: Colors.secondary + '12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

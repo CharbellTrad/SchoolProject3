@@ -2,13 +2,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Head from 'expo-router/head';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, View, } from 'react-native';
+import { Animated, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -21,23 +21,29 @@ export default function LoginScreen() {
 
   const { login } = useAuth();
 
-  // Animaciones simples
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.ease),
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
         duration: 600,
         useNativeDriver: true,
-        easing: Easing.out(Easing.ease),
+        easing: Easing.out(Easing.cubic),
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
       }),
     ]).start();
   }, []);
@@ -107,50 +113,30 @@ export default function LoginScreen() {
     setLoginError('');
   };
 
-  const handleUsernameFocus = () => {
-    setIsFocused({ ...isFocused, username: true });
-  };
-
-  const handleUsernameBlur = () => {
-    setIsFocused({ ...isFocused, username: false });
-  };
-
-  const handlePasswordFocus = () => {
-    setIsFocused({ ...isFocused, password: true });
-  };
-
-  const handlePasswordBlur = () => {
-    setIsFocused({ ...isFocused, password: false });
-  };
-
   return (
     <>
       <Head>
         <title>Iniciar Sesión - Sistema Escolar</title>
       </Head>
 
-      <LinearGradient
-        colors={['#ffffff', '#f8fafc', '#f1f5f9']}
-        style={styles.container}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent />
 
-        {/* Elementos decorativos */}
+        {/* Elementos decorativos modernos */}
         <View style={styles.decorativeCircle1} />
         <View style={styles.decorativeCircle2} />
-        <View style={styles.decorativeCircle3} />
+        <View style={styles.decorativeSquare} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          keyboardVerticalOffset={0}
         >
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
             <Animated.View
               style={[
@@ -161,40 +147,49 @@ export default function LoginScreen() {
                 },
               ]}
             >
-              {/* Header */}
+              {/* Header con logo */}
               <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                  <View style={styles.logoBackground}>
+                <Animated.View 
+                  style={[
+                    styles.logoContainer,
+                    {
+                      transform: [{ scale: logoScale }],
+                    }
+                  ]}
+                >
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.primaryDark]}
+                    style={styles.logoGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
                     <MaterialCommunityIcons
                       name="school"
-                      size={70}
-                      color={Colors.primary}
+                      size={48}
+                      color="#ffffff"
                     />
-                  </View>
-                  <View style={styles.logoPulse} />
-                </View>
-                <Text style={styles.title}>U.E.N.B. Ciudad Jardin</Text>
+                  </LinearGradient>
+                </Animated.View>
+                
+                <Text style={styles.title}>Bienvenido</Text>
                 <Text style={styles.subtitle}>
-                  Sistema Escolar - Gestión Académica Integral
+                  Sistema de Gestión Escolar
                 </Text>
+                <Text style={styles.schoolName}>U.E.N.B. Ciudad Jardín</Text>
               </View>
 
-              {/* Form Card */}
+              {/* Form Card con glassmorphism */}
               <View style={styles.formCard}>
-                <View style={styles.formContainer}>
-                  {loginError ? (
-                    <Animated.View style={styles.errorBanner}>
-                      <View style={styles.errorIconWrapper}>
-                        <Ionicons name="alert-circle" size={20} color={Colors.error} />
-                      </View>
-                      <View style={styles.errorTextWrapper}>
-                        <Text style={styles.errorBannerText}>{loginError}</Text>
-                      </View>
-                    </Animated.View>
-                  ) : (
-                    <View style={{ height: 0 }} />
-                  )}
+                {loginError ? (
+                  <View style={styles.errorBanner}>
+                    <View style={styles.errorIconContainer}>
+                      <Ionicons name="alert-circle" size={22} color={Colors.error} />
+                    </View>
+                    <Text style={styles.errorBannerText}>{loginError}</Text>
+                  </View>
+                ) : null}
 
+                <View style={styles.formContainer}>
                   <Input
                     label="Usuario"
                     placeholder="Ingresa tu usuario"
@@ -203,8 +198,8 @@ export default function LoginScreen() {
                       setUsername(text);
                       clearError('username');
                     }}
-                    onFocus={handleUsernameFocus}
-                    onBlur={handleUsernameBlur}
+                    onFocus={() => setIsFocused({ ...isFocused, username: true })}
+                    onBlur={() => setIsFocused({ ...isFocused, username: false })}
                     leftIcon="person-outline"
                     error={errors.username}
                     isFocused={isFocused.username}
@@ -224,8 +219,8 @@ export default function LoginScreen() {
                       setPassword(text);
                       clearError('password');
                     }}
-                    onFocus={handlePasswordFocus}
-                    onBlur={handlePasswordBlur}
+                    onFocus={() => setIsFocused({ ...isFocused, password: true })}
+                    onBlur={() => setIsFocused({ ...isFocused, password: false })}
                     leftIcon="lock-closed-outline"
                     rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     onRightIconPress={() => setShowPassword(!showPassword)}
@@ -253,20 +248,18 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Footer */}
+              {/* Footer moderno */}
               <View style={styles.footer}>
                 <View style={styles.securityBadge}>
-                  <View style={styles.securityIconWrapper}>
-                    <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
-                  </View>
-                  <Text style={styles.securityText}>Sistema Seguro con Odoo</Text>
+                  <Ionicons name="shield-checkmark" size={16} color={Colors.success} />
+                  <Text style={styles.securityText}>Conexión Segura</Text>
                 </View>
-                <Text style={styles.versionText}>Versión 1.0.0</Text>
+                <Text style={styles.versionText}>Versión 1.0.0 • Powered by Odoo</Text>
               </View>
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
+      </View>
     </>
   );
 }
@@ -274,117 +267,119 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f8fafc',
   },
   keyboardView: {
     flex: 1,
   },
   decorativeCircle1: {
     position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.06)',
-    zIndex: 0,
+    top: -100,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(30, 64, 175, 0.08)',
   },
   decorativeCircle2: {
     position: 'absolute',
-    bottom: -30,
-    left: -30,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-    zIndex: 0,
+    bottom: -60,
+    left: -60,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(16, 185, 129, 0.06)',
   },
-  decorativeCircle3: {
+  decorativeSquare: {
     position: 'absolute',
-    top: '40%',
-    right: -80,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(16, 185, 129, 0.04)',
-    zIndex: 0,
+    top: '45%',
+    right: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    transform: [{ rotate: '25deg' }],
   },
   scrollContent: {
     flexGrow: 1,
     minHeight: height,
-    zIndex: 1,
   },
   loginContainer: {
     flex: 1,
     minHeight: height,
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 30,
+    paddingTop: Platform.OS === 'android' ? 80 : 70,
+    paddingBottom: 40,
     justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 40,
   },
   logoContainer: {
-    position: 'relative',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  logoBackground: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#eff6ff',
+  logoGradient: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#dbeafe',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  logoPulse: {
-    position: 'absolute',
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    opacity: 0.2,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 8,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: 16,
     color: Colors.textSecondary,
-    paddingHorizontal: 20,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  schoolName: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginTop: 4,
   },
   formCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   formContainer: {
     width: '100%',
   },
   buttonWrapper: {
-    marginTop: 20,
+    marginTop: 8,
   },
   errorBanner: {
     flexDirection: 'row',
@@ -392,58 +387,51 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef2f2',
     borderLeftWidth: 4,
     borderLeftColor: Colors.error,
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     marginBottom: 20,
-    shadowColor: Colors.error,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  errorIconWrapper: {
-    marginRight: 10,
-  },
-  errorTextWrapper: {
-    flex: 1,
+  errorIconContainer: {
+    marginRight: 12,
   },
   errorBannerText: {
+    flex: 1,
     color: Colors.error,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     lineHeight: 20,
   },
   footer: {
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 32,
   },
   securityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f0fdf4',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#dcfce7',
-    marginBottom: 10,
-    shadowColor: Colors.success,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  securityIconWrapper: {
-    marginRight: 6,
+    marginBottom: 12,
+    gap: 6,
   },
   securityText: {
     color: Colors.success,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   versionText: {
     color: Colors.textTertiary,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
   },
 });

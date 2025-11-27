@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface InfoSectionProps {
@@ -7,10 +7,13 @@ interface InfoSectionProps {
   children: React.ReactNode;
 }
 
-export const InfoSection: React.FC<InfoSectionProps> = ({ title, children }) => {
+export const InfoSection: React.FC<InfoSectionProps> = ({
+  title,
+  children,
+}) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.content}>
         {children}
       </View>
@@ -20,27 +23,30 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ title, children }) => 
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
     backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderRadius: 16,
+    marginBottom: 20,
+    padding: 18,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: 10,
+    letterSpacing: -0.1,
   },
   content: {
-    padding: 12,
+    marginLeft: 2,
   },
 });

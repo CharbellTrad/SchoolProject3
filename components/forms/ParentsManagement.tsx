@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-import { GlobalStyles } from '../../constants/Styles';
 import { Parent } from '../../services-odoo/personService';
 import { Button } from '../ui/Button';
 import { ParentCard } from './ParentCard';
@@ -58,7 +57,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
 }) => {
   if (showSearchParent) {
     return (
-      <View style={GlobalStyles.contentPadding}>
+      <View style={styles.container}>
         <ParentSearchList
           searchQuery={searchQuery}
           searching={searching}
@@ -73,13 +72,17 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
 
   if (showAddParent) {
     return (
-      <View style={GlobalStyles.contentPadding}>
-        <View style={GlobalStyles.card}>
+      <View style={styles.container}>
+        <View style={styles.formCard}>
           <View style={styles.formHeader}>
-            <Text style={GlobalStyles.subsectionTitle}>
+            <Text style={styles.formTitle}>
               {editingParentIndex !== null ? 'Editar Representante' : 'Agregar Representante'}
             </Text>
-            <TouchableOpacity onPress={onCancelForm}>
+            <TouchableOpacity 
+              onPress={onCancelForm}
+              style={styles.closeButton}
+              activeOpacity={0.7}
+            >
               <Ionicons name="close-circle" size={28} color={Colors.error} />
             </TouchableOpacity>
           </View>
@@ -92,100 +95,204 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
             getImage={getImage}
           />
 
-          <Button
-            title={editingParentIndex !== null ? "Actualizar Representante" : "Agregar Representante"}
-            onPress={onSaveParent}
-            icon="checkmark-circle"
-            variant="primary"
-            size="large"
-          />
+          <View style={styles.saveButtonContainer}>
+            <Button
+              title={editingParentIndex !== null ? "Actualizar Representante" : "Agregar Representante"}
+              onPress={onSaveParent}
+              icon="checkmark-circle-outline"
+              iconPosition="left"
+              variant="primary"
+              size="large"
+            />
+          </View>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={GlobalStyles.contentPadding}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={GlobalStyles.subsectionTitle}>Representantes Agregados</Text>
+        <Text style={styles.headerTitle}>Representantes Asociados</Text>
         
         <View style={styles.buttonRow}>
           <TouchableOpacity 
-            style={[GlobalStyles.dashedButton, styles.addButton]}
+            style={styles.addButton}
             onPress={onAddNewParent}
+            activeOpacity={0.7}
           >
-            <Ionicons name="person-add" size={24} color={Colors.primary} />
+            <Ionicons name="person-add-outline" size={20} color={Colors.primary} />
             <Text style={styles.addButtonText}>Crear Nuevo</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[GlobalStyles.dashedButton, styles.searchButton]}
+            style={styles.searchButton}
             onPress={onSearchExisting}
+            activeOpacity={0.7}
           >
-            <Ionicons name="search" size={24} color={Colors.secondary} />
-            <Text style={styles.searchButtonText}>Buscar Existente</Text>
+            <Ionicons name="search-outline" size={20} color={Colors.secondary} />
+            <Text style={styles.searchButtonText}>Buscar</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {parents.length === 0 ? (
-        <View style={GlobalStyles.emptyState}>
-          <Ionicons name="people-outline" size={64} color={Colors.textTertiary} />
-          <Text style={GlobalStyles.emptyStateText}>
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <Ionicons name="people-outline" size={64} color={Colors.textTertiary} />
+          </View>
+          <Text style={styles.emptyStateTitle}>
             No hay representantes agregados
           </Text>
-          <Text style={GlobalStyles.emptyStateSubtext}>
-            Debe agregar al menos un representante
+          <Text style={styles.emptyStateText}>
+            Debe agregar al menos un representante para continuar
           </Text>
         </View>
       ) : (
-        parents.map((parent, index) => (
-          <ParentCard
-            key={index}
-            parent={parent}
-            index={index}
-            onEdit={!parent.id ? () => onEditParent(index, parent) : undefined}
-            onRemove={() => onRemoveParent(index)}
-          />
-        ))
+        <View style={styles.parentsList}>
+          {parents.map((parent, index) => (
+            <ParentCard
+              key={parent.id ? parent.id.toString() : `parent-${index}`}
+              parent={parent}
+              index={index}
+              onEdit={!parent.id ? () => onEditParent(index, parent) : undefined}
+              onRemove={() => onRemoveParent(index)}
+            />
+          ))}
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
   header: {
     marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+    letterSpacing: -0.3,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  addButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '15',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 8,
+    borderStyle: 'dashed',
+  },
+  addButtonText: {
+    color: Colors.primary,
+    fontWeight: '700',
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
+  searchButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.secondary + '15',
+    borderWidth: 2,
+    borderColor: Colors.secondary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 8,
+    borderStyle: 'dashed',
+  },
+  searchButtonText: {
+    color: Colors.secondary,
+    fontWeight: '700',
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
+  parentsList: {
+    gap: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.backgroundTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  formCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
+  formTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    letterSpacing: -0.3,
   },
-  addButton: {
-    flex: 1,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '05',
+  closeButton: {
+    padding: 4,
   },
-  addButtonText: {
-    color: Colors.primary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  searchButton: {
-    flex: 1,
-    borderColor: Colors.secondary,
-    backgroundColor: Colors.secondary + '05',
-  },
-  searchButtonText: {
-    color: Colors.secondary,
-    fontWeight: '600',
-    fontSize: 14,
+  saveButtonContainer: {
+    marginTop: 24,
   },
 });

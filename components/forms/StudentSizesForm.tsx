@@ -1,6 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import { GlobalStyles } from '../../constants/Styles';
+import { Image, Platform, StyleSheet, View } from 'react-native';
 import { SizesJson } from '../../services-odoo/personService';
 import { ShirtSizeSelector } from '../selectors';
 import { Input } from '../ui/Input';
@@ -17,8 +16,8 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
   const normalizeDecimal = (text: string) => text.replace(',', '.');
 
   return (
-    <View style={GlobalStyles.contentPadding}>
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.card}>
         <View style={styles.layout}>
           <View style={styles.imageSection}>
             <Image
@@ -31,20 +30,20 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
           <View style={styles.formSection}>
             <Input
               label="Altura (m)"
-              placeholder="1,65"
+              placeholder="Ej: 1,65"
               value={data.height ? String(data.height).replace('.', ',') : ''}
               onChangeText={(text) => onFieldChange('height', normalizeDecimal(text))}
               keyboardType="decimal-pad"
-              leftIcon="resize"
+              leftIcon="resize-outline"
             />
 
             <Input
               label="Peso (kg)"
-              placeholder="50"
+              placeholder="Ej: 50"
               value={data.weight ? String(data.weight).replace('.', ',') : ''}
               onChangeText={(text) => onFieldChange('weight', normalizeDecimal(text))}
               keyboardType="decimal-pad"
-              leftIcon="fitness"
+              leftIcon="fitness-outline"
             />
 
             <ShirtSizeSelector
@@ -54,20 +53,20 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
 
             <Input
               label="Talla Pantalón"
-              placeholder="28, 30, 32"
+              placeholder="Ej: 28, 30, 32"
               value={data.size_pants?.toString() || ''}
               onChangeText={(text) => onFieldChange('size_pants', text ? parseFloat(text) : 0)}
-              leftIcon="body"
+              leftIcon="body-outline"
               keyboardType="numeric"
             />
 
             <Input
               label="Talla Zapatos"
-              placeholder="35, 36, 37"
+              placeholder="Ej: 35, 36, 37"
               value={data.size_shoes?.toString() || ''}
               onChangeText={(text) => onFieldChange('size_shoes', text ? parseFloat(text) : 0)}
               keyboardType="numeric"
-              leftIcon="footsteps"
+              leftIcon="footsteps-outline"
             />
           </View>
         </View>
@@ -78,7 +77,24 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...GlobalStyles.card,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   layout: {
     flexDirection: 'row',

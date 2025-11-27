@@ -1,12 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ActivityIndicator, GestureResponderEvent, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableOpacityProps, View, ViewStyle, } from 'react-native';
+import { ActivityIndicator, GestureResponderEvent, Platform, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableOpacityProps, View, ViewStyle } from 'react-native';
 import Colors from '../../constants/Colors';
-
-// Constantes de diseño (ajusta según tu nuevo Styles)
-const borderRadius = 12;
-const spacing = { sm: 10, md: 14, lg: 18, xl: 24 };
-const fontSize = { sm: 14, md: 16, lg: 18 };
 
 interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
   title: string;
@@ -42,6 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getButtonStyle = (): ViewStyle[] => {
     const baseStyle: ViewStyle[] = [styles.button];
+    
     switch (variant) {
       case 'primary':
         baseStyle.push(styles.buttonPrimary);
@@ -56,6 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.buttonDanger);
         break;
     }
+    
     switch (size) {
       case 'small':
         baseStyle.push(styles.buttonSmall);
@@ -67,13 +64,16 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.buttonLarge);
         break;
     }
+    
     if (fullWidth) baseStyle.push(styles.fullWidth);
     if (disabled || loading) baseStyle.push(styles.buttonDisabled);
+    
     return baseStyle;
   };
 
   const getTextStyle = (): TextStyle[] => {
     const baseStyle: TextStyle[] = [styles.text];
+    
     switch (variant) {
       case 'outline':
         baseStyle.push(styles.textOutline);
@@ -81,6 +81,7 @@ export const Button: React.FC<ButtonProps> = ({
       default:
         baseStyle.push(styles.textDefault);
     }
+    
     switch (size) {
       case 'small':
         baseStyle.push(styles.textSmall);
@@ -92,7 +93,25 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.textLarge);
         break;
     }
+    
+    if (disabled || loading) {
+      baseStyle.push(styles.textDisabled);
+    }
+    
     return baseStyle;
+  };
+
+  const getIconSize = () => {
+    switch (size) {
+      case 'small': return 16;
+      case 'large': return 22;
+      default: return 20;
+    }
+  };
+
+  const getIconColor = () => {
+    if (disabled || loading) return 'rgba(255, 255, 255, 0.5)';
+    return variant === 'outline' ? Colors.primary : Colors.white;
   };
 
   return (
@@ -100,18 +119,21 @@ export const Button: React.FC<ButtonProps> = ({
       style={[...getButtonStyle(), style]}
       disabled={disabled || loading}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? Colors.primary : Colors.white} />
+        <ActivityIndicator 
+          size="small" 
+          color={variant === 'outline' ? Colors.primary : Colors.white} 
+        />
       ) : (
         <View style={styles.content}>
           {icon && iconPosition === 'left' && (
             <Ionicons
               name={icon}
-              size={size === 'small' ? 16 : 18}
-              color={variant === 'outline' ? Colors.primary : Colors.white}
+              size={getIconSize()}
+              color={getIconColor()}
               style={styles.iconLeft}
             />
           )}
@@ -119,8 +141,8 @@ export const Button: React.FC<ButtonProps> = ({
           {icon && iconPosition === 'right' && (
             <Ionicons
               name={icon}
-              size={size === 'small' ? 16 : 18}
-              color={variant === 'outline' ? Colors.primary : Colors.white}
+              size={getIconSize()}
+              color={getIconColor()}
               style={styles.iconRight}
             />
           )}
@@ -132,9 +154,20 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: borderRadius,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   buttonPrimary: {
     backgroundColor: Colors.primary,
@@ -146,25 +179,44 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: Colors.primary,
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 0,
+      },
+      android: {
+        elevation: 0,
+      },
+    }),
   },
   buttonDanger: {
     backgroundColor: Colors.error,
   },
   buttonSmall: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    minHeight: 40,
   },
   buttonMedium: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    minHeight: 50,
   },
   buttonLarge: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    minHeight: 56,
   },
   buttonDisabled: {
-    backgroundColor: Colors.gray[400] || '#a0aec0',
-    opacity: 0.6,
+    backgroundColor: Colors.gray[300],
+    opacity: 0.7,
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 0,
+      },
+      android: {
+        elevation: 0,
+      },
+    }),
   },
   fullWidth: {
     width: '100%',
@@ -175,7 +227,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   textDefault: {
     color: Colors.white,
@@ -184,18 +237,21 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   textSmall: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
   },
   textMedium: {
-    fontSize: fontSize.md,
+    fontSize: 16,
   },
   textLarge: {
-    fontSize: fontSize.lg,
+    fontSize: 17,
+  },
+  textDisabled: {
+    opacity: 0.6,
   },
   iconLeft: {
-    marginRight: spacing.sm,
+    marginRight: 8,
   },
   iconRight: {
-    marginLeft: spacing.sm,
+    marginLeft: 8,
   },
 });

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface PaginationProps {
@@ -17,13 +17,10 @@ export const Pagination: React.FC<PaginationProps> = ({
   const [windowStart, setWindowStart] = useState(1);
   const WINDOW_SIZE = 6;
 
-  // Sincronizar ventana con página actual al cambiar de página manualmente
   useEffect(() => {
     const windowEnd = windowStart + WINDOW_SIZE - 1;
     
-    // Si la página actual está fuera de la ventana visible, ajustar
     if (currentPage < windowStart || currentPage > windowEnd) {
-      // Calcular nueva ventana centrada en la página actual
       const newStart = Math.max(1, currentPage - Math.floor(WINDOW_SIZE / 2));
       setWindowStart(newStart);
     }
@@ -61,6 +58,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         style={[styles.arrow, !canGoPrev && styles.arrowDisabled]}
         onPress={handlePrevWindow}
         disabled={!canGoPrev}
+        activeOpacity={0.7}
       >
         <Ionicons 
           name="chevron-back" 
@@ -82,6 +80,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               page === currentPage && styles.pageButtonActive,
             ]}
             onPress={() => onPageChange(page)}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -99,6 +98,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         style={[styles.arrow, !canGoNext && styles.arrowDisabled]}
         onPress={handleNextWindow}
         disabled={!canGoNext}
+        activeOpacity={0.7}
       >
         <Ionicons 
           name="chevron-forward" 
@@ -115,12 +115,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingVertical: 2,
     gap: 8,
+    marginBottom: 16,
   },
   pagesContainer: {
     gap: 8,
@@ -131,34 +128,61 @@ const styles = StyleSheet.create({
   arrow: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   arrowDisabled: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
+    borderColor: Colors.backgroundTertiary,
   },
   pageButton: {
     minWidth: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   pageButtonActive: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   pageText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   pageTextActive: {
     color: '#fff',
+    fontWeight: '800',
   },
 });

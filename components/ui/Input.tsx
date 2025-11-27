@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, TextInputProps, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Platform, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface InputProps extends TextInputProps {
@@ -31,8 +31,9 @@ export const Input: React.FC<InputProps> = (props) => {
 
   return (
     <View style={styles.wrapper}>
-      {/* Label siempre envuelto en Text */}
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <Text style={styles.label}>{label}</Text>
+      ) : null}
       
       <View style={[
         styles.container,
@@ -43,8 +44,8 @@ export const Input: React.FC<InputProps> = (props) => {
           <View style={styles.iconWrapper}>
             <Ionicons
               name={leftIcon}
-              size={20}
-              color={isFocused ? Colors.secondary : Colors.textSecondary}
+              size={22}
+              color={isFocused ? Colors.primary : Colors.textSecondary}
             />
           </View>
         )}
@@ -61,27 +62,26 @@ export const Input: React.FC<InputProps> = (props) => {
           <TouchableOpacity 
             style={styles.iconWrapper} 
             onPress={onClear}
-            activeOpacity={0.7}
+            activeOpacity={0.6}
           >
-            <Ionicons name="close-circle" size={18} color={Colors.textTertiary} />
+            <Ionicons name="close-circle" size={20} color={Colors.textTertiary} />
           </TouchableOpacity>
         ) : rightIcon ? (
           <TouchableOpacity
             style={styles.iconWrapper}
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
-            activeOpacity={0.7}
+            activeOpacity={0.6}
           >
             <Ionicons
               name={rightIcon}
-              size={20}
+              size={22}
               color={isFocused ? Colors.primary : Colors.textSecondary}
             />
           </TouchableOpacity>
         ) : null}
       </View>
       
-      {/* Error siempre envuelto en View con Text */}
       {error ? (
         <View style={styles.errorWrapper}>
           <Ionicons name="alert-circle" size={14} color={Colors.error} />
@@ -95,62 +95,87 @@ export const Input: React.FC<InputProps> = (props) => {
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: 8,
-    paddingLeft: 4,
+    marginBottom: 10,
+    paddingLeft: 2,
+    letterSpacing: 0.2,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: 16,
+    borderWidth: 2,
     borderColor: Colors.border,
-    minHeight: 52,
+    minHeight: 56,
     paddingHorizontal: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   containerFocused: {
     borderColor: Colors.primary,
     borderWidth: 2,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   containerError: {
     borderColor: Colors.error,
-    borderWidth: 1.5,
+    borderWidth: 2,
+    backgroundColor: '#fff5f5',
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
   },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.textPrimary,
     fontWeight: '500',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    minHeight: 48,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    minHeight: 52,
   },
   errorWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 8,
     marginLeft: 4,
-    paddingLeft: 8,
+    paddingLeft: 4,
   },
   errorText: {
     color: Colors.error,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     marginLeft: 6,
     flex: 1,
+    letterSpacing: 0.1,
   },
 });

@@ -1,85 +1,103 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Head from 'expo-router/head';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import Head from 'expo-router/head';
+import React from 'react';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../../constants/Colors';
 
 export default function SelectRoleScreen() {
   return (
     <>
       <Head>
-        <title>Seleccionar Tipo de Persona</title>
+        <title>Directorio de Personas</title>
       </Head>
       <View style={styles.container}>
         <LinearGradient
           colors={[Colors.primary, Colors.primaryDark]}
           style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Listas de Personas</Text>
-          <View style={{ width: 24 }} />
+          <Text style={styles.headerTitle}>Directorio de Personas</Text>
+          <View style={{ width: 40 }} />
         </LinearGradient>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.instruction}>
-            <Ionicons name="information-circle" size={48} color={Colors.primary} />
-            <Text style={styles.instructionTitle}>Selecciona el tipo de persona</Text>
+            <View style={styles.instructionIconContainer}>
+              <Ionicons name="list" size={40} color={Colors.primary} />
+            </View>
+            <Text style={styles.instructionTitle}>Selecciona una categoría</Text>
             <Text style={styles.instructionText}>
-              Elige el rol de la lista que deseas ver en el sistema
+              Elige el tipo de lista que deseas consultar
             </Text>
           </View>
 
           <View style={styles.rolesContainer}>
             <RoleCard
-              icon="school"
-              title="Matrículas"
-              description="Ver la lista de estudiantes con información académica completa"
-              color="#3b82f6"
+              icon="school-outline"
+              title="Estudiantes"
+              description="Lista de estudiantes registrados"
+              accentColor="#3b82f6"
               onPress={() => router.push('/admin/academic-management/lists-persons/students-list' as any)}
             />
 
             <RoleCard
-              icon="book"
+              icon="book-outline"
               title="Docentes"
-              description="Ver la lista de docentes con su especialización y datos profesionales"
-              color="#10b981"
+              description="Lista de profesores del plantel"
+              accentColor="#10b981"
               onPress={() => router.push('/admin/academic-management/lists-persons/teachers-list' as any)}
             />
 
             <RoleCard
-              icon="shield-checkmark"
-              title="Administradors"
-              description="Ver la lista del personal administrativo con cargo y responsabilidades"
-              color="#f59e0b"
+              icon="shield-checkmark-outline"
+              title="Administrativos"
+              description="Personal administrativo"
+              accentColor="#f59e0b"
               onPress={() => router.push('/admin/academic-management/lists-persons/administrators-list' as any)}
             />
+            
             <RoleCard
-              icon="hammer"
+              icon="construct-outline"
               title="Obreros"
-              description="Ver la lista de los obreros de mantenimiento y servicios generales"
-              color="#6366f1"
+              description="Personal de mantenimiento"
+              accentColor="#6366f1"
               onPress={() => router.push('/admin/academic-management/lists-persons/workman-list' as any)}
             />
+            
             <RoleCard
-              icon="restaurant"
-              title="Cenares"
-              description="Ver la lista del personal en el comedor y servicios de alimentación"
-              color="#8b5cf6"
+              icon="restaurant-outline"
+              title="Comedor"
+              description="Personal del comedor escolar"
+              accentColor="#8b5cf6"
               onPress={() => router.push('/admin/academic-management/lists-persons/dining-list' as any)}
             />
           </View>
 
           <View style={styles.infoBox}>
-            <Ionicons name="bulb" size={20} color={Colors.primary} />
+            <View style={styles.infoIconWrapper}>
+              <Ionicons name="information-circle" size={20} color={Colors.primary} />
+            </View>
             <Text style={styles.infoText}>
-              Nota: Estas listas son sobre la información de personas registradas en el sistema.
-              Si deseas ver la lista de usuarios con acceso al sistema, usa la opción "Gestionar Usuarios"
+              <Text style={styles.infoTextBold}>Nota:</Text> Estas listas muestran personas registradas. 
+              Para usuarios con acceso al sistema, usa "Gestionar Usuarios"
             </Text>
           </View>
+
+          <View style={{ height: 20 }} />
         </ScrollView>
       </View>
     </>
@@ -90,21 +108,25 @@ interface RoleCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
-  color: string;
+  accentColor: string;
   onPress: () => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, color, onPress }) => {
+const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, onPress }) => {
   return (
-    <TouchableOpacity style={styles.roleCard} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.roleIconContainer, { backgroundColor: color + '15' }]}>
-        <Ionicons name={icon} size={40} color={color} />
+    <TouchableOpacity 
+      style={[styles.roleCard, { borderLeftColor: accentColor }]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={[styles.roleIconContainer, { backgroundColor: accentColor + '15' }]}>
+        <Ionicons name={icon} size={32} color={accentColor} />
       </View>
       <View style={styles.roleContent}>
         <Text style={styles.roleTitle}>{title}</Text>
         <Text style={styles.roleDescription}>{description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={24} color={Colors.textSecondary} />
+      <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
     </TouchableOpacity>
   );
 };
@@ -112,56 +134,91 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, color, on
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'android' ? 60 : 70,
+    paddingBottom: 24,
     paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#fff',
+    letterSpacing: -0.3,
   },
   content: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 20,
+  },
   instruction: {
     alignItems: 'center',
-    padding: 32,
+    padding: 28,
     backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderRadius: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  instructionIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   instructionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginTop: 16,
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   rolesContainer: {
     paddingHorizontal: 20,
@@ -171,18 +228,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 18,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   roleIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 60,
+    height: 60,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -191,30 +255,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   roleTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 4,
+    letterSpacing: -0.2,
   },
   roleDescription: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: '#eff6ff',
     padding: 16,
-    margin: 20,
-    borderRadius: 12,
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 16,
     borderLeftWidth: 4,
     borderLeftColor: Colors.primary,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  infoIconWrapper: {
+    marginRight: 12,
+    marginTop: 2,
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.textPrimary,
     lineHeight: 20,
-    marginLeft: 12,
+    fontWeight: '500',
+  },
+  infoTextBold: {
+    fontWeight: '800',
+    color: Colors.primary,
   },
 });

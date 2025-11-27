@@ -1,13 +1,77 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Head from 'expo-router/head';
+import React, { useCallback, useState } from 'react';
+import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
+import * as authService from '../../services-odoo/authService';
+import { formatTimeAgo } from '../../utils/formatHelpers';
 
 export default function TeacherDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser, handleSessionExpired } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    
+    try {
+      if (__DEV__) {
+        console.log('🔄 Refrescando dashboard...');
+      }
+
+      const serverHealth = await authService.checkServerHealth();
+
+      if (!serverHealth.ok) {
+        if (__DEV__) {
+          console.log('🔴 Servidor no disponible durante refresh');
+        }
+        setIsOfflineMode(true);
+        showAlert(
+          'Sin conexión',
+          'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+        );
+        return;
+      }
+
+      const validSession = await authService.verifySession();
+
+      if (!validSession) {
+        if (__DEV__) {
+          console.log('❌ Sesión no válida durante refresh');
+        }
+        handleSessionExpired();
+        return;
+      }
+
+      if (updateUser) {
+        await updateUser({
+          fullName: validSession.fullName,
+          email: validSession.email,
+        });
+      }
+
+      setIsOfflineMode(false);
+      
+      if (__DEV__) {
+        console.log('✅ Dashboard actualizado');
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('❌ Error al refrescar:', error);
+      }
+      setIsOfflineMode(true);
+      showAlert(
+        'Error',
+        'No se pudo actualizar la información. Verifica tu conexión e intenta nuevamente.'
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [handleSessionExpired, updateUser]);
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -19,96 +83,270 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#10b981', '#059669']}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.greeting}>Bienvenido</Text>
-            <Text style={styles.userName}>{user.fullName}</Text>
-            <Text style={styles.userRole}>Profesor</Text>
-          </View>
-          <TouchableOpacity style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={32} color="#10b981" />
+    <>
+      <Head>
+        <title>Panel del Profesor</title>
+      </Head>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={[Colors.secondary, Colors.secondaryDark]}
+          style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.greeting}>Hola Profesor 👨‍🏫</Text>
+              <Text style={styles.userName}>{user.fullName}</Text>
+              <View style={styles.roleContainer}>
+                <View style={styles.roleBadge}>
+                  <Ionicons name="book" size={12} color={Colors.secondary} />
+                  <Text style={styles.roleText}>Docente</Text>
+                </View>
+                {__DEV__ && (
+                  <View style={styles.devBadge}>
+                    <Ionicons name="code-working" size={10} color="#f59e0b" />
+                    <Text style={styles.devBadgeText}>DEV</Text>
+                  </View>
+                )}
+              </View>
             </View>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.dashboardContent}>
-          <Text style={styles.sectionTitle}>Mis Clases</Text>
-
-          <View style={styles.cardsGrid}>
-            <DashboardCard
-              icon="book"
-              title="Mis Materias"
-              description="Ver y gestionar mis materias"
-              color="#3b82f6"
-              onPress={() => {}}
-            />
-            
-            <DashboardCard
-              icon="people"
-              title="Estudiantes"
-              description="Lista de mis estudiantes"
-              color="#10b981"
-              onPress={() => {}}
-            />
-            
-            <DashboardCard
-              icon="create"
-              title="Calificaciones"
-              description="Ingresar y ver notas"
-              color="#f59e0b"
-              onPress={() => {}}
-            />
-            
-            <DashboardCard
-              icon="clipboard"
-              title="Actividades"
-              description="Crear y revisar actividades"
-              color="#8b5cf6"
-              onPress={() => {}}
-            />
+            <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
+              <LinearGradient
+                colors={['#ffffff', '#ecfdf5']}
+                style={styles.avatar}
+              >
+                <Ionicons name="person" size={28} color={Colors.secondary} />
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
+        </LinearGradient>
 
-          <View style={styles.infoSection}>
-            <Text style={styles.infoTitle}>Mi Información</Text>
-            <InfoRow label="Usuario" value={user.username} icon="person-outline" />
-            <InfoRow label="Email" value={user.email} icon="mail-outline" />
-            <InfoRow label="Rol" value="Profesor" icon="book-outline" />
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.secondary]}
+              tintColor={Colors.secondary}
+              title="Actualizando..."
+              titleColor={Colors.textSecondary}
+            />
+          }
+        >
+          <View style={styles.dashboardContent}>
+            {isOfflineMode && (
+              <View style={styles.offlineBanner}>
+                <Ionicons name="cloud-offline" size={20} color="#fff" />
+                <Text style={styles.offlineText}>
+                  Sin conexión • Funciones limitadas
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="briefcase-outline" size={24} color={Colors.secondary} />
+                <Text style={styles.sectionTitle}>Mis Actividades</Text>
+              </View>
+
+              <View style={styles.cardsGrid}>
+                <TeacherCard
+                  icon="calendar-outline"
+                  title="Mi Horario"
+                  description="Ver clases programadas"
+                  accentColor="#10b981"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="people-outline"
+                  title="Mis Estudiantes"
+                  description="Lista de estudiantes"
+                  accentColor="#3b82f6"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="clipboard-outline"
+                  title="Asistencia"
+                  description="Registro de asistencias"
+                  accentColor="#8b5cf6"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="stats-chart-outline"
+                  title="Calificaciones"
+                  description="Cargar notas"
+                  accentColor="#f59e0b"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="documents-outline" size={24} color={Colors.secondary} />
+                <Text style={styles.sectionTitle}>Material Educativo</Text>
+              </View>
+
+              <View style={styles.cardsGrid}>
+                <TeacherCard
+                  icon="book-outline"
+                  title="Planificaciones"
+                  description="Planes de clase"
+                  accentColor="#06b6d4"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="document-text-outline"
+                  title="Evaluaciones"
+                  description="Exámenes y pruebas"
+                  accentColor="#ec4899"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="folder-open-outline"
+                  title="Recursos"
+                  description="Material de apoyo"
+                  accentColor="#6366f1"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+                
+                <TeacherCard
+                  icon="chatbubbles-outline"
+                  title="Comunicados"
+                  description="Mensajes y avisos"
+                  accentColor="#ef4444"
+                  disabled={isOfflineMode}
+                  onPress={() => {}}
+                />
+              </View>
+            </View>
+
+            <View style={styles.infoCard}>
+              <View style={styles.infoHeader}>
+                <View style={styles.infoHeaderLeft}>
+                  <Ionicons name="person-circle-outline" size={24} color={Colors.secondary} />
+                  <Text style={styles.infoTitle}>Mi Información</Text>
+                </View>
+                {refreshing && (
+                  <View style={styles.refreshingBadge}>
+                    <Text style={styles.refreshingText}>Actualizando</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.infoContent}>
+                <InfoRow label="Usuario" value={user.username} icon="at" />
+                <InfoRow label="Email" value={user.email} icon="mail" />
+                <InfoRow label="Rol" value="Docente" icon="book" />
+                <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
+                {__DEV__ && (
+                  <InfoRow 
+                    label="Entorno" 
+                    value="Desarrollo" 
+                    icon="code-slash"
+                    highlight
+                  />
+                )}
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.logoutButton} 
+              onPress={handleLogout}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[Colors.error, '#b91c1c']}
+                style={styles.logoutGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="log-out-outline" size={22} color="#fff" />
+                <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={{ height: 20 }} />
           </View>
-
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
-interface DashboardCardProps {
+interface TeacherCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
-  color: string;
+  accentColor: string;
+  disabled?: boolean;
   onPress: () => void;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ icon, title, description, color, onPress }) => {
+const TeacherCard: React.FC<TeacherCardProps> = ({ 
+  icon, 
+  title, 
+  description, 
+  accentColor,
+  disabled, 
+  onPress 
+}) => {
+  const handlePress = () => {
+    if (disabled) {
+      showAlert(
+        'Sin conexión',
+        'Esta función requiere conexión a internet.'
+      );
+      return;
+    }
+    onPress();
+  };
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.cardIcon, { backgroundColor: color + '15' }]}>
-        <Ionicons name={icon} size={28} color={color} />
+    <TouchableOpacity 
+      style={[
+        styles.card,
+        { borderLeftColor: disabled ? Colors.gray[300] : accentColor },
+        disabled && styles.cardDisabled
+      ]} 
+      onPress={handlePress}
+      activeOpacity={disabled ? 1 : 0.7}
+    >
+      <View style={[
+        styles.cardIconContainer,
+        { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }
+      ]}>
+        <Ionicons 
+          name={icon} 
+          size={28} 
+          color={disabled ? Colors.textSecondary : accentColor} 
+        />
       </View>
-      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>
+        {title}
+      </Text>
       <Text style={styles.cardDescription}>{description}</Text>
+      
+      {disabled && (
+        <View style={styles.disabledIndicator}>
+          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -117,17 +355,24 @@ interface InfoRowProps {
   label: string;
   value: string;
   icon: keyof typeof Ionicons.glyphMap;
+  highlight?: boolean;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon }) => {
+const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
   return (
     <View style={styles.infoRow}>
-      <View style={styles.infoIconContainer}>
-        <Ionicons name={icon} size={18} color="#10b981" />
+      <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
+        <Ionicons 
+          name={icon} 
+          size={18} 
+          color={highlight ? Colors.warning : Colors.secondary} 
+        />
       </View>
       <View style={styles.infoTextContainer}>
         <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={[styles.infoValue, highlight && styles.infoValueHighlight]}>
+          {value}
+        </Text>
       </View>
     </View>
   );
@@ -136,50 +381,106 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 30,
+    paddingTop: Platform.OS === 'android' ? 60 : 70,
+    paddingBottom: 32,
     paddingHorizontal: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerTextContainer: {
+    flex: 1,
+  },
   greeting: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.85)',
     fontWeight: '500',
+    marginBottom: 6,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '800',
     color: '#fff',
-    marginTop: 4,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
-  userRole: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 4,
+  roleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+  },
+  roleText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.secondary,
+    letterSpacing: 0.2,
+  },
+  devBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
+    gap: 4,
+  },
+  devBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#f59e0b',
+    letterSpacing: 0.5,
   },
   avatarContainer: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    marginLeft: 16,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
   content: {
     flex: 1,
@@ -187,114 +488,215 @@ const styles = StyleSheet.create({
   dashboardContent: {
     padding: 20,
   },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 24,
+    gap: 10,
+    ...Platform.select({
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  offlineText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    flex: 1,
+    letterSpacing: 0.2,
+  },
+  section: {
+    marginBottom: 28,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 10,
+  },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 16,
-    marginTop: 8,
+    letterSpacing: -0.3,
   },
   cardsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -8,
-    marginBottom: 24,
+    marginHorizontal: -6,
   },
   card: {
     width: '48%',
-    backgroundColor: '#fff',
+    margin: '1%',
+    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
-    margin: '1%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderLeftWidth: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
-  cardIcon: {
+  cardDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f9fafb',
+  },
+  cardIconContainer: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 6,
+    letterSpacing: -0.2,
+  },
+  cardTitleDisabled: {
+    color: Colors.textSecondary,
   },
   cardDescription: {
     fontSize: 13,
     color: Colors.textSecondary,
     lineHeight: 18,
+    fontWeight: '500',
   },
-  infoSection: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+  disabledIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+  },
+  infoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
     padding: 20,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  infoHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   infoTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 16,
+    letterSpacing: -0.3,
+  },
+  refreshingBadge: {
+    backgroundColor: Colors.secondary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  refreshingText: {
+    fontSize: 12,
+    color: Colors.secondary,
+    fontWeight: '700',
+  },
+  infoContent: {
+    gap: 4,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#f1f5f9',
   },
-  infoIconContainer: {
+  infoIconWrapper: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#10b981' + '15',
+    borderRadius: 12,
+    backgroundColor: Colors.secondary + '15',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 14,
+  },
+  infoIconWrapperHighlight: {
+    backgroundColor: '#fef3c7',
   },
   infoTextContainer: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: '500',
   },
   infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.textPrimary,
+    letterSpacing: -0.1,
+  },
+  infoValueHighlight: {
+    color: Colors.warning,
   },
   logoutButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.error,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  logoutGradient: {
     flexDirection: 'row',
-    backgroundColor: Colors.error,
-    padding: 16,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.error,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: 18,
+    gap: 10,
   },
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 });
