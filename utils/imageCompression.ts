@@ -2,20 +2,12 @@
  * Utilidades para reducir tamaño de imágenes base64
  * Compatible con React Native (sin compresión real, solo optimización)
  */
-
-interface CompressionOptions {
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: number;
-}
-
 /**
  * En React Native, la "compresión" real se hace con expo-image-manipulator
  * Por ahora, solo validamos y limpiamos el base64
  */
 export const compressBase64Image = async (
   base64: string,
-  options: CompressionOptions = {}
 ): Promise<string> => {
   try {
     // Extraer el base64 puro (sin data:image/...;base64,)
@@ -44,7 +36,6 @@ export const compressBase64Image = async (
  */
 export const compressMultipleImages = async (
   images: Record<string, string>,
-  options: CompressionOptions = {}
 ): Promise<Record<string, string>> => {
   const entries = Object.entries(images);
   
@@ -59,7 +50,7 @@ export const compressMultipleImages = async (
   const processed = await Promise.all(
     entries.map(async ([key, base64]) => {
       if (!base64) return [key, ''];
-      const processedBase64 = await compressBase64Image(base64, options);
+      const processedBase64 = await compressBase64Image(base64);
       return [key, processedBase64];
     })
   );
@@ -88,8 +79,6 @@ export const cleanBase64 = (base64: string): string => {
  */
 export const smartCompress = async (
   base64: string,
-  maxSizeKB?: number,
-  options: CompressionOptions = {}
 ): Promise<string> => {
   return cleanBase64(base64);
 };

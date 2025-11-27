@@ -10,11 +10,8 @@ interface ImagePickerComponentProps {
   value?: string;
   onImageSelected: (base64: string, filename: string) => void;
   aspectRatio?: [number, number];
-  quality?: number;
   allowsEditing?: boolean; // true = permitir recorte, false = usar imagen completa
   circular?: boolean;
-  maxWidth?: number; // null = sin límite
-  maxHeight?: number; // null = sin límite
   acceptPDF?: boolean;
   compress?: boolean; // Comprimir automáticamente
 }
@@ -24,11 +21,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
   value,
   onImageSelected,
   aspectRatio = [1, 1],
-  quality = 0.8,
   allowsEditing = false, // ✅ Por defecto NO recorta
   circular = false,
-  maxWidth, // ✅ Sin valor por defecto = sin límite
-  maxHeight, // ✅ Sin valor por defecto = sin límite
   acceptPDF = false,
   compress = true,
 }) => {
@@ -91,11 +85,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         mediaTypes: "images",
         allowsEditing, // ✅ Respeta la configuración
         aspect: aspectRatio,
-        quality,
         base64: false,
         // ✅ Respeta límites opcionales
-        ...(maxWidth && { maxWidth }),
-        ...(maxHeight && { maxHeight }),
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -128,11 +119,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         mediaTypes: "images",
         allowsEditing, // ✅ Respeta la configuración
         aspect: aspectRatio,
-        quality,
         base64: false,
         // ✅ Respeta límites opcionales
-        ...(maxWidth && { maxWidth }),
-        ...(maxHeight && { maxHeight }),
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -269,7 +257,7 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 5,
   },
   label: {
     fontSize: 14,

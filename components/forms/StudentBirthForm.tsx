@@ -38,7 +38,7 @@ export const StudentBirthForm: React.FC<StudentBirthFormProps> = ({
             placeholder="Especifique detalles..."
             value={data.what_illness_treatment}
             onChangeText={(text) => onFieldChange('what_illness_treatment', text)}
-            leftIcon="medical-outline"
+            leftIcon="medical"
             error={errors.what_illness_treatment}
             multiline
             numberOfLines={2}
@@ -70,7 +70,7 @@ export const StudentBirthForm: React.FC<StudentBirthFormProps> = ({
           placeholder="Ej: 9 meses / 40 semanas"
           value={data.gestation_time}
           onChangeText={(text) => onFieldChange('gestation_time', text)}
-          leftIcon="time-outline"
+          leftIcon="time"
           error={errors.gestation_time}
         />
 
@@ -79,7 +79,7 @@ export const StudentBirthForm: React.FC<StudentBirthFormProps> = ({
           placeholder="Ej: 3,5"
           value={data.peso_al_nacer ? String(data.peso_al_nacer).replace('.', ',') : ''}
           onChangeText={(text) => onFieldChange('peso_al_nacer', text.replace(',', '.'))}
-          leftIcon="fitness-outline"
+          leftIcon="fitness"
           keyboardType="decimal-pad"
           error={errors.peso_al_nacer}
         />
@@ -98,7 +98,7 @@ export const StudentBirthForm: React.FC<StudentBirthFormProps> = ({
             placeholder="Especifique la complicación..."
             value={data.complication}
             onChangeText={(text) => onFieldChange('complication', text)}
-            leftIcon="alert-circle-outline"
+            leftIcon="alert-circle"
             error={errors.complication}
             multiline
             numberOfLines={2}
@@ -111,7 +111,7 @@ export const StudentBirthForm: React.FC<StudentBirthFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingTop: 20,
   },
   section: {

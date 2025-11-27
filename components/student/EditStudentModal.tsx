@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-import { listStyles } from '../../constants/Styles';
 import { useParentManagement, useStudentEdit } from '../../hooks';
 import * as authService from '../../services-odoo/authService';
 import { deleteParent, loadStudentFullDetails, saveParent, Student, updateParent, updateStudent } from '../../services-odoo/personService';
@@ -21,12 +20,12 @@ interface EditStudentModalProps {
   onDelete: (student: Student) => void;
 }
 
-const TABS = [
-  { id: 'general' as EditTab, label: 'General', icon: 'person' },
-  { id: 'sizes' as EditTab, label: 'Tallas', icon: 'resize' },
-  { id: 'birth' as EditTab, label: 'Nacimiento', icon: 'heart' },
-  { id: 'parents' as EditTab, label: 'Padres', icon: 'people' },
-  { id: 'documents' as EditTab, label: 'Documentos', icon: 'document' },
+const TABS: Array<{ id: EditTab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { id: 'general', label: 'General', icon: 'person-outline' },
+  { id: 'sizes', label: 'Tallas', icon: 'resize-outline' },
+  { id: 'birth', label: 'Nacimiento', icon: 'heart-outline' },
+  { id: 'parents', label: 'Padres', icon: 'people-outline' },
+  { id: 'documents', label: 'Documentos', icon: 'document-text-outline' },
 ];
 
 export const EditStudentModal: React.FC<EditStudentModalProps> = ({
@@ -51,7 +50,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
     if (!student) return;
 
-    // 🌐 Cargar detalles completos desde servidor (SIEMPRE)
     const loadFullDetails = async () => {
       setLoadingFullDetails(true);
       
@@ -70,7 +68,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         if (__DEV__) {
           console.error('❌ Error cargando detalles completos:', error);
         }
-        // En caso de error, usar datos básicos
         setFullStudent(student);
       } finally {
         setLoadingFullDetails(false);
@@ -78,7 +75,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     };
 
     loadFullDetails();
-  }, [visible, student]); // ✅ Se recarga cada vez que visible o student cambian
+  }, [visible, student]);
 
   const {
     formData,
@@ -96,7 +93,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     getImage,
     clearImage,
     loadingParents,
-  } = useStudentEdit(fullStudent); // 👈 Usar fullStudent en lugar de student
+  } = useStudentEdit(fullStudent);
 
   const parentManagement = useParentManagement(
     parents,
@@ -113,21 +110,11 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   // Mostrar loading mientras carga detalles
   if (loadingFullDetails || !formData) {
     return (
-      <Modal visible={visible} animationType="slide" transparent={true}>
-        <View style={listStyles.modalOverlay}>
-          <View style={listStyles.modalContent}>
-            <View style={listStyles.modalHeader}>
-              <Text style={listStyles.modalTitle}>Cargando...</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={28} color={Colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={{ marginTop: 16, color: Colors.textSecondary }}>
-                Cargando información del estudiante...
-              </Text>
-            </View>
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingLabel}>Cargando información...</Text>
           </View>
         </View>
       </Modal>
@@ -178,7 +165,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   const handleSave = async () => {
-    // 1️⃣ Verificar conexión PRIMERO
     const serverHealth = await authService.checkServerHealth();
 
     if (!serverHealth.ok) {
@@ -192,7 +178,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       return;
     }
 
-    // 2️⃣ Validaciones
     if (!validateForm()) {
       showAlert('Error', 'Complete todos los campos requeridos correctamente');
       return;
@@ -207,7 +192,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     setIsLoading(true);
 
     try {
-      // 3️⃣ Eliminar representantes marcados para eliminación
       for (const parentId of parentsToDelete) {
         try {
           if (__DEV__) {
@@ -234,7 +218,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
       const savedParentIds: number[] = [];
 
-      // 4️⃣ Actualizar o crear representantes
       for (const parent of parents) {
         const commonData = {
           born_date: formatDateToOdoo(parent.born_date || ''),
@@ -269,7 +252,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
               }
             }
           } else {
-            // ✅ CAMBIO: Agregados job_place y job como campos obligatorios
             if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone || !parent.job_place || !parent.job) {
               continue;
             }
@@ -330,7 +312,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         }
       }
 
-      // 5️⃣ Actualizar estudiante
       const updateData: Partial<Student> = {
         ...formData,
         born_date: formatDateToOdoo(formData.born_date),
@@ -446,34 +427,51 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={listStyles.modalOverlay}
+        style={styles.overlay}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View style={listStyles.modalContent}>
-          <View style={listStyles.modalHeader}>
-            <Text style={listStyles.modalTitle}>Editar Estudiante</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color={Colors.textPrimary} />
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.studentIconBox}>
+                <Ionicons name="create" size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.headerTitle}>Editar Estudiante</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+              <Ionicons name="close-circle" size={28} color={Colors.error} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tabsContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {/* Tabs */}
+          <View style={styles.tabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsList}
+            >
               {TABS.map((tab) => (
                 <TouchableOpacity
                   key={tab.id}
-                  style={[styles.tab, activeTab === tab.id && styles.activeTab]}
                   onPress={() => setActiveTab(tab.id)}
+                  activeOpacity={0.7}
+                  style={[styles.tabButton, activeTab === tab.id && styles.tabButtonActive]}
                 >
                   <Ionicons
-                    name={tab.icon as any}
-                    size={18}
+                    name={tab.icon}
+                    size={16}
                     color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
                   />
-                  <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      activeTab === tab.id && styles.tabLabelActive,
+                    ]}
+                  >
                     {tab.label}
                   </Text>
                 </TouchableOpacity>
@@ -481,19 +479,21 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             </ScrollView>
           </View>
 
+          {/* Body */}
           <ScrollView
-            style={listStyles.modalBody}
+            style={styles.body}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={listStyles.scrollContent}
             nestedScrollEnabled={true}
             scrollEventThrottle={16}
           >
             {renderTabContent()}
 
+            {/* Danger Zone */}
             <View style={styles.dangerZone}>
               <View style={styles.dangerZoneHeader}>
-                <Ionicons name="warning" size={24} color={Colors.error} />
+                <Ionicons name="warning-outline" size={22} color={Colors.error} />
                 <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
               </View>
               <Text style={styles.dangerZoneText}>
@@ -505,8 +505,9 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
                   onClose();
                   setTimeout(() => onDelete(formData), 300);
                 }}
+                activeOpacity={0.8}
               >
-                <Ionicons name="trash" size={20} color="#fff" />
+                <Ionicons name="trash-outline" size={18} color="#fff" />
                 <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
               </TouchableOpacity>
             </View>
@@ -514,36 +515,28 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             <View style={{ height: 100 }} />
           </ScrollView>
 
-          <View style={listStyles.modalFooter}>
-            <TouchableOpacity
-              style={listStyles.cancelButton}
-              onPress={() => {
-                setParentsToDelete([]);
-                onClose();
-              }}
-            >
-              <Text style={listStyles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-
+          {/* Footer */}
+          <View style={styles.footer}>
             <TouchableOpacity
               style={[
-                listStyles.saveButton,
-                (isLoading || parentManagement.showAddParent) && listStyles.saveButtonDisabled
+                styles.saveBtn,
+                (isLoading || parentManagement.showAddParent) && styles.saveBtnDisabled
               ]}
               onPress={handleSave}
               disabled={isLoading || parentManagement.showAddParent}
+              activeOpacity={0.75}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#fff" size="small" />
               ) : parentManagement.showAddParent ? (
                 <>
-                  <Ionicons name="alert-circle" size={20} color="#fff" />
-                  <Text style={listStyles.saveButtonText}>Termine de editar</Text>
+                  <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+                  <Text style={styles.saveBtnLabel}>Termine de editar</Text>
                 </>
               ) : (
                 <>
-                  <Ionicons name="checkmark" size={20} color="#fff" />
-                  <Text style={listStyles.saveButtonText}>Guardar</Text>
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                  <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -555,61 +548,131 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  tabsContainer: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'flex-end',
   },
-  tab: {
+  content: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    height: '92%',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 10,
+      },
+    }),
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flex: 1,
+  },
+  studentIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    letterSpacing: -0.3,
+  },
+  tabsWrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: '#f8fafc',
+  },
+  tabsList: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     gap: 6,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
   },
-  activeTab: {
-    borderBottomColor: Colors.primary,
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+    marginVertical: 4,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  tabText: {
+  tabButtonActive: {
+    backgroundColor: Colors.primary + '15',
+    borderColor: Colors.primary,
+  },
+  tabLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
-  activeTabText: {
+  tabLabelActive: {
     color: Colors.primary,
     fontWeight: '700',
   },
+  body: {
+    flex: 1,
+  },
+  bodyContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
   dangerZone: {
-    marginTop: 30,
+    marginTop: 32,
     padding: 20,
-    backgroundColor: Colors.error + '10',
-    borderRadius: 12,
+    backgroundColor: Colors.error + '08',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.error + '30',
+    borderColor: Colors.error + '20',
   },
   dangerZoneHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    gap: 10,
   },
   dangerZoneTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: Colors.error,
-    marginLeft: 8,
+    letterSpacing: -0.3,
   },
   dangerZoneText: {
     fontSize: 14,
     color: Colors.textSecondary,
     marginBottom: 16,
+    lineHeight: 20,
   },
   deleteButton: {
     backgroundColor: Colors.error,
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -617,7 +680,64 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.1,
+  },
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingBox: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    paddingHorizontal: 32,
+    paddingVertical: 28,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  loadingLabel: {
+    marginTop: 16,
+    fontSize: 15,
+    color: Colors.textSecondary,
     fontWeight: '600',
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: '#f8fafc',
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  saveBtnDisabled: {
+    backgroundColor: Colors.textTertiary,
+  },
+  saveBtnLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.1,
   },
 });

@@ -55,51 +55,47 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="Ej: María Pérez González"
           value={parent.name}
           onChangeText={(text) => onFieldChange('name', text)}
-          leftIcon="person-outline"
+          leftIcon="person"
           error={errors.parent_name}
         />
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <NationalitySelectorDropdown
-              value={parent.nationality || ''}
-              onChange={(value) => onFieldChange('nationality', value)}
-              error={errors.parent_nationality}
-            />
-          </View>
-          <View style={styles.halfInput}>
-            <Input
-              label="Cédula *"
-              placeholder="12345678"
-              value={parent.vat}
-              onChangeText={(text) => onFieldChange('vat', text)}
-              leftIcon="card-outline"
-              error={errors.parent_vat}
-              keyboardType="numeric"
-            />
-          </View>
+        <View style={styles.halfInput}>
+          <NationalitySelectorDropdown
+            value={parent.nationality || ''}
+            onChange={(value) => onFieldChange('nationality', value)}
+            error={errors.parent_nationality}
+          />
+        </View>
+        <View style={styles.halfInput}>
+          <Input
+            label="Cédula *"
+            placeholder="12345678"
+            value={parent.vat}
+            onChangeText={(text) => onFieldChange('vat', text)}
+            leftIcon="card"
+            error={errors.parent_vat}
+            keyboardType="numeric"
+          />
         </View>
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Input
-              label="Fecha Nacimiento *"
-              placeholder="DD-MM-AAAA"
-              value={parent.born_date}
-              onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
-              leftIcon="calendar-outline"
-              error={errors.parent_born_date}
-              maxLength={10}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.halfInput}>
-            <GenderSelectorDropdown
-              value={parent.sex || ''}
-              onChange={(value) => onFieldChange('sex', value)}
-              error={errors.parent_sex}
-            />
-          </View>
+        <View style={styles.halfInput}>
+          <Input
+            label="Fecha Nacimiento *"
+            placeholder="DD-MM-AAAA"
+            value={parent.born_date}
+            onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
+            leftIcon="calendar"
+            error={errors.parent_born_date}
+            maxLength={10}
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={styles.halfInput}>
+          <GenderSelectorDropdown
+            value={parent.sex || ''}
+            onChange={(value) => onFieldChange('sex', value)}
+            error={errors.parent_sex}
+          />
         </View>
       </View>
 
@@ -111,7 +107,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="representante@ejemplo.com"
           value={parent.email}
           onChangeText={(text) => onFieldChange('email', text)}
-          leftIcon="mail-outline"
+          leftIcon="mail"
           error={errors.parent_email}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -122,7 +118,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="04141234567"
           value={parent.phone}
           onChangeText={(text) => onFieldChange('phone', text)}
-          leftIcon="call-outline"
+          leftIcon="call"
           error={errors.parent_phone}
           keyboardType="phone-pad"
         />
@@ -132,7 +128,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="02121234567"
           value={parent.resident_number}
           onChangeText={(text) => onFieldChange('resident_number', text)}
-          leftIcon="home-outline"
+          leftIcon="home"
           keyboardType="phone-pad"
         />
 
@@ -141,7 +137,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="04241234567"
           value={parent.emergency_phone_number}
           onChangeText={(text) => onFieldChange('emergency_phone_number', text)}
-          leftIcon="alert-circle-outline"
+          leftIcon="alert-circle"
           error={errors.parent_emergency_phone_number}
           keyboardType="phone-pad"
         />
@@ -151,7 +147,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="Ej: Av. Principal, Edificio Los Pinos"
           value={parent.street}
           onChangeText={(text) => onFieldChange('street', text)}
-          leftIcon="location-outline"
+          leftIcon="location"
           multiline
           numberOfLines={2}
         />
@@ -181,7 +177,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="Ej: Empresa ABC, C.A."
           value={parent.job_place}
           onChangeText={(text) => onFieldChange('job_place', text)}
-          leftIcon="business-outline"
+          leftIcon="business"
           error={errors.parent_job_place}
         />
 
@@ -190,7 +186,7 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
           placeholder="Ej: Ingeniero, Docente, Contador"
           value={parent.job}
           onChangeText={(text) => onFieldChange('job', text)}
-          leftIcon="briefcase-outline"
+          leftIcon="briefcase"
           error={errors.parent_job}
         />
       </View>
@@ -224,10 +220,10 @@ export const ParentFormFields: React.FC<ParentFormFieldsProps> = ({
 
 const styles = StyleSheet.create({
   photoSection: {
-    marginBottom: 28,
+    marginBottom: 15,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
@@ -236,14 +232,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     letterSpacing: -0.3,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   halfInput: {
     flex: 1,
   },
   documentItem: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
 });

@@ -34,7 +34,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
               value={data.height ? String(data.height).replace('.', ',') : ''}
               onChangeText={(text) => onFieldChange('height', normalizeDecimal(text))}
               keyboardType="decimal-pad"
-              leftIcon="resize-outline"
+              leftIcon="resize"
             />
 
             <Input
@@ -43,7 +43,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
               value={data.weight ? String(data.weight).replace('.', ',') : ''}
               onChangeText={(text) => onFieldChange('weight', normalizeDecimal(text))}
               keyboardType="decimal-pad"
-              leftIcon="fitness-outline"
+              leftIcon="fitness"
             />
 
             <ShirtSizeSelector
@@ -56,7 +56,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
               placeholder="Ej: 28, 30, 32"
               value={data.size_pants?.toString() || ''}
               onChangeText={(text) => onFieldChange('size_pants', text ? parseFloat(text) : 0)}
-              leftIcon="body-outline"
+              leftIcon="body"
               keyboardType="numeric"
             />
 
@@ -66,7 +66,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
               value={data.size_shoes?.toString() || ''}
               onChangeText={(text) => onFieldChange('size_shoes', text ? parseFloat(text) : 0)}
               keyboardType="numeric"
-              leftIcon="footsteps-outline"
+              leftIcon="footsteps"
             />
           </View>
         </View>
@@ -77,7 +77,7 @@ export const StudentSizesForm: React.FC<StudentSizesFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingTop: 20,
   },
   card: {

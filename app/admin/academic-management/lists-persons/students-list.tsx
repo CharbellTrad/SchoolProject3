@@ -74,7 +74,6 @@ export default function StudentsListScreen() {
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>Estudiantes</Text>
-            <Text style={styles.headerSubtitle}>{totalStudents} registrados</Text>
           </View>
           <TouchableOpacity
             style={[

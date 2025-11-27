@@ -51,51 +51,47 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="Ej: Juan Pérez García"
           value={data.name}
           onChangeText={(text) => onFieldChange('name', text)}
-          leftIcon="person-outline"
+          leftIcon="person"
           error={errors.name}
         />
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <NationalitySelectorDropdown
-              value={data.nationality}
-              onChange={(value) => onFieldChange('nationality', value)}
-              error={errors.nationality}
-            />
-          </View>
-          <View style={styles.halfInput}>
-            <Input
-              label="Cédula *"
-              placeholder="12345678"
-              value={data.vat}
-              onChangeText={(text) => onFieldChange('vat', text)}
-              leftIcon="card-outline"
-              error={errors.vat}
-              keyboardType="numeric"
-            />
-          </View>
+        <View style={styles.halfInput}>
+          <NationalitySelectorDropdown
+            value={data.nationality}
+            onChange={(value) => onFieldChange('nationality', value)}
+            error={errors.nationality}
+          />
+        </View>
+        <View style={styles.halfInput}>
+          <Input
+            label="Cédula *"
+            placeholder="12345678"
+            value={data.vat}
+            onChangeText={(text) => onFieldChange('vat', text)}
+            leftIcon="card"
+            error={errors.vat}
+            keyboardType="numeric"
+          />
         </View>
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Input
-              label="Fecha de Nacimiento *"
-              placeholder="DD-MM-AAAA"
-              value={data.born_date}
-              onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
-              leftIcon="calendar-outline"
-              error={errors.born_date}
-              maxLength={10}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.halfInput}>
-            <GenderSelectorDropdown
-              value={data.sex}
-              onChange={(value) => onFieldChange('sex', value)}
-              error={errors.sex}
-            />
-          </View>
+        <View style={styles.halfInput}>
+          <Input
+            label="Fecha de Nacimiento *"
+            placeholder="DD-MM-AAAA"
+            value={data.born_date}
+            onChangeText={(text) => onFieldChange('born_date', formatBirthDate(text))}
+            leftIcon="calendar"
+            error={errors.born_date}
+            maxLength={10}
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={styles.halfInput}>
+          <GenderSelectorDropdown
+            value={data.sex}
+            onChange={(value) => onFieldChange('sex', value)}
+            error={errors.sex}
+          />
         </View>
 
         <BloodTypeSelectorDropdown
@@ -113,7 +109,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="estudiante@ejemplo.com"
           value={data.email}
           onChangeText={(text) => onFieldChange('email', text)}
-          leftIcon="mail-outline"
+          leftIcon="mail"
           error={errors.email}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -124,7 +120,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="04141234567"
           value={data.phone}
           onChangeText={(text) => onFieldChange('phone', text)}
-          leftIcon="call-outline"
+          leftIcon="call"
           error={errors.phone}
           keyboardType="phone-pad"
         />
@@ -134,7 +130,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="02121234567"
           value={data.resident_number}
           onChangeText={(text) => onFieldChange('resident_number', text)}
-          leftIcon="home-outline"
+          leftIcon="home"
           keyboardType="phone-pad"
         />
 
@@ -143,7 +139,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="04241234567"
           value={data.emergency_phone_number}
           onChangeText={(text) => onFieldChange('emergency_phone_number', text)}
-          leftIcon="alert-circle-outline"
+          leftIcon="alert-circle"
           error={errors.emergency_phone_number}
           keyboardType="phone-pad"
         />
@@ -157,7 +153,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
           placeholder="Ej: Av. Principal, Quinta Los Pinos"
           value={data.street}
           onChangeText={(text) => onFieldChange('street', text)}
-          leftIcon="location-outline"
+          leftIcon="location"
           error={errors.street}
           multiline
           numberOfLines={2}
@@ -175,7 +171,7 @@ export const StudentGeneralForm: React.FC<StudentGeneralFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingTop: 20,
   },
   photoSection: {
@@ -190,10 +186,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 16,
     letterSpacing: -0.3,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
   },
   halfInput: {
     flex: 1,

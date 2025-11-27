@@ -115,9 +115,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   pagesContainer: {
     gap: 8,

@@ -25,7 +25,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
         <Ionicons
           name={icon}
           size={20}
-          color={highlight ? Colors.warning : Colors.primary}
+          color={highlight ? Colors.warning : Colors.textSecondary}
         />
       </View>
       <View style={styles.textContainer}>

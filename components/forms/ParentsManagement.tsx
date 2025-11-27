@@ -99,7 +99,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
             <Button
               title={editingParentIndex !== null ? "Actualizar Representante" : "Agregar Representante"}
               onPress={onSaveParent}
-              icon="checkmark-circle-outline"
+              icon="checkmark-circle"
               iconPosition="left"
               variant="primary"
               size="large"
@@ -121,7 +121,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
             onPress={onAddNewParent}
             activeOpacity={0.7}
           >
-            <Ionicons name="person-add-outline" size={20} color={Colors.primary} />
+            <Ionicons name="person-add" size={20} color={Colors.primary} />
             <Text style={styles.addButtonText}>Crear Nuevo</Text>
           </TouchableOpacity>
           
@@ -130,7 +130,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
             onPress={onSearchExisting}
             activeOpacity={0.7}
           >
-            <Ionicons name="search-outline" size={20} color={Colors.secondary} />
+            <Ionicons name="search" size={20} color={Colors.secondary} />
             <Text style={styles.searchButtonText}>Buscar</Text>
           </TouchableOpacity>
         </View>
@@ -139,7 +139,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
       {parents.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="people-outline" size={64} color={Colors.textTertiary} />
+            <Ionicons name="people" size={64} color={Colors.textTertiary} />
           </View>
           <Text style={styles.emptyStateTitle}>
             No hay representantes agregados
@@ -167,7 +167,7 @@ export const ParentsManagement: React.FC<ParentsManagementProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingTop: 20,
   },
   header: {

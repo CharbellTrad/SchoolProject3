@@ -16,11 +16,11 @@ import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../../../u
 import { compressMultipleImages } from '../../../../utils/imageCompression';
 
 const TABS = [
-  { id: 'general' as TabType, label: 'General', icon: 'person-outline' },
-  { id: 'sizes' as TabType, label: 'Tallas', icon: 'resize-outline' },
-  { id: 'birth' as TabType, label: 'Nacimiento', icon: 'heart-outline' },
-  { id: 'parents' as TabType, label: 'Representantes', icon: 'people-outline' },
-  { id: 'documents' as TabType, label: 'Documentos', icon: 'document-outline' },
+  { id: 'general' as TabType, label: 'General', icon: 'person' },
+  { id: 'sizes' as TabType, label: 'Tallas', icon: 'resize' },
+  { id: 'birth' as TabType, label: 'Nacimiento', icon: 'heart' },
+  { id: 'parents' as TabType, label: 'Representantes', icon: 'people' },
+  { id: 'documents' as TabType, label: 'Documentos', icon: 'document' },
 ];
 
 export default function RegisterStudentTabsScreen() {
@@ -183,11 +183,7 @@ export default function RegisterStudentTabsScreen() {
         if (parent.ci_document) parentImages.ci_document = parent.ci_document;
         if (parent.parent_singnature) parentImages.parent_singnature = parent.parent_singnature;
         
-        const compressedParentImages = await compressMultipleImages(parentImages, {
-          maxWidth: 800,
-          maxHeight: 800,
-          quality: 0.7,
-        });
+        const compressedParentImages = await compressMultipleImages(parentImages);
         
         const parentResult = await saveParent({
           name: parent.name!,
@@ -231,11 +227,7 @@ export default function RegisterStudentTabsScreen() {
       if (ciDocument?.base64) studentImages.ci_document = ciDocument.base64;
       if (bornDocument?.base64) studentImages.born_document = bornDocument.base64;
 
-      const compressedStudentImages = await compressMultipleImages(studentImages, {
-        maxWidth: 1024,
-        maxHeight: 1024,
-        quality: 0.7,
-      });
+      const compressedStudentImages = await compressMultipleImages(studentImages);
 
       const result = await saveStudent({
         ...studentData,
@@ -440,7 +432,7 @@ export default function RegisterStudentTabsScreen() {
             title={isLoading ? "Guardando..." : "Guardar Matrícula"}
             onPress={validateAndSubmit}
             loading={isLoading}
-            icon={isLoading ? undefined : "save-outline"}
+            icon={isLoading ? undefined : "save"}
             iconPosition="left"
             variant="primary"
             size="large"

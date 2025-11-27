@@ -96,7 +96,7 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingTop: 20,
   },
   section: {

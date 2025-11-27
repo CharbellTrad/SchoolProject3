@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
-import { listStyles } from '../../../constants/Styles';
 import { Student } from '../../../services-odoo/personService';
 import { ImagePickerComponent } from '../../ImagePicker';
 
@@ -24,90 +23,201 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
   onBornDocumentSelected,
 }) => {
   return (
-    <View style={listStyles.editSection}>
-      <Text style={listStyles.editSectionTitle}>Documentos</Text>
-      <Text style={styles.sectionTitle}>Documentos Entregados</Text>
+    <View style={styles.container}>
+      {/* Sección: Documentos Entregados */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.iconBox}>
+            <Ionicons name="checkmark-done" size={20} color={Colors.primary} />
+          </View>
+          <Text style={styles.sectionTitle}>Documentos Entregados</Text>
+        </View>
 
-      <TouchableOpacity
-        style={styles.checkbox}
-        onPress={() => onFieldChange('brown_folder', !formData.brown_folder)}
-      >
-        <Ionicons 
-          name={formData.brown_folder ? "checkbox" : "square-outline"} 
-          size={28} 
-          color={formData.brown_folder ? Colors.success : Colors.textSecondary} 
-        />
-        <Text style={styles.checkboxLabel}>
-          Carpeta Marrón Tamaño Oficio
-        </Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={styles.checkbox}
-        onPress={() => onFieldChange('boletin_informative', !formData.boletin_informative)}
-      >
-        <Ionicons 
-          name={formData.boletin_informative ? "checkbox" : "square-outline"} 
-          size={28} 
-          color={formData.boletin_informative ? Colors.success : Colors.textSecondary} 
-        />
-        <Text style={styles.checkboxLabel}>
-          Boletín Informativo
-        </Text>
-      </TouchableOpacity>
-
-      <View style={styles.documentSection}>
-        <Text style={styles.sectionTitle}>Cédula de Identidad</Text>
-        <Text style={styles.hint}>Formatos aceptados: JPG, PNG, PDF</Text>
-        <ImagePickerComponent
-          value={ciDocument}
-          onImageSelected={onCiDocumentSelected}
-          circular={false}
-          acceptPDF={true}
-        />
+        <View style={styles.sectionContent}>
+          <TouchableOpacity
+            style={[
+              styles.checkbox,
+              formData.brown_folder && styles.checkboxChecked
+            ]}
+            onPress={() => onFieldChange('brown_folder', !formData.brown_folder)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.checkboxIconBox}>
+              <Ionicons 
+                name={formData.brown_folder ? "checkbox" : "square-outline"} 
+                size={26} 
+                color={formData.brown_folder ? Colors.success : Colors.textSecondary} 
+              />
+            </View>
+            <Text style={[
+              styles.checkboxLabel,
+              formData.brown_folder && styles.checkboxLabelChecked
+            ]}>
+              Carpeta Marrón Tamaño Oficio
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.checkbox,
+              formData.boletin_informative && styles.checkboxChecked
+            ]}
+            onPress={() => onFieldChange('boletin_informative', !formData.boletin_informative)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.checkboxIconBox}>
+              <Ionicons 
+                name={formData.boletin_informative ? "checkbox" : "square-outline"} 
+                size={26} 
+                color={formData.boletin_informative ? Colors.success : Colors.textSecondary} 
+              />
+            </View>
+            <Text style={[
+              styles.checkboxLabel,
+              formData.boletin_informative && styles.checkboxLabelChecked
+            ]}>
+              Boletín Informativo
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.documentSection}>
-        <Text style={styles.sectionTitle}>Partida de Nacimiento</Text>
-        <Text style={styles.hint}>Formatos aceptados: JPG, PNG, PDF</Text>
-        <ImagePickerComponent
-          value={bornDocument}
-          onImageSelected={onBornDocumentSelected}
-          circular={false}
-          acceptPDF={true}
-        />
+      {/* Sección: Cédula de Identidad */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.iconBox}>
+            <Ionicons name="card" size={20} color={Colors.primary} />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.sectionTitle}>Cédula de Identidad</Text>
+            <Text style={styles.hint}>Formatos: JPG, PNG, PDF</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionContent}>
+          <ImagePickerComponent
+            value={ciDocument}
+            onImageSelected={onCiDocumentSelected}
+            circular={false}
+            acceptPDF={true}
+          />
+        </View>
+      </View>
+
+      {/* Sección: Partida de Nacimiento */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.iconBox}>
+            <Ionicons name="document-text" size={20} color={Colors.primary} />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.sectionTitle}>Partida de Nacimiento</Text>
+            <Text style={styles.hint}>Formatos: JPG, PNG, PDF</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionContent}>
+          <ImagePickerComponent
+            value={bornDocument}
+            onImageSelected={onBornDocumentSelected}
+            circular={false}
+            acceptPDF={true}
+          />
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 20,
+  },
+  section: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 14,
+    backgroundColor: '#f8fafc',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: 12,
+  },
+  iconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+    letterSpacing: -0.1,
+  },
+  hint: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  sectionContent: {
+    padding: 5,
+    gap: 12,
   },
   checkbox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 5,
     backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    gap: 12,
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.success + '08',
+    borderColor: Colors.success + '40',
+  },
+  checkboxIconBox: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   checkboxLabel: {
-    marginLeft: 12,
-    fontSize: 15,
+    flex: 1,
+    fontSize: 14,
     color: Colors.textPrimary,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
-  documentSection: {
-    marginBottom: 24,
-  },
-  hint: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 12,
+  checkboxLabelChecked: {
+    color: Colors.success,
+    fontWeight: '700',
   },
 });

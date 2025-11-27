@@ -75,18 +75,28 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(
         {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.viewBtn}
+            style={[styles.viewBtn, isOfflineMode && styles.btnDisabled]}
             onPress={onView}
             activeOpacity={0.7}
+            disabled={isOfflineMode}
           >
-            <Ionicons name="eye-outline" size={18} color={Colors.primary} />
+            <Ionicons 
+              name="eye-outline" 
+              size={18} 
+              color={isOfflineMode ? Colors.textTertiary : Colors.primary} 
+            />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.editBtn}
+            style={[styles.editBtn, isOfflineMode && styles.btnDisabled]}
             onPress={onEdit}
             activeOpacity={0.7}
+            disabled={isOfflineMode}
           >
-            <Ionicons name="create-outline" size={18} color={Colors.secondary} />
+            <Ionicons 
+              name="create-outline" 
+              size={18} 
+              color={isOfflineMode ? Colors.textTertiary : Colors.secondary} 
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -237,5 +247,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary + '12',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  btnDisabled: {
+    backgroundColor: Colors.gray[100],
+    opacity: 0.5,
   },
 });

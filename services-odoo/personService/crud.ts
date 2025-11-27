@@ -29,11 +29,7 @@ export const saveStudent = async (
     if (student.ci_document) imagesToCompress.ci_document = student.ci_document;
     if (student.born_document) imagesToCompress.born_document = student.born_document;
     
-    const compressedImages = await compressMultipleImages(imagesToCompress, {
-      maxWidth: 1024,
-      maxHeight: 1024,
-      quality: 0.7,
-    });
+    const compressedImages = await compressMultipleImages(imagesToCompress);
 
     // 3. Preparar datos para Odoo
     const values: any = {
@@ -168,11 +164,7 @@ export const updateStudent = async (
     }
 
     if (Object.keys(imagesToCompress).length > 0) {
-      const compressedImages = await compressMultipleImages(imagesToCompress, {
-        maxWidth: 1024,
-        maxHeight: 1024,
-        quality: 0.7,
-      });
+      const compressedImages = await compressMultipleImages(imagesToCompress);
       
       Object.assign(values, compressedImages);
     }
@@ -286,7 +278,7 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
               1000
             );
 
-            if (evaluationsResult.success && evaluationsResult.data?.length > 0) {
+            if (evaluationsResult.success && evaluationsResult.data && evaluationsResult.data.length > 0) {
               const evaluationIds = evaluationsResult.data.map((e: any) => e.id);
               await odooApi.deleteRecords('school.evaluation.score', evaluationIds);
             }
@@ -304,11 +296,9 @@ export const deleteStudent = async (id: number): Promise<PersonServiceResult> =>
       await Promise.all(student.parents_ids.map(async (parentId: number) => {
         try {
           const parentResult = await odooApi.read(MODELS.PARTNER, [parentId], ['students_ids', 'name']);
-
-          if (parentResult.success && parentResult.data?.length > 0) {
+          if (parentResult.success && parentResult.data && parentResult.data.length > 0) {
             const parentData = parentResult.data[0];
             const studentsIds = parentData.students_ids || [];
-
             if (studentsIds.length === 1 && studentsIds[0] === id) {
               await odooApi.deleteRecords(MODELS.PARTNER, [parentId]);
             }

@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 14,
     paddingVertical: 15,
-    paddingHorizontal: 16,
+    paddingHorizontal: 15,
     minHeight: 48,
     gap: 10,
     ...Platform.select({
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error + '05',
   },
   icon: {
-    marginRight: 4,
+    marginRight: 3,
   },
   selectorText: {
     flex: 1,
