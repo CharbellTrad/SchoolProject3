@@ -49,9 +49,9 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false
               style={listStyles.cardMain}
             >
               <View style={listStyles.avatarContainer}>
-                {parent.image_128 ? (
+                {parent.image_1920 ? (
                   <Image
-                    source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
+                    source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
                     style={styles.parentAvatar}
                     resizeMode='cover'
                   />

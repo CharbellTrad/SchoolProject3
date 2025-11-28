@@ -17,9 +17,9 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(
       <View style={styles.card}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          {student.image_128 ? (
+          {student.image_1920 ? (
             <Image
-              source={{ uri: `data:image/jpeg;base64,${student.image_128}` }}
+              source={{ uri: `data:image/jpeg;base64,${student.image_1920}` }}
               style={styles.avatar}
             />
           ) : (
@@ -108,7 +108,7 @@ export const StudentCard: React.FC<StudentCardProps> = React.memo(
       prevProps.student.name === nextProps.student.name &&
       prevProps.student.is_active === nextProps.student.is_active &&
       prevProps.student.vat === nextProps.student.vat &&
-      prevProps.student.image_128 === nextProps.student.image_128 &&
+      prevProps.student.image_1920 === nextProps.student.image_1920 &&
       prevProps.isOfflineMode === nextProps.isOfflineMode
     );
   }

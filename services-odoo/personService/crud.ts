@@ -25,7 +25,7 @@ export const saveStudent = async (
     // 🗜️ 2. Comprimir imágenes en paralelo
     const imagesToCompress: Record<string, string> = {};
     
-    if (student.image_128) imagesToCompress.image_128 = student.image_128;
+    if (student.image_1920) imagesToCompress.image_1920 = student.image_1920;
     if (student.ci_document) imagesToCompress.ci_document = student.ci_document;
     if (student.born_document) imagesToCompress.born_document = student.born_document;
     
@@ -62,7 +62,7 @@ export const saveStudent = async (
       boletin_informative: student.boletin_informative,
       born_document_filename: student.born_document_filename,
       is_active: student.is_active,
-      image_128: compressedImages.image_128 || false,
+      image_1920: compressedImages.image_1920 || false,
       ci_document: compressedImages.ci_document || false,
       born_document: compressedImages.born_document || false,
     };
@@ -153,8 +153,8 @@ export const updateStudent = async (
     // 🗜️ 2. Comprimir imágenes si hay nuevas
     const imagesToCompress: Record<string, string> = {};
     
-    if (values.image_128 && typeof values.image_128 === 'string') {
-      imagesToCompress.image_128 = values.image_128;
+    if (values.image_1920 && typeof values.image_1920 === 'string') {
+      imagesToCompress.image_1920 = values.image_1920;
     }
     if (values.ci_document && typeof values.ci_document === 'string') {
       imagesToCompress.ci_document = values.ci_document;

@@ -70,9 +70,9 @@ export const ParentSearchList: React.FC<ParentSearchListProps> = ({
               activeOpacity={0.8}
             >
               {/* Avatar */}
-              {parent.image_128 ? (
+              {parent.image_1920 ? (
                 <Image
-                  source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
+                  source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
                   style={styles.avatarImage}
                   resizeMode='cover'
                 />

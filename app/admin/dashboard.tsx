@@ -10,10 +10,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import * as authService from '../../services-odoo/authService';
 import { formatTimeAgo } from '../../utils/formatHelpers';
 
+
 export default function AdminDashboard() {
   const { user, logout, updateUser, handleSessionExpired } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -23,7 +25,9 @@ export default function AdminDashboard() {
         console.log('🔄 Refrescando dashboard...');
       }
 
+
       const serverHealth = await authService.checkServerHealth();
+
 
       if (!serverHealth.ok) {
         if (__DEV__) {
@@ -37,7 +41,9 @@ export default function AdminDashboard() {
         return;
       }
 
+
       const validSession = await authService.verifySession();
+
 
       if (!validSession) {
         if (__DEV__) {
@@ -47,12 +53,14 @@ export default function AdminDashboard() {
         return;
       }
 
+
       if (updateUser) {
         await updateUser({
           fullName: validSession.fullName,
           email: validSession.email,
         });
       }
+
 
       setIsOfflineMode(false);
       
@@ -73,14 +81,17 @@ export default function AdminDashboard() {
     }
   }, [handleSessionExpired, updateUser]);
 
+
   const handleLogout = async (): Promise<void> => {
     await logout();
     router.replace('/login');
   };
 
+
   if (!user) {
     return null;
   }
+
 
   return (
     <>
@@ -122,6 +133,7 @@ export default function AdminDashboard() {
           </View>
         </LinearGradient>
 
+
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
@@ -146,11 +158,13 @@ export default function AdminDashboard() {
               </View>
             )}
 
+
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="school-outline" size={24} color={Colors.primary} />
                 <Text style={styles.sectionTitle}>Gestión Académica</Text>
               </View>
+
 
               <View style={styles.cardsGrid}>
                 <DashboardCard
@@ -191,11 +205,13 @@ export default function AdminDashboard() {
               </View>
             </View>
 
+
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="settings-outline" size={24} color={Colors.primary} />
                 <Text style={styles.sectionTitle}>Gestión del Sistema</Text>
               </View>
+
 
               <View style={styles.cardsGrid}>
                 <DashboardCard
@@ -236,6 +252,7 @@ export default function AdminDashboard() {
               </View>
             </View>
 
+
             <View style={styles.infoCard}>
               <View style={styles.infoHeader}>
                 <View style={styles.infoHeaderLeft}>
@@ -248,6 +265,7 @@ export default function AdminDashboard() {
                   </View>
                 )}
               </View>
+
 
               <View style={styles.infoContent}>
                 <InfoRow label="Usuario" value={user.username} icon="at" />
@@ -265,6 +283,7 @@ export default function AdminDashboard() {
               </View>
             </View>
 
+
             <TouchableOpacity 
               style={styles.logoutButton} 
               onPress={handleLogout}
@@ -281,6 +300,7 @@ export default function AdminDashboard() {
               </LinearGradient>
             </TouchableOpacity>
 
+
             <View style={{ height: 20 }} />
           </View>
         </ScrollView>
@@ -288,6 +308,7 @@ export default function AdminDashboard() {
     </>
   );
 }
+
 
 interface DashboardCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -297,6 +318,7 @@ interface DashboardCardProps {
   disabled?: boolean;
   onPress: () => void;
 }
+
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ 
   icon, 
@@ -317,13 +339,10 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
     onPress();
   };
 
+
   return (
     <TouchableOpacity 
-      style={[
-        styles.card,
-        { borderLeftColor: disabled ? Colors.gray[300] : accentColor },
-        disabled && styles.cardDisabled
-      ]} 
+      style={[ styles.card, disabled && styles.cardDisabled ]} 
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
@@ -351,12 +370,14 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   );
 };
 
+
 interface InfoRowProps {
   label: string;
   value: string;
   icon: keyof typeof Ionicons.glyphMap;
   highlight?: boolean;
 }
+
 
 const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
   return (
@@ -377,6 +398,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -536,7 +558,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
-    borderLeftWidth: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

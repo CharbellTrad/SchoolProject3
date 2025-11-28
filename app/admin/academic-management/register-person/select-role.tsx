@@ -115,7 +115,7 @@ interface RoleCardProps {
 const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, onPress }) => {
   return (
     <TouchableOpacity 
-      style={[styles.roleCard, { borderLeftColor: accentColor }]} 
+      style={styles.roleCard} 
       onPress={onPress} 
       activeOpacity={0.7}
     >
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     marginBottom: 12,
-    borderLeftWidth: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

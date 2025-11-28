@@ -6,9 +6,9 @@ import { Parent, ParentFormData } from '../../../services-odoo/personService';
 import { formatPhone } from '../../../utils/formatHelpers';
 import { ImagePickerComponent } from '../../ImagePicker';
 import {
-  GenderSelectorDropdown,
-  NationalitySelectorDropdown,
-  YesNoSelectorDropdown
+    GenderSelectorDropdown,
+    NationalitySelectorDropdown,
+    YesNoSelectorDropdown
 } from '../../selectors';
 import { Input } from '../../ui/Input';
 
@@ -113,9 +113,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
                 onPress={() => onSelectExistingParent(parent)}
                 activeOpacity={0.8}
               >
-                {parent.image_128 ? (
+                {parent.image_1920 ? (
                   <Image
-                    source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
+                    source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
                     style={styles.parentAvatar}
                     resizeMode='cover'
                   />
@@ -388,9 +388,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
       ) : (
         parents.map((parent, index) => (
           <View key={parent.id || index} style={styles.parentCard}>
-            {parent.image_128 ? (
+            {parent.image_1920 ? (
               <Image
-                source={{ uri: `data:image/jpeg;base64,${parent.image_128}` }}
+                source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
                 style={styles.parentAvatar}
                 resizeMode='cover'
               />

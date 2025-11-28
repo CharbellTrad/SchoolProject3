@@ -6,6 +6,7 @@ import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../../constants/Colors';
 
+
 export default function SelectRoleScreen() {
   return (
     <>
@@ -30,6 +31,7 @@ export default function SelectRoleScreen() {
           <View style={{ width: 40 }} />
         </LinearGradient>
 
+
         <ScrollView 
           style={styles.content} 
           showsVerticalScrollIndicator={false}
@@ -45,6 +47,7 @@ export default function SelectRoleScreen() {
             </Text>
           </View>
 
+
           <View style={styles.rolesContainer}>
             <RoleCard
               icon="school-outline"
@@ -54,6 +57,7 @@ export default function SelectRoleScreen() {
               onPress={() => router.push('/admin/academic-management/lists-persons/students-list' as any)}
             />
 
+
             <RoleCard
               icon="book-outline"
               title="Docentes"
@@ -61,6 +65,7 @@ export default function SelectRoleScreen() {
               accentColor="#10b981"
               onPress={() => router.push('/admin/academic-management/lists-persons/teachers-list' as any)}
             />
+
 
             <RoleCard
               icon="shield-checkmark-outline"
@@ -87,6 +92,7 @@ export default function SelectRoleScreen() {
             />
           </View>
 
+
           <View style={styles.infoBox}>
             <View style={styles.infoIconWrapper}>
               <Ionicons name="information-circle" size={20} color={Colors.primary} />
@@ -97,12 +103,14 @@ export default function SelectRoleScreen() {
             </Text>
           </View>
 
+
           <View style={{ height: 20 }} />
         </ScrollView>
       </View>
     </>
   );
 }
+
 
 interface RoleCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -112,10 +120,11 @@ interface RoleCardProps {
   onPress: () => void;
 }
 
+
 const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, onPress }) => {
   return (
     <TouchableOpacity 
-      style={[styles.roleCard, { borderLeftColor: accentColor }]} 
+      style={styles.roleCard} 
       onPress={onPress} 
       activeOpacity={0.7}
     >
@@ -130,6 +139,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentCol
     </TouchableOpacity>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -230,7 +240,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     marginBottom: 12,
-    borderLeftWidth: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

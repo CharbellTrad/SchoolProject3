@@ -53,7 +53,7 @@ export interface Parent {
   students_ids: number[];
   ci_document?: string;
   ci_document_filename?: string;
-  image_128?: string;
+  image_1920?: string;
   avatar_128?: string;
   parent_singnature?: string;
   user_id: number | null;
@@ -99,7 +99,7 @@ export interface Student {
   boletin_informative?: boolean;
   born_document?: string;
   born_document_filename?: string;
-  image_128?: string;
+  image_1920?: string;
   avatar_128?: string;
   user_id: number | null;
   is_active: boolean;

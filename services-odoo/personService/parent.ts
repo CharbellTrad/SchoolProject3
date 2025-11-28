@@ -114,7 +114,7 @@ export const saveParent = async (
       students_ids: [[6, 0, parent.students_ids]],
       ci_document: parent.ci_document,
       ci_document_filename: parent.ci_document_filename,
-      image_128: parent.image_128,
+      image_1920: parent.image_1920,
       parent_singnature: parent.parent_singnature,
       active: parent.active,
     };

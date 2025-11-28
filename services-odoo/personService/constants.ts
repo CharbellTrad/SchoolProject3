@@ -14,12 +14,12 @@ export const STUDENT_FIELDS = [
   'parents_ids', 'inscription_ids',
   'brown_folder', 'ci_document', 'ci_document_filename',
   'boletin_informative', 'born_document', 'born_document_filename',
-  'image_128', 'avatar_128',
+  'image_1920', 'avatar_128',
   'user_id', 'is_active',
 ];
 
 export const STUDENT_SUMMARY_FIELDS = [
-  'id', 'name', 'vat', 'nationality', 'image_128', 'is_active',
+  'id', 'name', 'vat', 'nationality', 'image_1920', 'is_active',
   'parents_ids', 'inscription_ids'
 ];
 
@@ -28,7 +28,7 @@ export const PARENT_FIELDS = [
   'email', 'phone', 'resident_number', 'emergency_phone_number',
   'street', 'live_with_student', 'active_job', 'job_place', 'job',
   'students_ids', 'ci_document', 'ci_document_filename',
-  'image_128', 'avatar_128', 'parent_singnature',
+  'image_1920', 'avatar_128', 'parent_singnature',
   'user_id', 'active',
 ];
 
