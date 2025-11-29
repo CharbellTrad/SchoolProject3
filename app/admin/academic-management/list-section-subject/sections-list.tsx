@@ -1,16 +1,15 @@
-import { EditSectionModal } from '@/components/section/EditSectionModal';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { EmptyState, SearchBar, SearchBarSkeleton, StatsCards, StatsCardsSkeleton } from '../../../../components/list';
-import { SectionCard } from '../../../../components/section/SectionCard';
+import { EmptyState, SearchBarSkeleton, StatsCardsSkeleton } from '../../../../components/list';
+import { EditSectionModal, SectionCard, SectionCardSkeleton, SectionFilters, SectionSearchBar, SectionStatsCard } from '../../../../components/section';
 import { showAlert } from '../../../../components/showAlert';
 import Colors from '../../../../constants/Colors';
 import { useSections } from '../../../../hooks';
-import type { Section } from '../../../../services-odoo/sectionService';
+import type { Section, SectionType } from '../../../../services-odoo/sectionService';
 
 export default function SectionsListScreen() {
   const {
@@ -29,12 +28,21 @@ export default function SectionsListScreen() {
     handleDelete,
   } = useSections();
 
-const [selectedSection, setSelectedSection] = useState<Section | null>(null);
-const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<SectionType | 'all'>('all');
 
   // Estados para crossfade
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [showSkeleton, setShowSkeleton] = useState(true);
+
+  // Filtrar secciones según el tipo seleccionado
+  const filteredSections = useMemo(() => {
+    if (selectedFilter === 'all') {
+      return sections;
+    }
+    return sections.filter(section => section.type === selectedFilter);
+  }, [sections, selectedFilter]);
 
   // Crossfade suave cuando hay datos
   useEffect(() => {
@@ -55,35 +63,13 @@ const [showEditModal, setShowEditModal] = useState(false);
     }
   }, [initialLoading, showSkeleton, sections.length, fadeAnim]);
 
-    const handleEdit = (section: Section) => {
+  const handleEdit = (section: Section) => {
     if (isOfflineMode) {
-        showAlert('Sin conexión', 'No puedes editar secciones sin conexión a internet.');
-        return;
+      showAlert('Sin conexión', 'No puedes editar secciones sin conexión a internet.');
+      return;
     }
     setSelectedSection(section);
     setShowEditModal(true);
-    };
-
-  const handleDeleteSection = async (section: Section) => {
-    showAlert(
-      '¿Eliminar sección?',
-      `¿Estás seguro de eliminar "${section.name}"? Esta acción no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await handleDelete(section.id);
-              showAlert('✅ Éxito', 'Sección eliminada correctamente');
-            } catch (error: any) {
-              showAlert('❌ Error', error.message || 'No se pudo eliminar la sección');
-            }
-          },
-        },
-      ]
-    );
   };
 
   return (
@@ -155,36 +141,22 @@ const [showEditModal, setShowEditModal] = useState(false);
 
               {!searchMode && (
                 <>
-                  <StatsCards total={totalSections} />
-                  
-                  {/* Estadísticas por tipo */}
-                  <View style={styles.typeStatsContainer}>
-                    <TypeStatCard
-                      icon="color-palette"
-                      label="Preescolar"
-                      count={countByType.pre}
-                      color="#ec4899"
-                    />
-                    <TypeStatCard
-                      icon="book"
-                      label="Primaria"
-                      count={countByType.primary}
-                      color="#3b82f6"
-                    />
-                    <TypeStatCard
-                      icon="school"
-                      label="Media"
-                      count={countByType.secundary}
-                      color="#10b981"
-                    />
-                  </View>
+                  <SectionStatsCard
+                    total={totalSections}
+                    isSelected={selectedFilter === 'all'}
+                    onPress={() => setSelectedFilter('all')}
+                  />
+                  <SectionFilters
+                    countByType={countByType}
+                    selectedFilter={selectedFilter}
+                    onFilterChange={setSelectedFilter}
+                  />
                 </>
               )}
-
-              <SearchBar
+              
+              <SectionSearchBar
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Buscar sección..."
                 onClear={exitSearchMode}
               />
 
@@ -209,10 +181,9 @@ const [showEditModal, setShowEditModal] = useState(false);
                     title="Actualizando..."
                     titleColor={Colors.textSecondary}
                   />
-
                 }
               >
-                {sections.length === 0 ? (
+                {filteredSections.length === 0 ? (
                   loading ? (
                     <SectionCardSkeleton count={5} />
                   ) : isOfflineMode ? (
@@ -235,6 +206,16 @@ const [showEditModal, setShowEditModal] = useState(false);
                         Ingresa al menos 3 caracteres para comenzar
                       </Text>
                     </View>
+                  ) : selectedFilter !== 'all' ? (
+                    <View style={styles.emptyContainer}>
+                      <View style={styles.emptyIconContainer}>
+                        <Ionicons name="filter-outline" size={64} color={Colors.textTertiary} />
+                      </View>
+                      <Text style={styles.emptyTitle}>Sin resultados</Text>
+                      <Text style={styles.emptyText}>
+                        No hay secciones con este filtro
+                      </Text>
+                    </View>
                   ) : (
                     <EmptyState
                       hasSearchQuery={searchMode && searchQuery.trim().length >= 3}
@@ -242,7 +223,7 @@ const [showEditModal, setShowEditModal] = useState(false);
                     />
                   )
                 ) : (
-                  sections.map((section, index) => (
+                  filteredSections.map((section, index) => (
                     <SectionCard
                       key={section.id}
                       section={section}
@@ -261,59 +242,6 @@ const [showEditModal, setShowEditModal] = useState(false);
     </>
   );
 }
-
-// ============ COMPONENTES AUXILIARES ============
-
-interface TypeStatCardProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  count: number;
-  color: string;
-}
-
-const TypeStatCard: React.FC<TypeStatCardProps> = ({ icon, label, count, color }) => {
-  return (
-    <View style={[styles.typeStatCard, { borderLeftColor: color }]}>
-      <View style={[styles.typeStatIcon, { backgroundColor: color + '15' }]}>
-        <Ionicons name={icon} size={20} color={color} />
-      </View>
-      <View style={styles.typeStatContent}>
-        <Text style={styles.typeStatCount}>{count}</Text>
-        <Text style={styles.typeStatLabel}>{label}</Text>
-      </View>
-    </View>
-  );
-};
-
-const SectionCardSkeleton: React.FC<{ count: number }> = ({ count }) => {
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(shimmerAnimation, {
-        toValue: 1,
-        duration: 1500,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, [shimmerAnimation]);
-
-  const opacity = shimmerAnimation.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 0.7, 0.3],
-  });
-
-  return (
-    <>
-      {Array.from({ length: count }).map((_, index) => (
-        <Animated.View
-          key={index}
-          style={[styles.skeletonCard, { opacity }]}
-        />
-      ))}
-    </>
-  );
-};
 
 // ============ ESTILOS ============
 
@@ -399,54 +327,6 @@ const styles = StyleSheet.create({
     flex: 1,
     letterSpacing: 0.2,
   },
-  typeStatsContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
-  },
-  typeStatCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    borderLeftWidth: 3,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  typeStatIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  typeStatContent: {
-    flex: 1,
-  },
-  typeStatCount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  typeStatLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-    marginTop: 2,
-  },
   listContainer: {
     flex: 1,
   },
@@ -481,11 +361,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: '500',
-  },
-  skeletonCard: {
-    height: 96,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 16,
-    marginBottom: 12,
   },
 });
