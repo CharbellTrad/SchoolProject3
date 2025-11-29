@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { listStyles } from '../../../constants/Styles';
 import { Inscription, Student } from '../../../services-odoo/personService';
@@ -9,24 +9,12 @@ import { InfoRow, InfoSection } from '../../list';
 
 interface InscriptionsTabProps {
   student: Student;
-  loading?: boolean;
 }
 
-export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student, loading = false }) => {
+export const InscriptionsTab: React.FC<InscriptionsTabProps> = ({ student }) => {
   const [expandedInscription, setExpandedInscription] = useState<number | null>(null);
 
   const displayInscriptions = (student.inscriptions || []) as Inscription[];
-
-  if (loading) {
-    return (
-      <InfoSection title="Inscripciones del Estudiante">
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.emptyText}>Cargando inscripciones...</Text>
-        </View>
-      </InfoSection>
-    );
-  }
 
   if (displayInscriptions.length === 0) {
     return (

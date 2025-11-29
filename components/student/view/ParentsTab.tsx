@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { listStyles } from '../../../constants/Styles';
 import { Student } from '../../../services-odoo/personService';
@@ -9,22 +9,10 @@ import { InfoRow, InfoSection } from '../../list';
 
 interface ParentsTabProps {
   student: Student;
-  loading?: boolean;
 }
 
-export const ParentsTab: React.FC<ParentsTabProps> = ({ student, loading = false }) => {
+export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
   const [expandedParent, setExpandedParent] = useState<number | null>(null);
-
-  if (loading) {
-    return (
-      <InfoSection title="Representantes del Estudiante">
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.emptyText}>Cargando representantes...</Text>
-        </View>
-      </InfoSection>
-    );
-  }
 
   if (!student.parents || student.parents.length === 0) {
     return (

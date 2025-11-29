@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { Student } from '../../services-odoo/personService';
 
@@ -9,97 +9,111 @@ interface StudentCardProps {
   onView: () => void;
   onEdit: () => void;
   isOfflineMode?: boolean;
+  index?: number; // ← NUEVO: para el delay escalonado
 }
 
 export const StudentCard: React.FC<StudentCardProps> = React.memo(
-  ({ student, onView, onEdit, isOfflineMode = false }) => {
-    return (
-      <View style={styles.card}>
-        {/* Avatar */}
-        <View style={styles.avatarContainer}>
-          {student.image_1920 ? (
-            <Image
-              source={{ uri: `data:image/jpeg;base64,${student.image_1920}` }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={28} color={Colors.primary} />
-            </View>
-          )}
-          {student.is_active && <View style={styles.activeBadge} />}
-        </View>
+  ({ student, onView, onEdit, isOfflineMode = false, index = 0 }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-        {/* Info */}
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>
-            {student.name}
-          </Text>
-          <Text style={styles.detail} numberOfLines={1}>
-            {student.nationality}-{student.vat}
-          </Text>
-          <View style={styles.statusRow}>
-            <View
-              style={[
-                styles.statusBadge,
-                student.is_active
-                  ? styles.statusActive
-                  : styles.statusInactive,
-              ]}
-            >
-              <Ionicons
-                name={student.is_active ? 'checkmark-circle' : 'close-circle'}
-                size={14}
-                color={student.is_active ? Colors.success : Colors.error}
+    useEffect(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        delay: index * 50, // 50ms de delay entre cada card
+        useNativeDriver: true,
+      }).start();
+    }, [fadeAnim, index]);
+
+    return (
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={styles.card}>
+          {/* Avatar */}
+          <View style={styles.avatarContainer}>
+            {student.image_1920 ? (
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${student.image_1920}` }}
+                style={styles.avatar}
               />
-              <Text
-                style={[
-                  styles.statusText,
-                  student.is_active
-                    ? styles.statusTextActive
-                    : styles.statusTextInactive,
-                ]}
-              >
-                {student.is_active ? 'Activo' : 'Inactivo'}
-              </Text>
-            </View>
-            {isOfflineMode && (
-              <View style={styles.offlineBadge}>
-                <Ionicons name="cloud-offline" size={12} color={Colors.warning} />
-                <Text style={styles.offlineText}>Offline</Text>
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={28} color={Colors.primary} />
               </View>
             )}
+            {student.is_active && <View style={styles.activeBadge} />}
+          </View>
+
+          {/* Info */}
+          <View style={styles.info}>
+            <Text style={styles.name} numberOfLines={1}>
+              {student.name}
+            </Text>
+            <Text style={styles.detail} numberOfLines={1}>
+              {student.nationality}-{student.vat}
+            </Text>
+            <View style={styles.statusRow}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  student.is_active
+                    ? styles.statusActive
+                    : styles.statusInactive,
+                ]}
+              >
+                <Ionicons
+                  name={student.is_active ? 'checkmark-circle' : 'close-circle'}
+                  size={14}
+                  color={student.is_active ? Colors.success : Colors.error}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    student.is_active
+                      ? styles.statusTextActive
+                      : styles.statusTextInactive,
+                  ]}
+                >
+                  {student.is_active ? 'Activo' : 'Inactivo'}
+                </Text>
+              </View>
+              {isOfflineMode && (
+                <View style={styles.offlineBadge}>
+                  <Ionicons name="cloud-offline" size={12} color={Colors.warning} />
+                  <Text style={styles.offlineText}>Offline</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={[styles.viewBtn, isOfflineMode && styles.btnDisabled]}
+              onPress={onView}
+              activeOpacity={0.7}
+              disabled={isOfflineMode}
+            >
+              <Ionicons 
+                name="eye-outline" 
+                size={18} 
+                color={isOfflineMode ? Colors.textTertiary : Colors.primary} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editBtn, isOfflineMode && styles.btnDisabled]}
+              onPress={onEdit}
+              activeOpacity={0.7}
+              disabled={isOfflineMode}
+            >
+              <Ionicons 
+                name="create-outline" 
+                size={18} 
+                color={isOfflineMode ? Colors.textTertiary : Colors.secondary} 
+              />
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.viewBtn, isOfflineMode && styles.btnDisabled]}
-            onPress={onView}
-            activeOpacity={0.7}
-            disabled={isOfflineMode}
-          >
-            <Ionicons 
-              name="eye-outline" 
-              size={18} 
-              color={isOfflineMode ? Colors.textTertiary : Colors.primary} 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.editBtn, isOfflineMode && styles.btnDisabled]}
-            onPress={onEdit}
-            activeOpacity={0.7}
-            disabled={isOfflineMode}
-          >
-            <Ionicons 
-              name="create-outline" 
-              size={18} 
-              color={isOfflineMode ? Colors.textTertiary : Colors.secondary} 
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </Animated.View>
     );
   },
   (prevProps, nextProps) => {

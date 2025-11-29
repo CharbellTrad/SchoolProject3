@@ -1,4 +1,5 @@
-export { EditStudentModal } from './EditStudentModal';
-export { StudentCard } from './StudentCard';
-export { ViewStudentModal } from './ViewStudentModal';
+export * from './EditStudentModal';
+export * from './StudentCard';
+export * from './StudentCardSkeleton';
+export * from './ViewStudentModal';
 
