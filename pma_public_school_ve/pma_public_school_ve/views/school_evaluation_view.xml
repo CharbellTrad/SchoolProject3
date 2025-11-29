@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- school.evaluation form view -->
+    <record id="school_evaluation_view_form" model="ir.ui.view">
+        <field name="name">school.evaluation.view.form</field>
+        <field name="model">school.evaluation</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+                    <field name="available_section_ids" invisible="1"/>
+                    <field name="available_subject_ids" invisible="1"/>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name"/>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year_id" readonly="1"/>
+                            <field name="professor_id" readonly="not year_id" placeholder="Julio Perez.." options="{'no_create': 1}"/>
+                            <field name="section_id" readonly="not professor_id" placeholder="4to Año.." options="{'no_create': 1}"/>
+                            <field name="subject_id" invisible="not available_subject_ids" placeholder="Matemáticas.." required="available_subject_ids" readonly="not section_id" options="{'no_create': 1}"/>
+                            <field name="evaluation_date" required="1"/>
+                        </group>
+                        <group>
+                            <field name="state" nolabel="1" colspan="2" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'all'" decoration-wanring="state == 'partial'" />
+                            <field name="state_score" invisible="state == 'draft'" nolabel="1" colspan="2" widget="badge" decoration-danger="state_score != 'approve'" decoration-success="state_score == 'approve'"/>
+                            <field name="score_average"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="desciption" string="Descripción">
+                            <field name="description" colspan="2" nolabel="1" placeholder="Descripción..."/>
+                        </page>
+                        <page name="scores" string="Calificaciones">
+                            <field name="invisible_score" invisible="1"/>
+                            <field name="invisible_observation" invisible="1"/>
+                            <field name="invisible_literal" invisible="1"/>
+
+                            <field name="evaluation_score_ids" colspan="2" readonly="not section_id">
+                                <kanban>
+                                    <field name="student_id"/>
+                                    <field name="score"/>
+                                    <field name="literal_type"/>
+                                    <field name="observation"/>
+                                    <field name="state"/>
+                                    <templates>
+                                        <t t-name="card">
+                                            <div class="row"> 
+                                                <div class="col-6">
+                                                    <field name="student_id"/>
+                                                    <div invisible="parent.invisible_score">
+                                                        <strong>
+                                                            <field name="score"/> <span>pts</span>
+                                                        </strong>
+                                                    </div>
+                                                    <div invisible="parent.invisible_literal">
+                                                        <strong>
+                                                            <field name="literal_type"/>
+                                                        </strong>
+                                                    </div>
+                                                    <!-- <div invisible="parent.invisible_observation">
+                                                        <field name="observation"/>
+                                                    </div> -->
+                                                </div>
+                                                <div class="col-6">
+                                                    <field name="state" widget="badge"
+                                                           decoration-info="state != 'qualified'"
+                                                           decoration-success="state == 'qualified'"/>
+                                                    <field name="state_score" invisible="state != 'qualified'" widget="badge"
+                                                           decoration-danger="state_score != 'approve'"
+                                                           decoration-success="state_score == 'approve'"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="student_id" options="{'no_create': 1}"/>
+                                            <div class="o_row" colspan="2"  invisible="parent.invisible_score">
+                                                <field name="score" />
+                                                <span>pts</span> 
+                                            </div>
+                                            <field name="literal_type" nolabel="1" colspan="2" placeholder="Nota" invisible="parent.invisible_literal" />
+                                            <field name="observation" colspan="2" nolabel="1" placeholder="Observación..." invisible="parent.invisible_observation"/>
+                                        </group>
+                                        <group>
+                                            <field name="state" widget="badge"
+                                                           decoration-info="state != 'qualified'"
+                                                           decoration-success="state == 'qualified'"/>
+                                            <field name="state_score" widget="badge"
+                                                           decoration-danger="state_score != 'approve'"
+                                                           decoration-success="state_score == 'approve'"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- school.evalution tree view -->
+    <record id="school_evaluation_view_tree" model="ir.ui.view">
+        <field name="name">school.evaluation.view.tree</field>
+        <field name="model">school.evaluation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="available_section_ids" column_invisible="1"/>
+                <field name="available_subject_ids" column_invisible="1"/>
+                <field name="name"/>
+                <field name="year_id"/>
+                <field name="professor_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="state" />
+                <field name="state_score" />
+                <field name="score_average"/>
+                <!-- <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'all'" decoration-wanring="state == 'partial'" /> -->
+                <!-- <field name="state_score" widget="badge" decoration-danger="state_score != 'approve'" decoration-success="state_score == 'approve'"/> -->
+            </list>
+        </field>
+    </record>
+
+
+    <record id="school_evaluation_action" model="ir.actions.act_window">
+        <field name="name">Evaluaciones</field>
+        <field name="res_model">school.evaluation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    
+    <record id="current_school_evaluation_action" model="ir.actions.act_window">
+        <field name="name">Evaluaciones actual</field>
+        <field name="res_model">school.evaluation</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('current', '!=', False)]</field>
+    </record>
+
+    <record id="school_evaluation_score_view_tree" model="ir.ui.view">
+        <field name="name">school.evaluation.score.view.list</field>
+        <field name="model">school.evaluation.score</field>
+        <field name="arch" type="xml">
+            <list string="Evaluciones" create="0" edit="0" editable="top">
+                <field name="evaluation_id"/>
+                <field name="year_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="literal_type"/>
+                <field name="score"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>

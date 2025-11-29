@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.EvaluationsTimeline">
+        <div class="o_evaluations_timeline">
+            <t t-if="evaluations.length > 0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Evaluación</th>
+                                <th>Profesor</th>
+                                <th>Sección</th>
+                                <th>Materia</th>
+                                <th class="text-center">Promedio</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="evaluations" t-as="eval" t-key="eval.id">
+                                <tr class="cursor-pointer" t-on-click="() => this.onEvaluationClick(eval.id)">
+                                    <td>
+                                        <i class="fa fa-calendar me-2 text-muted"/>
+                                        <small t-esc="formatDate(eval.date)"/>
+                                    </td>
+                                    <td>
+                                        <strong t-esc="eval.name"/>
+                                    </td>
+                                    <td>
+                                        <i class="fa fa-user-tie me-1 text-primary"/>
+                                        <t t-esc="eval.professor"/>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info" t-esc="eval.section"/>
+                                    </td>
+                                    <td>
+                                        <t t-esc="eval.subject"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-if="eval.average" 
+                                              t-att-class="eval.average >= 10 ? 'badge bg-success' : 'badge bg-danger'" 
+                                              t-esc="eval.average"/>
+                                        <span t-else="" class="text-muted">-</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-att-class="getStateClass(eval.state)" 
+                                              t-esc="getStateLabel(eval.state)"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+            <div t-else="" class="alert alert-info text-center">
+                <i class="fa fa-info-circle me-2"/>
+                No hay evaluaciones recientes
+            </div>
+        </div>
+    </t>
+</templates>

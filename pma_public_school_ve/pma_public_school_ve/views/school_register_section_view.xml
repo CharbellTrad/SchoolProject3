@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_register_section_view_form" model="ir.ui.view">
+        <field name="name">school.register.section.view.form</field>
+        <field name="model">school.register.section</field>
+        <field name="arch" type="xml">
+            <form string="Secciones">
+                <sheet>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name" default_focus="1" placeholder="e.g. 5to Grado"/>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="type"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_register_section_view_tree" model="ir.ui.view">
+        <field name="name">school.register.section.view.tree</field>
+        <field name="model">school.register.section</field>
+        <field name="arch" type="xml">
+            <list string="Secciones">
+                <field name="name"/>
+                <field name="type"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- school.register.section action window -->
+    <record id="school_register_section_action" model="ir.actions.act_window">
+        <field name="name">Secciones</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.register.section</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

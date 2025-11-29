@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_school_year,school_year,model_school_year,base.group_user,1,1,1,1
+access_school_section,school_section,model_school_section,base.group_user,1,1,1,1
+access_school_student,school_student,model_school_student,base.group_user,1,1,1,1
+access_school_subject,school_subject,model_school_subject,base.group_user,1,1,1,1
+access_school_professor,school_professor,model_school_professor,base.group_user,1,1,1,1
+access_school_evaluation,school_evaluation,model_school_evaluation,base.group_user,1,1,1,1
+access_school_evaluation_type,school_evaluation_type,model_school_evaluation_type,base.group_user,1,1,1,1
+access_school_evaluation_score,school_evaluation_score,model_school_evaluation_score,base.group_user,1,1,1,1
+
+access_school_register_section,school_register_section,model_school_register_section,base.group_user,1,1,1,1
+access_school_register_subject,school_register_subject,model_school_register_subject,base.group_user,1,1,1,1
+
+access_school_attendance,school_attendance,model_school_attendance,base.group_user,1,1,1,1
+access_school_schedule,school_schedule,model_school_schedule,base.group_user,1,1,1,1
+access_school_time_slot,school_time_slot,model_school_time_slot,base.group_user,1,1,1,0

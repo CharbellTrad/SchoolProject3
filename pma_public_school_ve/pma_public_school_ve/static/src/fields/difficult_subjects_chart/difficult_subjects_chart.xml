@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.DifficultSubjectsChart">
+        <div class="o_difficult_subjects_chart">
+            <t t-if="subjects.length > 0">
+                <div class="o_chart_wrapper" style="position: relative; height: 400px;">
+                    <canvas t-ref="canvas"/>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <strong>Atención:</strong> Estas materias requieren intervención pedagógica
+                    </div>
+                </div>
+            </t>
+            <div t-else="" class="alert alert-success text-center">
+                <i class="fa fa-check-circle me-2"/>
+                No hay materias con altos índices de reprobación
+            </div>
+        </div>
+    </t>
+</templates>

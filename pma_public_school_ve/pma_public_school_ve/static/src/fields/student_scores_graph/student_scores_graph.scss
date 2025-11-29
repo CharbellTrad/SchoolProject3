@@ -1,0 +1,21 @@
+.o_student_scores_graph {
+    padding: 10px;
+}
+
+.o_student_scores_graph .o_graph_canvas_wrapper {
+    position: relative;
+    padding: 10px;
+}
+
+.o_student_scores_graph .alert-info {
+    margin: 20px 0;
+    padding: 40px;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .o_student_scores_graph .o_graph_canvas_wrapper {
+        height: 300px !important;
+    }
+}

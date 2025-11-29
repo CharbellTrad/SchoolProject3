@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.SectionsComparisonChart">
+        <div class="o_sections_comparison_chart">
+            <t t-if="sectionsData.length > 0">
+                <div class="o_chart_wrapper" style="position: relative; height: 400px;">
+                    <canvas t-ref="canvas"/>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Detalle de Secciones</h6>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sección</th>
+                                <th>Nivel</th>
+                                <th class="text-center">Estudiantes</th>
+                                <th class="text-center">Promedio</th>
+                                <th class="text-center">Aprobación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="sectionsData" t-as="section" t-key="section.section_id">
+                                <tr class="cursor-pointer" t-on-click="() => this.onSectionClick(section.section_id)">
+                                    <td><strong t-esc="section.section_name"/></td>
+                                    <td>
+                                        <span t-if="section.type == 'secundary'" class="badge bg-warning">Media General</span>
+                                        <span t-elif="section.type == 'primary'" class="badge bg-success">Primaria</span>
+                                        <span t-else="" class="badge bg-info">Preescolar</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary" t-esc="section.total_students"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-att-class="section.average >= 10 ? 'text-success fw-bold' : 'text-danger fw-bold'" 
+                                              t-esc="section.average"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-att-class="section.approval_rate >= 70 ? 'text-success fw-bold' : 'text-warning fw-bold'" 
+                                              t-esc="section.approval_rate + '%'"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+            <div t-else="" class="alert alert-info text-center">
+                <i class="fa fa-info-circle me-2"/>
+                No hay secciones para comparar
+            </div>
+        </div>
+    </t>
+</templates>

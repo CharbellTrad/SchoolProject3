@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pma_public_school_ve.CurrentSchoolYearAction">
+        <div class="current-year-loading">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Cargando año escolar actual...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando año escolar actual...</p>
+            </div>
+        </div>
+    </t>
+
+</templates>

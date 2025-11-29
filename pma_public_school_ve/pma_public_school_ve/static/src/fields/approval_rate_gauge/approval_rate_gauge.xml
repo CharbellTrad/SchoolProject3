@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.ApprovalRateGauge">
+        <div class="o_approval_rate_gauge text-center">
+            <t t-if="data and data.total > 0">
+                <div class="mb-4">
+                    <h1 t-att-class="gaugeClass" class="display-1 mb-0">
+                        <t t-esc="data.rate"/>%
+                    </h1>
+                    <p class="text-muted">Tasa de Aprobación</p>
+                </div>
+                
+                <div class="progress mb-3" style="height: 40px;">
+                    <div t-att-class="gaugeProgressClass" 
+                         class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" 
+                         t-att-style="'width: ' + data.rate + '%'"
+                         t-att-aria-valuenow="data.rate" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        <strong><t t-esc="data.rate"/>%</strong>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-4">
+                        <h4 class="mb-0"><t t-esc="data.total"/></h4>
+                        <small class="text-muted">Total</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="mb-0 text-success"><t t-esc="data.approved"/></h4>
+                        <small class="text-muted">Aprobados</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="mb-0 text-danger"><t t-esc="data.failed"/></h4>
+                        <small class="text-muted">Reprobados</small>
+                    </div>
+                </div>
+            </t>
+            <div t-else="" class="alert alert-info">
+                <i class="fa fa-info-circle me-2"/>
+                No hay datos suficientes
+            </div>
+        </div>
+    </t>
+</templates>

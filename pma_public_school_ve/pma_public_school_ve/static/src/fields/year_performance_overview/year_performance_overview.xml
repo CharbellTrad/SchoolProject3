@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.YearPerformanceOverview">
+        <div class="o_year_performance_overview">
+            <t t-if="levelsData.length > 0">
+                <div class="row">
+                    <t t-foreach="levelsData" t-as="level" t-key="level.type">
+                        <div class="col-lg-4 mb-3">
+                            <div t-attf-class="card border-{{ getLevelClass(level.type) }} shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i t-attf-class="fa {{ getLevelIcon(level.type) }} me-2"/>
+                                        <t t-esc="level.name"/>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6 mb-3">
+                                            <h4 class="mb-0"><t t-esc="level.total_students"/></h4>
+                                            <small class="text-muted">Estudiantes</small>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <h4 class="mb-0" t-att-class="level.average >= 10 ? 'text-success' : 'text-danger'">
+                                                <t t-esc="level.average"/>
+                                            </h4>
+                                            <small class="text-muted">Promedio</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progress mb-2" style="height: 25px;">
+                                        <div class="progress-bar bg-success" 
+                                             t-att-style="'width: ' + (level.approved_students / level.total_students * 100) + '%'"
+                                             role="progressbar">
+                                            <strong><t t-esc="level.approved_students"/> aprobados</strong>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <span class="text-success">
+                                            <i class="fa fa-check-circle"/> 
+                                            <t t-esc="level.approval_rate"/>% aprobación
+                                        </span>
+                                        <span class="text-danger">
+                                            <i class="fa fa-times-circle"/> 
+                                            <t t-esc="level.failed_students"/> reprobados
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+            <div t-else="" class="alert alert-info text-center">
+                <i class="fa fa-info-circle me-2"/>
+                No hay datos de rendimiento disponibles
+            </div>
+        </div>
+    </t>
+</templates>

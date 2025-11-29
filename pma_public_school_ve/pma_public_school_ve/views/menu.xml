@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- This Menu Item will appear in the Upper bar, that's why It needs NO parent or action -->
+    <menuitem id="school_menu_root" name="Escuela" sequence="1"/>
+
+    <!-- Tablero Principal -->
+    <menuitem id="school_dashboard_menu" name="Tablero" action="current_school_year_action_tag" parent="school_menu_root" sequence="10"/>
+
+    <!-- Gestión Académica -->
+    <menuitem id="academic_management_root_menu" name="Gestión Académica" parent="school_menu_root" sequence="20"/>
+
+        <!-- Operaciones Diarias -->
+        <menuitem id="academic_operations_categ" name="Operaciones Diarias" parent="academic_management_root_menu" sequence="10"/>
+            <menuitem id="current_school_sections_menu" name="Secciones Activas" action="current_school_section_action" parent="academic_operations_categ" sequence="10"/>
+            <menuitem id="current_school_students_menu" name="Estudiantes del Año" action="current_school_students_action" parent="academic_operations_categ" sequence="20"/>
+            <menuitem id="current_school_professor_menu" name="Docentes Asignados" action="current_school_professor_action" parent="academic_operations_categ" sequence="30"/>
+            <menuitem id="current_school_evaluation_menu" name="Evaluaciones en Curso" action="current_school_evaluation_action" parent="academic_operations_categ" sequence="40"/>
+
+        <!-- Registros Históricos -->
+        <menuitem id="historical_menu_categ" name="Registros Históricos" parent="academic_management_root_menu" sequence="20"/>
+            <menuitem id="school_year_menu" name="Años Escolares Pasados" action="school_year_action" parent="historical_menu_categ" sequence="10"/>
+            <menuitem id="school_sections_menu" name="Historial de Secciones" action="school_section_action" parent="historical_menu_categ" sequence="20"/>
+            <menuitem id="school_students_menu" name="Historial de Estudiantes" action="school_students_action" parent="historical_menu_categ" sequence="30"/>
+            <menuitem id="school_professor_menu" name="Historial de Docentes" action="school_professor_action" parent="historical_menu_categ" sequence="40"/>
+            <menuitem id="school_evaluation_menu" name="Historial de Evaluaciones" action="school_evaluation_action" parent="historical_menu_categ" sequence="50"/>
+
+    <!-- Control de Asistencia -->
+    <menuitem id="attendance_root_menu" name="Asistencias" parent="school_menu_root" sequence="30"/>
+        <menuitem id="attendance_register_quick_menu" name="Registro Rápido" action="action_attendance_register_quick" parent="attendance_root_menu" sequence="5"/>
+        <menuitem id="attendance_student_menu" name="Estudiantes" action="action_school_attendance_student" parent="attendance_root_menu" sequence="10"/>
+        <menuitem id="attendance_employee_menu" name="Personal" action="action_school_attendance_employee" parent="attendance_root_menu" sequence="20"/>
+        <menuitem id="attendance_all_menu" name="Todos los Registros" action="action_school_attendance_all" parent="attendance_root_menu" sequence="30"/>
+
+    <!-- Planificación y Horarios -->
+    <menuitem id="schedule_root_menu" name="Planificación" parent="school_menu_root" sequence="40"/>
+        <menuitem id="schedule_widget_menu" name="Vista de Calendario" action="action_schedule_widget" parent="schedule_root_menu" sequence="5"/>
+        <menuitem id="schedule_menu" name="Horarios de Clase" action="action_school_schedule" parent="schedule_root_menu" sequence="10"/>
+        <menuitem id="time_slot_menu" name="Bloques Horarios" action="action_school_time_slot" parent="schedule_root_menu" sequence="20"/>
+
+    <!-- Personas y Entidades -->
+    <menuitem id="people_root_menu" name="Directorio" parent="school_menu_root" sequence="50"/>
+        <menuitem id="school_register_partner_menu" name="Estudiantes" action="school_register_res_partner_action" parent="people_root_menu" sequence="10"/>
+        <menuitem id="school_register_employee_menu" name="Personal" action="school_register_hr_emplayee_action" parent="people_root_menu" sequence="20"/>
+        <menuitem id="school_config_menu_categ" name="Configuración" parent="people_root_menu" sequence="100"/>
+            <menuitem id="school_register_section_menu" name="Grados/Secciones Base" action="school_register_section_action" parent="school_config_menu_categ" sequence="10"/>
+            <menuitem id="school_register_subject_menu" name="Catálogo de Materias" action="school_register_subject_action" parent="school_config_menu_categ" sequence="20"/>
+
+</odoo>

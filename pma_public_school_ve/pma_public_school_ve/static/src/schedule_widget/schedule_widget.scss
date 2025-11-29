@@ -1,0 +1,343 @@
+.schedule-widget-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+
+    .schedule-header {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        h2 {
+            color: #2c3e50;
+            font-weight: 600;
+
+            i {
+                color: #3498db;
+            }
+        }
+    }
+
+    // Calendar Grid View
+    .schedule-calendar-grid {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        overflow-x: auto;
+
+        .calendar-wrapper {
+            min-width: 1200px;
+        }
+
+        .calendar-grid {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar-header-row {
+            display: table-row;
+
+            .time-header-cell,
+            .day-header-cell {
+                display: table-cell;
+                background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+                color: white;
+                font-weight: 600;
+                text-align: center;
+                padding: 1rem;
+                border: 1px solid #2980b9;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .time-header-cell {
+                width: 80px;
+            }
+
+            .day-header-cell {
+                min-width: 140px;
+            }
+        }
+
+        .calendar-time-row {
+            display: table-row;
+
+            .time-label-cell {
+                display: table-cell;
+                width: 80px;
+                background-color: #ecf0f1;
+                text-align: center;
+                vertical-align: top;
+                padding: 0.5rem;
+                border: 1px solid #dee2e6;
+                font-weight: 500;
+                color: #2c3e50;
+                position: relative;
+
+                .time-label {
+                    font-size: 0.875rem;
+                }
+            }
+
+            .day-time-cell {
+                display: table-cell;
+                min-width: 140px;
+                height: 80px; // 1 hour = 80px
+                border: 1px solid #dee2e6;
+                position: relative;
+                vertical-align: top;
+                background-color: #fafafa;
+
+                &:hover {
+                    background-color: #f0f0f0;
+                }
+
+                .half-hour-line {
+                    position: absolute;
+                    top: 50%;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background-color: #e0e0e0;
+                    z-index: 0;
+                }
+
+                .schedule-block {
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: scale(1.02);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+                        z-index: 2 !important;
+                    }
+
+                    .schedule-block-content {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2px;
+                        height: 100%;
+
+                        .schedule-title {
+                            font-weight: 600;
+                            font-size: 0.8rem;
+                            line-height: 1.2;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+
+                        .schedule-time-range,
+                        .schedule-classroom,
+                        .schedule-professor {
+                            font-size: 0.7rem;
+                            opacity: 0.95;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+
+                            i {
+                                margin-right: 3px;
+                                font-size: 0.65rem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .alert {
+        border-radius: 0.5rem;
+        border: none;
+
+        &.alert-info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+
+            i {
+                color: #1976d2;
+            }
+        }
+
+        &.alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+
+            i {
+                color: #856404;
+            }
+        }
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 1200px) {
+    .schedule-widget-container {
+        .schedule-calendar-grid {
+            .calendar-time-row {
+                .day-time-cell {
+                    .schedule-block {
+                        .schedule-block-content {
+
+                            .schedule-professor,
+                            .schedule-classroom {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .schedule-widget-container {
+        padding: 1rem !important;
+
+        .schedule-header {
+            padding: 1rem;
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        .schedule-calendar-grid {
+            .calendar-wrapper {
+                min-width: 800px;
+            }
+
+            .calendar-header-row {
+
+                .time-header-cell,
+                .day-header-cell {
+                    padding: 0.75rem 0.5rem;
+                    font-size: 0.875rem;
+                }
+            }
+
+            .calendar-time-row {
+                .day-time-cell {
+                    min-width: 100px;
+
+                    .schedule-block {
+                        .schedule-block-content {
+                            .schedule-title {
+                                font-size: 0.7rem;
+                            }
+
+                            .schedule-time-range {
+                                font-size: 0.65rem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .schedule-widget-container {
+        .schedule-header {
+            .btn {
+                i {
+                    display: none;
+                }
+            }
+        }
+    }
+}
+
+// Print styles
+@media print {
+    .schedule-widget-container {
+        background-color: white;
+        padding: 0 !important;
+
+        .schedule-header {
+            box-shadow: none;
+            border-bottom: 2px solid #dee2e6;
+
+            .btn {
+                display: none;
+            }
+        }
+
+        .schedule-calendar-grid {
+            box-shadow: none;
+            page-break-inside: avoid;
+
+            .calendar-time-row {
+                .day-time-cell {
+                    .schedule-block {
+                        box-shadow: none !important;
+                        border: 1px solid rgba(0, 0, 0, 0.2);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .schedule-widget-container {
+        background-color: #1a1a1a;
+
+        .schedule-header,
+        .schedule-calendar-grid {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+        }
+
+        h2 {
+            color: #e0e0e0;
+        }
+
+        .calendar-time-row {
+            .time-label-cell {
+                background-color: #3a3a3a;
+                color: #e0e0e0;
+                border-color: #404040;
+            }
+
+            .day-time-cell {
+                background-color: #2d2d2d;
+                border-color: #404040;
+
+                &:hover {
+                    background-color: #3a3a3a;
+                }
+
+                .half-hour-line {
+                    background-color: #404040;
+                }
+            }
+        }
+
+        .calendar-header-row {
+
+            .time-header-cell,
+            .day-header-cell {
+                border-color: #404040;
+            }
+        }
+    }
+}

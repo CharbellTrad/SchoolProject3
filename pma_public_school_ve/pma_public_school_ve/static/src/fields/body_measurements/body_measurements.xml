@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="body_measurements.BodyMeasurementsWidget">
+        <div class="body_measurements_widget">
+            <div class="body_diagram">
+                <!-- Altura a la izquierda -->
+                <div class="height_container">
+                    <div class="height_bracket"></div>
+                    <div class="height_input_wrapper">
+                        <input 
+                            type="number" 
+                            t-model="state.height"
+                            t-on-change="(ev) => this.onInputChange('height', ev)"
+                            class="form-control height_input"
+                            step="0.1"
+                        />
+                    </div>
+                    <span class="unit" style="margin-left:10px;">m</span>
+                </div>
+
+                <!-- Figura humana central -->
+                <div class="body_figure">
+                    <canvas t-ref="person" width="170" height="320"></canvas>
+                </div>
+
+                <!-- Medidas a la derecha -->
+                <div class="measurements_container">
+                    <div class="measurement_item" style="top: 95px;">
+                        <div class="measurement_line"></div>
+                        <select 
+                            t-model="state.size_shirt"
+                            t-on-change="(ev) => this.onInputChange('size', ev)"
+                            class="form-select size_input"
+                        >
+                            <option value="xs">XS</option>
+                            <option value="s">S</option>
+                            <option value="m">M</option>
+                            <option value="l">L</option>
+                            <option value="xl">XL</option>
+                        </select>
+                        <span class="unit" style="margin-left:10px; position:relative; bottom:25px;">camisa</span>
+                    </div>
+                    
+                    <div class="measurement_item" style="top: 215px;">
+                        <div class="measurement_line"></div>
+                        <input 
+                            type="number" 
+                            t-model="state.size_pants"
+                            t-on-change="(ev) => this.onInputChange('measurement1', ev)"
+                            class="form-control measure_input"
+                            step="0.1"
+                        />
+                        <span class="unit" style="margin-left:10px; position:relative; bottom:25px;">pantalon</span>
+                    </div>
+                    
+                    <div class="measurement_item" style="top: 285px;">
+                        <div class="measurement_line"></div>
+                        <input 
+                            type="number" 
+                            t-model="state.size_shoes"
+                            t-on-change="(ev) => this.onInputChange('measurement2', ev)"
+                            class="form-control measure_input"
+                            step="0.1"
+                        />
+                        <span class="unit" style="margin-left:10px; position:relative; bottom:25px;">zapatos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Peso abajo -->
+            <div class="weight_container">
+                <input 
+                    type="number" 
+                    t-model="state.weight"
+                    t-on-change="(ev) => this.onInputChange('weight', ev)"
+                    class="form-control weight_input"
+                    step="0.1"
+                />
+                <span class="unit">kg</span>
+            </div>
+        </div>
+    </t>
+</templates>

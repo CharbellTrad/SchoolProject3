@@ -1,0 +1,17 @@
+from . import (
+                hr_employee,
+                res_partner,
+                school_professor,
+                school_register_section, 
+                school_register_subject,
+                school_section,
+                school_student,
+                school_subject,
+                school_evaluation,
+                school_evaluation_type,
+                school_evaluation_score,
+                school_year,
+                school_attendance,
+                school_schedule,
+                school_time_slot,
+            )

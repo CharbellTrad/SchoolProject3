@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    
+    <record id="school_section_view_form" model="ir.ui.view">
+        <field name="name">school.section.view.form</field>
+        <field name="model">school.section</field>
+        <field name="arch" type="xml">
+            <form string="Secciones inscritas">
+                <field name="used_section_ids" invisible="1"/>
+                <field name="type" invisible="1"/>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="year_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="section_id" options="{'no_create': 1}"/>
+                        </group>  
+                    </group>
+                    <notebook>
+                        <page name="students" string="Estudiantes">
+                            <field name="student_ids" colspan="2" nolabel="1">
+                                <list editable="top" create="0">
+                                    <field name="name" string="Estudiante" readonly="1" options="{'no_create': True}"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'"
+                                    decoration-success="state == 'done'"
+                                    decoration-danger="state == 'cancel'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="subjects" string="Materias" invisible="type != 'secundary' or not section_id">
+                            <field name="subject_ids"  colspan="2" nolabel="1" options="{'no_create': 1}">
+                                <list editable="top" create="1">
+                                    <field name="available_subject_ids" column_invisible="1"/>
+                                    <field name="available_professor_ids" column_invisible="1"/>
+                                    <field name="subject_id" string="Materia" options="{'no_create': True}"/>
+                                    <field name="professor_id" readonly="not subject_id" options="{'no_create': True}"/>
+                                </list>                            
+                            </field>
+                        </page>
+                        <page name="professors" string="Docentes" invisible="type == 'secundary' or not section_id">
+                            <field name="professor_ids"  colspan="2" nolabel="1">
+                                <list editable="top" readonly="1">
+                                    <field name="professor_id" string="Profesor" options="{'no_create': 1}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="performance" string="Rendimiento" invisible="not section_id">
+                            <group>
+                                <group string="Promedios de Materias" invisible="type != 'secundary'">
+                                    <field name="subjects_average_json" widget="subjects_average_graph" colspan="2" nolabel="1"/>
+                                </group>
+                                <group string="Promedios de Estudiantes" invisible="type == 'pre'">
+                                    <field name="students_average_json" widget="students_average_graph" colspan="2" nolabel="1"/>
+                                </group>
+                                <group string="Top 5 Estudiantes" invisible="type == 'pre'">
+                                    <field name="top_students_json" widget="top_students_graph"  colspan="2" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_section_view_tree" model="ir.ui.view">
+        <field name="name">school.section.view.tree</field>
+        <field name="model">school.section</field>
+        <field name="arch" type="xml">
+            <list string="Secciones inscritas">
+                <field name="section_id"/>
+                <field name="professor_ids" widget="many2many_tags"/>
+                <field name="subject_ids" widget="many2many_tags"/>
+                <field name="student_ids"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="school_section_action" model="ir.actions.act_window">
+        <field name="name">Secciones</field>
+        <field name="res_model">school.section</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="current_school_section_action" model="ir.actions.act_window">
+        <field name="name">Secciones actual</field>
+        <field name="res_model">school.section</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('current', '!=', False)]</field>
+        <field name="context">{}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('school_section_view_tree')}), 
+            (0, 0, {'view_mode': 'form', 'view_id': ref('school_section_view_form')})
+        ]"/>
+    </record>
+</odoo>

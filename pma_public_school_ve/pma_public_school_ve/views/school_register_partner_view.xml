@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_register_res_partner_view_kanban" model="ir.ui.view">
+        <field name="name">school.register.res.partner.view.kanban</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="avatar_128"/>
+                <field name="is_company"/>
+                <field name="active"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                        <aside class="o_kanban_aside_full">
+                            <t t-if="!record.is_company.raw_value">
+                                <div class="position-relative w-100 h-auto m-0">
+                                    <field name="avatar_128" alt="Contact image" class="h-100" widget="image" options="{'img_class': 'object-fit-contain'}"/>
+                                    <field t-if="record.parent_id.raw_value and record.parent_id.image_128" name="parent_id" class="position-absolute bottom-0 end-0 w-25 bg-light" widget="image" options="{'preview_image': 'image_128', 'img_class': 'object-fit-contain'}"/>
+                                    <field t-elif="record.parent_id.raw_value and !record.parent_id.image_128" name="parent_id" class="position-absolute bottom-0 end-0 w-25 bg-light" widget="image" options="{'preview_image': 'avatar_128', 'img_class': 'object-fit-contain'}"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <field name="avatar_128" class="w-100 h-auto m-0" widget="image" options="{'img_class': 'object-fit-contain w-100 h-100'}"/>
+                            </t>
+                        </aside>
+                        <main class="ps-2">
+                            <div class="mb-1">
+                                <field name="complete_name" class="mb-0 fw-bold fs-5"/>
+                            </div>
+                            <div t-if="record.age.raw_value">
+                                <field name="age"/>
+                                <span> Años</span>
+                            </div>
+                            <div t-if="record.sex.raw_value">
+                                <i class="fa fa-fw me-1 fa-user text-primary" title="Phone"/>
+                                <field name="sex"/>
+                            </div>
+                            <div t-if="record.vat.raw_value">
+                                <i class="fa fa-fw me-1 fa-id-card-o text-primary" title="Phone"/>
+                                <!-- <div class="o_row"> -->
+                                    <field name="nationality" invisible="1"/>
+                                    <span invisible="nationality == 'E'">V-</span>
+                                    <span invisible="nationality == 'V'">E-</span>
+                                    <field name="vat" string="CI" placeholder="e.g. 77472701"/>
+                                <!-- </div> -->
+                            </div>
+                            <div t-if="record.phone.raw_value">
+                                <i class="fa fa-fw me-1 fa-phone text-primary" title="Phone"/>
+                                <field name="phone"/>
+                            </div>
+                            <!-- <div t-if="record.emergency_phone_number.raw_value">
+                                <i class="fa fa-fw me-1 fa-ambulance text-primary" title="Phone"/>
+                                <field name="emergency_phone_number"/>
+                            </div>
+                            <div t-if="record.email.raw_value" class="text-truncate">
+                                <i class="fa fa-fw me-1 fa-envelope text-primary" title="Email"/>
+                                <field name="email"/>
+                            </div> -->
+                            <field name="properties" widget="properties"/>
+                            <!-- <footer><field name="application_statistics" widget="contact_statistics"/></footer> -->
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- res.partner form view -->
+    <record id="school_register_res_partner_view_form" model="ir.ui.view">
+        <field name="name">school.register.res.partner.view.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Matrícula">
+                <div class="alert alert-warning oe_edit_only" role="alert" name="warning_tax" invisible="not same_vat_partner_id and not same_company_registry_partner_id">
+                    Potencial duplicado:
+                    <span invisible="not same_vat_partner_id or same_company_registry_partner_id">
+                        <field name="same_vat_partner_id" context="{'show_address': False, 'show_vat': False}"/>
+                        (Mismo <field name="vat_label"/>)
+                    </span>
+                    <span invisible="same_vat_partner_id or not same_company_registry_partner_id">
+                        <field name="same_company_registry_partner_id" context="{'show_address': False, 'show_vat': False}"/>
+                        (Mismo <field name="company_registry_label"/>)
+                    </span>
+                    <span invisible="not (same_vat_partner_id and same_company_registry_partner_id and same_vat_partner_id == same_company_registry_partner_id)">
+                        <field name="same_vat_partner_id" context="{'show_address': False, 'show_vat': False}"/>
+                        (Mismo <field name="vat_label"/> and <field name="company_registry_label"/>)
+                    </span>
+                    <span invisible="not (same_vat_partner_id and same_company_registry_partner_id and same_vat_partner_id != same_company_registry_partner_id)">
+                        <field name="same_vat_partner_id" context="{'show_address': False, 'show_vat': False}"/>
+                        (Mismo <field name="vat_label"/>) and
+                        <field name="same_company_registry_partner_id" context="{'show_address': False, 'show_vat': False}"/>
+                        (Mismo <field name="company_registry_label"/>)
+                    </span>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object"  name="action_open_inscriptions"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o" invisible="inscriptions_count == 0">
+                            <field name="inscriptions_count" widget="statinfo" string="Inscripciones"/>
+                        </button>
+                    </div>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="mb8">
+                        <field name="type_enrollment" widget="radio" options="{'horizontal': 1}" required="1"/>
+                        <div class="d-flex gap-3">
+                            <field name="image_1920" widget="contact_image" options="{'preview_image': 'avatar_128', 'size': [130,130], 'img_class': 'rounded border'}"/>
+                            <field name="avatar_128" invisible="1"/> <!-- Needed in contact_image widget -->
+                            <div class="d-flex flex-column flex-grow-1">
+                                <!-- <field name="company_type" widget="radio" options="{'horizontal': true}"/> -->
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name" default_focus="1" placeholder="e.g. Lumber Inc" invisible="not is_company" required="type == 'contact'"/>
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name" default_focus="1" placeholder="e.g. Brandon Freeman" invisible="is_company" required="type == 'contact'"/>
+                                </h1>
+                                <div class="d-flex align-items-baseline w-md-50">
+                                    <i class="fa fa-fw me-1 fa-envelope text-primary" title="Email"/>
+                                    <field name="email" class="w-100" widget="email" required="type_enrollment == 'student'" placeholder="Email"/>
+                                </div>
+                                <div class="d-flex align-items-baseline w-md-50">
+                                    <i class="fa fa-fw me-1 fa-phone text-primary" title="Teléfono"/>
+                                    <field name="phone" class="w-100" widget="phone" placeholder="Teléfono" required="type_enrollment == 'student'"/>
+                                </div>
+                                <div class="d-flex align-items-baseline w-md-50">
+                                    <i class="fa fa-fw me-1 fa-home text-primary" title="Teléfono de residencia"/>
+                                    <field name="resident_number" class="w-100" widget="phone" placeholder="Teléfono de residencia"/>
+                                </div>
+                                <div class="d-flex align-items-baseline w-md-50">
+                                    <i class="fa fa-fw me-1 fa-ambulance text-primary" title="Teléfono de emergencia"/>
+                                    <field name="emergency_phone_number" class="w-100" widget="phone" placeholder="Teléfono de emergencia" required="type_enrollment == 'student'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <separator string="Información general"/>
+                    <group>
+                        <group>
+                            <span class="o_form_label o_td_label o_address_type" name="address_name">
+                                <span>Dirección</span>
+                            </span>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Calle..." class="o_address_street" required="type_enrollment"/>
+                                <!-- <field name="street2" placeholder="Calle 2..." class="o_address_street"/>
+                                <field name="city" placeholder="Ciudad" class="o_address_city" required="type_enrollment"/>
+                                <field name="state_id" placeholder="Estado" required="type_enrollment" class="o_address_state" options="{'no_open': True, 'no_quick_create': True}" context="{'country_id': country_id, 'default_country_id': country_id, 'zip': zip}"/>
+                                <field name="zip" placeholder="Postal" class="o_address_zip"/>
+                                <div name="partner_address_country" class="d-flex justify-content-between">
+                                    <field name="country_id" placeholder="País" class="o_address_country" required="type_enrollment" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                                </div> -->
+                            </div>
+                            <field name="student_lives" required="type_enrollment == 'student'" invisible="type_enrollment != 'student'"/>
+                            <field name="live_with_student" invisible="type_enrollment == 'student'"/>
+                            <field name="parent_singnature" invisible="type_enrollment == 'student'" widget="image" options="{'size': [0,90]}"/>
+                        </group>
+                        <group>
+                            <field name="born_date" required="type_enrollment"/>
+                            <field name="age"/>
+                            <field name="sex" required="type_enrollment"/>
+                            <field name="blood_type" required="type_enrollment == 'student'" invisible="type_enrollment != 'student'"/>
+                            <label for="vat" string="CI"/>
+                            <div class="o_row">
+                                <field name="nationality" required="type_enrollment"/>
+                                <field name="vat" string="CI" placeholder="e.g. 77472701" required="type_enrollment"/>
+                            </div>
+                        </group>
+                    </group>
+                    <div class="d-flex">
+                        <field name="properties" nolabel="1" columns="2"/>
+                    </div>
+
+                    <notebook colspan="4">
+                        <page string="Trabajo" invisible="type_enrollment == 'student'">
+                            <group>
+                                <group>
+                                    <field name="active_job" required="type_enrollment != 'student'"/>
+                                    <field name="job_place" invisible="not active_job" required="active_job == 'si'"/>
+                                    <field name="job" invisible="not active_job" required="active_job == 'si'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Información académica" invisible="type_enrollment != 'student'">
+                            <group col="2">
+                                <group string="Actual" colspan="1">
+                                    <field name="current_year_id"/>
+                                    <label for="current_section_id" string="Sección"/>
+                                    <div class="o_row">
+                                        <field name="current_section_id"/>
+                                        <field name="current_section_type" widget="badge"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <group col="2">
+                                <group string="Rendimiento Actual" colspan="1" invisible="not current_section_id">
+                                    <field name="current_performance_json" widget="general_performance_graph" colspan="2" nolabel="1"/>
+                                </group>
+                                <group string="Rendimiento Histórico" colspan="1">
+                                    <field name="historical_performance_json" widget="historical_performance_graph" colspan="2" nolabel="1"/>
+                                </group>
+                            </group>
+                            <group col="1" invisible="not current_section_id">
+                                <group string="Rendimiento por Materias" colspan="1" invisible="current_section_type != 'secundary'">
+                                    <field name="current_scores_json" widget="student_scores_graph" colspan="2" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Información de nacimiento" invisible="type_enrollment != 'student'">
+                            <group>
+                                <group colspan="1" string="Complicación">
+                                    <label for="suffer_illness_treatment" colspan="2"/>
+                                    <field name="suffer_illness_treatment" nolabel="1" colspan="2" required="type_enrollment == 'student'"/>
+                                    <field name="what_illness_treatment" invisible="suffer_illness_treatment != 'si'" required="suffer_illness_treatment == 'si'"/>
+                                    <label for="authorize_primary_atention" colspan="2"/>
+                                    <field  name="authorize_primary_atention" nolabel="1" colspan="2" required="type_enrollment == 'student'"/>
+                                </group>
+                                <group colspan="1" string="Embarazo">
+                                    <field name="pregnat_finished"   required="type_enrollment == 'student'"/>
+                                    <field name="gestation_time"  required="type_enrollment == 'student'"/>
+                                    <field name="peso_al_nacer"  required="type_enrollment == 'student'"/>
+                                    <field name="is_twin"/>
+                                    <field name="born_complication"  required="type_enrollment == 'student'"/>
+                                    <field name="complication"  invisible="born_complication != 'si'" required="born_complication == 'si'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Talla" invisible="type_enrollment != 'student'">
+                            <group>
+                                <field nolabel="1" name="sizes_json" widget="body_measurements"/>
+                            </group>
+                        </page>
+                        <page string="Representantes" name="contact_addresses" autofocus="autofocus" invisible="type_enrollment != 'student'">
+                            <field name="parents_ids" domain="[('type_enrollment','=' ,'parent')]" context="{'form_view_ref': 'pma_public_school_ve.school_register_res_partner_view_form', 'default_is_enrollment': True, 'default_type_enrollment': 'parent', 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'contact'}">
+                                <list>
+                                    <field name="avatar_128" widget="image" options="{'size': [24, 24], 'img_class': 'o_avatar rounded'}" width="30" nolabel="1"/>
+                                    <field name="name"/>
+                                    <field name="age"/>
+                                    <field name="nationality"/>
+                                    <field name="vat"/>
+                                    <field name="sex"/>
+                                    <field name="phone"/>
+                                    <field name="email"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Estudiantes" name="contact_addresses" autofocus="autofocus" invisible="type_enrollment == 'student'">
+                            <field name="students_ids" domain="[('type_enrollment','=' ,'student')]" context="{'form_view_ref': 'pma_public_school_ve.school_register_res_partner_view_form', 'default_is_enrollment': True, 'default_type_enrollment': 'student', 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'contact'}">
+                                <list>
+                                    <field name="avatar_128" widget="image" options="{'size': [24, 24], 'img_class': 'o_avatar rounded'}" width="30" nolabel="1"/>
+                                    <field name="name"/>
+                                    <field name="age"/>
+                                    <field name="nationality"/>
+                                    <field name="vat"/>
+                                    <field name="sex"/>
+                                    <field name="phone"/>
+                                    <field name="email"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="documents" string="Documentos entregados" >
+                            <group>
+                                <group>
+                                    <field name="brown_folder" invisible="type_enrollment != 'student'"/>
+                                    <field name="ci_document" widget="image" options="{'size': [0,180]}" required="type_enrollment"/>
+                                    <field name="ci_document_filename" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="boletin_informative" invisible="type_enrollment != 'student'"/>
+                                    <field name="born_document" widget="image" options="{'size': [0,180]}" required="type_enrollment == 'student'" invisible="type_enrollment != 'student'"/>
+                                    <field name="born_document_filename" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <!-- <page name="inscription" string="Inscripciones" invisible="type_enrollment != 'student'">
+                            <group>
+                                <field nolabel="1" colspan="2" name="inscription_ids" readonly="1" mode="list,form">
+                                    <list>
+                                        <field name="year_id"/>
+                                        <field name="section_id"/>
+                                        <field name="height"/>
+                                        <field name="weight"/>
+                                        <field name="size_shirt"/>
+                                        <field name="size_pants"/>
+                                        <field name="size_shoes"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page> -->
+                        <page name="internal_notes" string="Notas">
+                            <field name="comment" placeholder="Notas"/>
+                            <group name="warnings"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_register_res_partner_action" model="ir.actions.act_window">
+        <field name="name">Matrícula</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('school_register_res_partner_view_kanban')}), 
+            (0, 0, {'view_mode': 'form', 'view_id': ref('school_register_res_partner_view_form')})
+        ]"/>
+        <field name="domain">[('is_enrollment', '!=', False)]</field>
+        <field name="context">{'default_is_enrollment': True, 'default_type_enrollment': 'student'}</field>
+    </record>
+
+</odoo>

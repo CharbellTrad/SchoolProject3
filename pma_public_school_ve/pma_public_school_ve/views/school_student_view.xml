@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_students_view_kanban" model="ir.ui.view">
+        <field name="name">school.student.view.kanban</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <main class="o_project_kanban_main">
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="text-truncate d-block fs-4 fw-bold" t-att-title="record.display_name.value"><field name="display_name"/></span>
+                            </div>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span>Año escolar</span>
+                                <field name="year_id"/>
+                            </div>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span>Sección</span>
+                                <field name="section_id"/>
+                            </div>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <field name="inscription_date"/>
+                                <span> - </span>
+                                <field name="uninscription_date"/>
+                            </div>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="text-truncate d-block fs-4 fw-bold"><field name="state" widget="badge" decoration-info="state == 'draft'"
+                                    decoration-success="state == 'done'"
+                                    decoration-danger="state == 'cancel'"
+                                /></span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- school.student tree view -->
+    <record id="school_student_view_tree" model="ir.ui.view">
+        <field name="name">school.student.view.tree</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="name"/>
+                <field name="year_id"/>   
+                <field name="section_id"/>   
+                <field name="inscription_date"/>   
+                <field name="uninscription_date"/>   
+                <field name="state" widget="badge" decoration-info="state == 'draft'"
+                                    decoration-success="state == 'done'"
+                                    decoration-danger="state == 'cancel'"/>   
+
+            </list>
+        </field>
+    </record>
+
+    <!-- school_student form view -->
+    <record id="school_student_view_form" model="ir.ui.view">
+        <field name="name">school.student.view.form</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <form string="Matrícula">
+                <header>
+                    <button string="Inscribir" name="validate_inscription" confirm="Estás seguro de realizar esta operación? Los cambios son irreversibles" type="object" invisible="state != 'draft'" class="btn-success"/>
+                    <button string="Desinscribir" name="validate_uninscription" confirm="Estás seguro de realizar esta operación? Los cambios son irreversibles" type="object" invisible="state != 'done'" class="btn-danger"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+                </header>
+                <sheet>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name"/>
+                                </h1>
+                            </div>
+                        </div>
+                        <label for="inscription_date" invisible="not inscription_date"/>
+                        <field name="inscription_date" required="state != 'draft'" nolabel="1" invisible="not inscription_date" readonly="1"/>
+                        <label for="uninscription_date"  invisible="not uninscription_date"/>
+                        <field name="uninscription_date" required="state == 'cancel'" nolabel="1" invisible="not uninscription_date" readonly="1"/>
+                    </div>
+                    <group col="3">
+                        <group colspan="1">
+                            <field name="year_id" colspan="2" readonly="1"/>
+                        </group>
+                        <group colspan="1">
+                            <field name="section_id" colspan="2" readonly="not year_id or state in ['done', 'cancel']" options="{'no_create': 1}"/>
+                        </group>
+                        <group colspan="1">
+                            <field name="student_id" colspan="2" readonly="not section_id or state in ['done', 'cancel']"  options="{'no_create': 1}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="inscription" string="Información de inscripción">
+                            <group>
+                                <group string="Detalles">
+                                    <field name="from_school" readonly="state in ['done', 'cancel']"/>
+                                    <field name="observations" readonly="state in ['done', 'cancel']"/>
+                                </group>                                
+                                <group string="Representante">
+                                    <field name="parent_ids" invisible="1"/>
+                                    <field name="parent_id" readonly="state in ['done', 'cancel']" options="{'no_create': 1}"/>
+                                    <field name="parent_singnature" readonly="state in ['done', 'cancel'] or not parent_id" widget="image" options="{'size': [0,90]}"/>
+                                    <field name="parent_siganture_date" readonly="state in ['done', 'cancel'] or not parent_singnature"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="stadistic" string="Rendimiento académico">
+                            <field name="type" invisible="1"/>
+                            <group>
+                                <group string="Notas" invisible="type != 'secundary'">
+                                    <field name="evaluation_scores_json" widget="student_scores_graph" colspan="2" nolabel="1"/>
+                                </group>                                
+                                <group string="Resumen" invisible="type == 'pree'">
+                                    <field name="general_performance_json" widget="general_performance_graph" colspan="2" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="sizes" string="Tallas">
+                            <group>
+                                <group string="Cuerpo">
+                                    <field name="height" readonly="state in ['done', 'cancel']"/>
+                                    <field name="weight" readonly="state in ['done', 'cancel']"/>
+                                </group>                                
+                                <group string="Ropa">
+                                    <field name="size_shirt" readonly="state in ['done', 'cancel']"/>
+                                    <field name="size_pants" readonly="state in ['done', 'cancel']"/>
+                                    <field name="size_shoes" readonly="state in ['done', 'cancel']"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_students_action" model="ir.actions.act_window">
+        <field name="name">Matrícula</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="current_school_students_action" model="ir.actions.act_window">
+        <field name="name">Matrícula actual</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="domain">[('current', '!=', False)]</field>
+        <field name="context">{}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('school_students_view_kanban')}), 
+            (0, 0, {'view_mode': 'form', 'view_id': ref('school_student_view_form')})
+        ]"/>
+    </record>
+
+</odoo>

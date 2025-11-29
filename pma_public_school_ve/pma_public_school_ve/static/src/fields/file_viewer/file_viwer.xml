@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web.FilePreviewField">
+        <div class="o_field_file_preview d-flex flex-column h-100">
+            <!-- File Uploader (hidden) -->
+            <FileUploader
+                t-ref="fileUploader"
+                className="'d-none'"
+                fileUploadClass="'o_input_file'"
+                accepted="props.acceptedFileExtensions"
+                onUploaded.bind="onFileUploaded"
+                multiUpload="false"
+            />
+
+            <!-- Preview Container -->
+            <t t-if="hasFile">
+                <div class="o_file_preview_container position-relative flex-grow-1 d-flex flex-column">
+                    <!-- File Info Header -->
+                    <div class="o_file_info_header bg-light border-bottom p-2 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i t-if="state.fileType === 'image'" class="fa fa-file-image-o text-primary fa-lg"/>
+                            <i t-if="state.fileType === 'pdf'" class="fa fa-file-pdf-o text-danger fa-lg"/>
+                            <div class="d-flex flex-column" t-if="state.fileName">
+                                <span class="small fw-bold text-truncate" style="max-width: 250px;">
+                                    <t t-esc="state.fileName"/>
+                                </span>
+                                <span class="text-muted" style="font-size: 0.75rem;" t-if="state.fileSize">
+                                    <t t-esc="state.fileSize"/>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="o_file_actions d-flex gap-1">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-primary"
+                                t-on-click="onFileDownload"
+                                title="Download file">
+                                <i class="fa fa-download"/>
+                            </button>
+                            <button 
+                                t-if="!isReadonly"
+                                type="button" 
+                                class="btn btn-sm btn-outline-secondary"
+                                t-on-click="onFileReplace"
+                                title="Replace file">
+                                <i class="fa fa-refresh"/>
+                            </button>
+                            <button 
+                                t-if="!isReadonly"
+                                type="button" 
+                                class="btn btn-sm btn-outline-danger"
+                                t-on-click="onFileRemove"
+                                title="Remove file">
+                                <i class="fa fa-trash"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preview Area -->
+                    <div class="o_file_preview_content flex-grow-1 position-relative bg-white">
+                        <!-- Loading State -->
+                        <t t-if="state.isLoading">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <i class="fa fa-spinner fa-spin fa-3x text-muted"/>
+                            </div>
+                        </t>
+
+                        <!-- Image Preview -->
+                        <t t-elif="state.fileType === 'image'">
+                            <div class="d-flex align-items-center justify-content-center h-100 p-3">
+                                <img 
+                                    t-att-src="imageUrl"
+                                    class="img-fluid"
+                                    style="max-height: 100%; max-width: 100%; object-fit: contain;"
+                                    alt="Preview"
+                                    t-on-error="onLoadFailed"
+                                />
+                            </div>
+                        </t>
+
+                        <!-- PDF Preview -->
+                        <t t-elif="state.fileType === 'pdf'">
+                            <iframe
+                                t-ref="iframePreview"
+                                t-att-src="pdfUrl"
+                                class="w-100 h-100 border-0"
+                                t-on-error="onLoadFailed"
+                            />
+                        </t>
+
+                        <!-- Unsupported Type -->
+                        <t t-else="">
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                                <i class="fa fa-file-o fa-4x mb-3"/>
+                                <span>Preview not available for this file type</span>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Empty State -->
+            <t t-else="">
+                <div class="o_file_empty_state d-flex flex-column align-items-center justify-content-center h-100 border rounded bg-light p-4">
+                    <i class="fa fa-cloud-upload fa-4x text-muted mb-3"/>
+                    <h5 class="text-muted mb-2">No file uploaded</h5>
+                    <p class="text-muted text-center small mb-3">
+                        Upload an image (JPEG, PNG, JPG) or PDF file
+                    </p>
+                    <t t-if="!isReadonly">
+                        <FileUploader
+                            className="'btn btn-primary'"
+                            fileUploadClass="'o_input_file'"
+                            accepted="props.acceptedFileExtensions"
+                            onUploaded.bind="onFileUploaded"
+                            multiUpload="false"
+                        >
+                            <i class="fa fa-upload me-2"/>
+                            Upload File
+                        </FileUploader>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

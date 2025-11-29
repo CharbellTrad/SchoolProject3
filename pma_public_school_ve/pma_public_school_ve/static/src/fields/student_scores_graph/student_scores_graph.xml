@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="school.StudentScoresGraphField">
+        <div class="o_student_scores_graph" t-att-class="props.className">
+            <div class="o_graph_canvas_wrapper" style="position: relative; height: 400px;">
+                <canvas t-if="data.subjects and data.subjects.length > 0" t-ref="canvas"/>
+                <div t-else="" class="alert alert-info text-center">
+                    <i class="fa fa-info-circle me-2"/>
+                    No hay datos de evaluaciones para mostrar
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

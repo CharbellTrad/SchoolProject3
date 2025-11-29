@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="secundary_100" model="school.evaluation.type">
+        <field name="type">secundary</field>
+        <field name="type_evaluation">100</field>
+    </record>
+
+    <record id="secundary_20" model="school.evaluation.type">
+        <field name="type">secundary</field>
+        <field name="type_evaluation">20</field>
+    </record>
+
+
+    <record id="primary_literal" model="school.evaluation.type">
+        <field name="type">primary</field>
+        <field name="type_evaluation">literal</field>
+    </record>
+    <record id="primary_20" model="school.evaluation.type">
+        <field name="type">primary</field>
+        <field name="type_evaluation">20</field>
+    </record>
+
+
+    <record id="pre_observation" model="school.evaluation.type">
+        <field name="type">pre</field>
+        <field name="type_evaluation">observation</field>
+    </record>
+
+
+</odoo>

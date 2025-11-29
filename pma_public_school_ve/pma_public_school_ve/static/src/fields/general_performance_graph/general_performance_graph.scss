@@ -1,0 +1,142 @@
+.o_general_performance_graph {
+    padding: 15px;
+}
+
+.o_general_performance_graph .card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.o_general_performance_graph .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 20px;
+}
+
+.o_general_performance_graph .card-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.o_general_performance_graph .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Métricas de rendimiento */
+.o_general_performance_graph .performance-metric {
+    padding: 15px;
+}
+
+.o_general_performance_graph .performance-metric small {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.o_general_performance_graph .performance-metric h2 {
+    font-size: 36px;
+}
+
+.o_general_performance_graph .badge.fs-5 {
+    font-size: 20px !important;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+/* Cajas de estadísticas */
+.o_general_performance_graph .stat-box {
+    padding: 10px;
+}
+
+.o_general_performance_graph .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.o_general_performance_graph .stat-label {
+    font-size: 11px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* Gráfico de torta */
+.o_general_performance_graph .o_pie_chart_wrapper {
+    position: relative;
+    padding: 20px;
+}
+
+/* Barra de progreso */
+.o_general_performance_graph .progress {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.o_general_performance_graph .progress-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: width 0.6s ease;
+}
+
+/* Mensaje de alerta */
+.o_general_performance_graph .alert-info {
+    margin: 20px 0;
+    padding: 40px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .o_general_performance_graph {
+        padding: 10px;
+    }
+    
+    .o_general_performance_graph .performance-metric h2 {
+        font-size: 28px;
+    }
+    
+    .o_general_performance_graph .stat-value {
+        font-size: 22px;
+    }
+    
+    .o_general_performance_graph .stat-label {
+        font-size: 10px;
+    }
+    
+    .o_general_performance_graph .o_pie_chart_wrapper {
+        height: 250px !important;
+    }
+    
+    .o_general_performance_graph .badge.fs-5 {
+        font-size: 16px !important;
+        padding: 6px 12px;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.o_general_performance_graph .card {
+    animation: fadeIn 0.3s ease-in-out;
+}

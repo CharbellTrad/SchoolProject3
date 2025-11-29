@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="school.GeneralPerformanceGraphField">
+        <div class="o_general_performance_graph" t-att-class="props.className">
+            <t t-if="performanceInfo">
+                <!-- Promedio -->
+                <div class="text-center mb-3">
+                    <small class="text-muted d-block mb-2" t-esc="performanceInfo.averageLabel"/>
+                    <h2 class="mb-0 fw-bold" t-esc="performanceInfo.average" 
+                        t-att-style="'color: ' + averageColor"/>
+                </div>
+
+                <!-- Gráfico de torta -->
+                <div class="o_pie_chart_wrapper" style="position: relative; height: 300px;">
+                    <canvas t-ref="canvas"/>
+                </div>
+                
+                <!-- Porcentaje de aprobación -->
+                <div class="text-center mt-3">
+                    <h6 class="mb-2">Porcentaje de Aprobación</h6>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar" 
+                             t-att-class="performanceInfo.approvalPercentage >= 70 ? 'bg-success' : (performanceInfo.approvalPercentage >= 50 ? 'bg-warning' : 'bg-danger')"
+                             role="progressbar" 
+                             t-att-style="'width: ' + performanceInfo.approvalPercentage + '%'"
+                             t-att-aria-valuenow="performanceInfo.approvalPercentage" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            <strong t-esc="performanceInfo.approvalPercentage + '%'"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            
+            <!-- Mensaje cuando no hay datos -->
+            <div t-else="" class="alert alert-info text-center">
+                <i class="fa fa-info-circle me-2"/>
+                No hay datos de rendimiento académico para mostrar
+            </div>
+        </div>
+    </t>
+
+</templates>

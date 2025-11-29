@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_professor_view_form" model="ir.ui.view">
+        <field name="name">school.professor.view.form</field>
+        <field name="model">school.professor</field>
+        <field name="arch" type="xml">
+            <form string="Profesores inscritos">
+                <sheet>
+                    <field name="used_professor_ids" invisible="1"/>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name"/>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                           <field name="year_id" readonly="1"/> 
+                        </group>    
+                        <group>
+                            <field name="professor_id" options="{'no_create': 1}"/>
+                        </group>
+                        <separator string="Secciones / Materias"/>
+                        <group>
+                           <field name="section_ids" colspan="2" nolabel="1" options="{'no_create': 1}">
+                                <list editable="top" create="0">
+                                    <field name="section_id" string="Sección" readonly="1" />
+                                </list>
+                           </field> 
+                        </group>    
+                        <group>
+                            <field name="subject_ids" colspan="2" nolabel="1" options="{'no_create': 1}">
+                                <list editable="top" create="0">
+                                    <field name="name" string="Materia"/>
+                                </list>
+                            </field>
+                        </group>           
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_professor_view_tree" model="ir.ui.view">
+        <field name="name">school.professor.view.tree</field>
+        <field name="model">school.professor</field>
+        <field name="arch" type="xml">
+            <list string="Profesores inscritos">
+                <field name="professor_id"/>
+                <field name="year_id"/>
+                <field name="section_ids" widget="many2many_tags"/>
+                <field name="subject_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="school_professor_action" model="ir.actions.act_window">
+        <field name="name">Docentes</field>
+        <field name="res_model">school.professor</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="current_school_professor_action" model="ir.actions.act_window">
+        <field name="name">Docentes actual</field>
+        <field name="res_model">school.professor</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('current', '!=', False)]</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>
+

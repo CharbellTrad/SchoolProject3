@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- model.name kanban view -->
+    <record id="school_year_view_kanban" model="ir.ui.view">
+        <field name="name">school.year.view.kanban</field>
+        <field name="model">school.year</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                            <main class="o_project_kanban_main">
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="text-truncate d-block fs-4 fw-bold" t-att-title="record.display_name.value"><field name="display_name"/></span>
+                                </div>
+                                <!-- <div class="o_project_kanban_body min-w-0 pb-4 me-2">
+                                    <span name="partner_name" class="text-muted d-flex align-items-baseline" t-if="record.partner_id.value">
+                                        <span class="fa fa-user me-2" aria-label="Partner" title="Partner"/><field class="text-truncate" name="partner_id"/>
+                                    </span>
+                                    <div t-if="record.date.raw_value or record.date_start.raw_value" class="text-muted d-flex align-items-baseline">
+                                        <span class="fa fa-clock-o me-2" title="Dates"/>
+                                        <field name="date_start" widget="daterange" options="{'end_date_field': 'date'}"/>
+                                    </div>
+                                    <div t-if="record.alias_email.value" class="text-muted text-truncate" t-att-title="record.alias_email.value">
+                                        <span class="fa fa-envelope-o me-2" aria-label="Domain Alias" title="Domain Alias"/><field name="alias_email"/>
+                                    </div>
+                                    <div t-if="record.rating_count.raw_value &gt; 0" class="d-flex text-muted">
+                                        <b class="me-1">
+                                            <span class="fa mt4 fa-smile-o fw-bolder text-success" t-if="record.rating_avg.raw_value &gt;= 3.66" title="Average Rating: Happy" role="img" aria-label="Happy face"/>
+                                            <span class="fa mt4 fa-meh-o fw-bolder text-warning" t-elif="record.rating_avg.raw_value &gt;= 2.33" title="Average Rating: Neutral" role="img" aria-label="Neutral face"/>
+                                            <span class="fa mt4 fa-frown-o fw-bolder text-danger" t-else="" title="Average Rating: Unhappy" role="img" aria-label="Unhappy face"/>
+                                        </b>
+                                        <t t-if="record.rating_avg.raw_value % 1 == 0">
+                                            <field name="rating_avg" nolabel="1" widget="float" digits="[1, 0]"/>
+                                        </t>
+                                        <t t-else="">
+                                            <field name="rating_avg" nolabel="1" widget="float" digits="[1, 1]"/>
+                                        </t> / 5
+                                    </div>
+                                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                </div> -->
+                            </main>
+                            <footer class="mt-auto pt-0">
+                                <!-- <div class="d-flex align-items-center">
+                                    <div class="o_project_kanban_boxes d-flex align-items-baseline">
+                                        <a class="o_project_kanban_box me-1" name="action_view_tasks" type="object">
+                                            <div>
+                                                <field name="open_task_count" class="o_value"/>
+                                                <field name="label_tasks" class="ms-1"/>
+                                            </div>
+                                        </a>
+                                        <a groups="project.group_project_milestone" t-if="record.allow_milestones and record.allow_milestones.raw_value and record.milestone_count.raw_value &gt; 0" t-attf-class="d-inline-block small me-1 text-{{ record.is_milestone_deadline_exceeded.raw_value ? 'danger' : (record.can_mark_milestone_as_done.raw_value ? 'success' : 'muted') }}" role="button" name="action_get_list_view" type="object" t-attf-title="#{record.milestone_count_reached.value} Milestones reached out of #{record.milestone_count.value}">
+                                            <span class="fa fa-flag me-1"/>
+                                            <field name="milestone_count_reached"/>/<field name="milestone_count"/>
+                                        </a>
+                                    </div>
+                                    <field name="activity_ids" widget="kanban_activity" class="ms-2"/>
+                                </div>
+                                <div class="d-flex ms-auto align-items-center">
+                                    <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]" class="me-1"/>
+                                    <field t-if="record.last_update_status.value &amp;&amp; widget.editable &amp;&amp; !record.is_template.raw_value" name="last_update_status" widget="project_state_selection"/>
+                                    <span t-if="record.last_update_status.value &amp;&amp; !widget.editable" t-att-class="'o_status_bubble mx-0 o_color_bubble_' + record.last_update_color.value" t-att-title="record.last_update_status.value"/>
+                                </div> -->
+                            </footer>
+                        </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <!-- school.year form view -->
+    <record id="school_year_view_form" model="ir.ui.view">
+        <field name="name">school.year.view.form</field>
+        <field name="model">school.year</field>
+        <field name="arch" type="xml">
+            <form string="Años escolares">
+                <sheet>
+                    <!-- Header con nombre y estado del año -->
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" 
+                                           widget="text" 
+                                           class="text-break d-block" 
+                                           name="name" 
+                                           default_focus="1" 
+                                           placeholder="e.g. 2025-2026"/>
+                                </h1>
+                                <div class="o_row mt-2">
+                                    <field name="current" widget="boolean_toggle"/>
+                                    <label for="current" string="Año Actual"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPIs PRINCIPALES EN CARDS -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-primary shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fa fa-users fa-3x text-primary mb-2"/>
+                                    <h3 class="mb-0">
+                                        <field name="total_students_count"/>
+                                    </h3>
+                                    <p class="text-muted mb-0">Estudiantes Inscritos</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-success shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fa fa-check-circle fa-3x text-success mb-2"/>
+                                    <h3 class="mb-0">
+                                        <field name="approved_students_count"/>
+                                    </h3>
+                                    <p class="text-muted mb-0">Estudiantes Aprobados</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-info shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fa fa-chalkboard fa-3x text-info mb-2"/>
+                                    <h3 class="mb-0">
+                                        <field name="total_sections_count"/>
+                                    </h3>
+                                    <p class="text-muted mb-0">Secciones Activas</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-warning shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fa fa-user-tie fa-3x text-warning mb-2"/>
+                                    <h3 class="mb-0">
+                                        <field name="total_professors_count"/>
+                                    </h3>
+                                    <p class="text-muted mb-0">Profesores Activos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NOTEBOOK CONVERTIDO EN DASHBOARD -->
+                    <notebook>
+                        <!-- TAB 1: Dashboard de Rendimiento General -->
+                        <page string="Dashboard General" name="dashboard">
+                            <group>
+                                <group string="Rendimiento General del Año Escolar" colspan="2">
+                                    <field name="performance_by_level_json" 
+                                        widget="year_performance_overview" 
+                                        nolabel="1" colspan="2"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Distribución de Estudiantes por Nivel">
+                                    <field name="students_distribution_json" 
+                                           widget="students_distribution_chart" 
+                                           nolabel="1" colspan="2"/>
+                                </group>
+                                
+                                <group string="Tasa de Aprobación General">
+                                    <field name="approval_rate_json" 
+                                           widget="approval_rate_gauge" 
+                                           nolabel="1" colspan="2"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Comparativa de Secciones" colspan="2">
+                                    <field name="sections_comparison_json" 
+                                        widget="sections_comparison_chart" 
+                                        nolabel="1" colspan="2"/>
+                                </group>
+
+                                <group string="Top 10 Mejores Estudiantes del Año" colspan="2">
+                                    <field name="top_students_year_json" 
+                                        widget="top_students_list" 
+                                        nolabel="1" colspan="2"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- TAB 2: Media General (tu estructura original mejorada) -->
+                        <page string="Media General" name="secundary">
+                            <separator string="Configuración de Evaluación"/>
+                            <group>
+                                <field name="evalution_type_secundary" options="{'no_create':True}"/>
+                            </group>
+
+                            <group name="secundary" col="3">
+                                <group name="sections" string="Secciones">
+                                    <field name="students_secundary_count" nolabel="1" readonly="1"/>
+                                    <label for="students_secundary_count" string="Total Estudiantes"/>
+                                </group>
+                                <group name="students" string="Estudiantes">
+                                    <field name="approved_secundary_count" nolabel="1" readonly="1"/>
+                                    <label for="approved_secundary_count" string="Aprobados"/>
+                                </group>
+                                <group name="subjects" string="Materias">
+                                    <field name="sections_secundary_count" nolabel="1" readonly="1"/>
+                                    <label for="sections_secundary_count" string="Secciones Activas"/>
+                                </group>
+                            </group>
+
+                            <separator string="Secciones de Media General"/>
+                            <field name="section_ids"
+                                    readonly="1" 
+                                   domain="[('type', '=', 'secundary')]"
+                                   >
+                                   <!-- context="{'default_year_id': active_id, 'default_type': 'secundary'}" -->
+                                <list decoration-info="type == 'secundary'">
+                                    <field name="section_id"/>
+                                    <field name="type" invisible="1"/>
+                                    <field name="student_ids" widget="badge" decoration-info="1"/>
+                                    <field name="subject_ids" widget="badge" decoration-success="1"/>
+                                    <field name="professor_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+
+                            <group string="Rendimiento de Media General">
+                                <field name="secundary_performance_json" 
+                                       widget="general_performance_graph"
+                                       colspan="2" 
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 3: Primaria (tu estructura original mejorada) -->
+                        <page string="Primaria" name="primary">
+                            <separator string="Configuración de Evaluación"/>
+                            <group>
+                                <field name="evalution_type_primary" options="{'no_create':True}"/>
+                            </group>
+
+                            <group name="primary" col="3">
+                                <group name="sections" string="Secciones">
+                                    <field name="students_primary_count" nolabel="1" readonly="1"/>
+                                    <label for="students_primary_count" string="Total Estudiantes"/>
+                                </group>
+                                <group name="students" string="Estudiantes">
+                                    <field name="approved_primary_count" nolabel="1" readonly="1"/>
+                                    <label for="approved_primary_count" string="Aprobados"/>
+                                </group>
+                                <group name="professors" string="Docentes">
+                                    <field name="sections_primary_count" nolabel="1" readonly="1"/>
+                                    <label for="sections_primary_count" string="Secciones Activas"/>
+                                </group>
+                            </group>
+
+                            <separator string="Secciones de Primaria"/>
+                            <field name="section_ids" 
+                                    readonly="1" 
+                                   domain="[('type', '=', 'primary')]"
+                                   >
+                                   <!-- context="{'default_year_id': active_id, 'default_type': 'primary'}" -->
+                                <list decoration-success="type == 'primary'">
+                                    <field name="section_id"/>
+                                    <field name="type" invisible="1"/>
+                                    <field name="student_ids" widget="badge" decoration-info="1"/>
+                                    <field name="subject_ids" widget="badge" decoration-success="1"/>
+                                    <field name="professor_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+
+                            <group string="Rendimiento de Primaria">
+                                <field name="primary_performance_json" 
+                                       widget="general_performance_graph" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 4: Preescolar (tu estructura original mejorada) -->
+                        <page string="Preescolar" name="pre">
+                            <separator string="Configuración de Evaluación"/>
+                            <group>
+                                <field name="evalution_type_pree" options="{'no_create':True}"/>
+                            </group>
+
+                            <group name="pre" col="3">
+                                <group name="sections" string="Secciones">
+                                    <field name="students_pre_count" nolabel="1" readonly="1"/>
+                                    <label for="students_pre_count" string="Total Estudiantes"/>
+                                </group>
+                                <group name="students" string="Estudiantes">
+                                    <field name="approved_pre_count" nolabel="1" readonly="1"/>
+                                    <label for="approved_pre_count" string="Aprobados"/>
+                                </group>
+                                <group name="professors" string="Docentes">
+                                    <field name="sections_pre_count" nolabel="1" readonly="1"/>
+                                    <label for="sections_pre_count" string="Secciones Activas"/>
+                                </group>
+                            </group>
+
+                            <separator string="Secciones de Preescolar"/>
+                            <field name="section_ids" 
+                                    readonly="1" 
+                                   domain="[('type', '=', 'pre')]"
+                                   >
+                                   <!-- context="{'default_year_id': active_id, 'default_type': 'pre'}" -->
+                                <list decoration-info="type == 'pre'">
+                                    <field name="section_id"/>
+                                    <field name="type" invisible="1"/>
+                                    <field name="student_ids" widget="badge" decoration-info="1"/>
+                                    <field name="professor_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+
+                            <group string="Rendimiento de Preescolar">
+                                <field name="pre_performance_json" 
+                                       widget="general_performance_graph" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 5: Todos los Estudiantes -->
+                        <page string="Estudiantes" name="all_students">
+                            <field name="student_ids" 
+                                    readonly="1" 
+                                   >
+                                   <!-- context="{'default_year_id': active_id}" -->
+                                <list decoration-success="state == 'done'" 
+                                      decoration-muted="state == 'cancel'" 
+                                      decoration-warning="state == 'draft'">
+                                    <field name="student_id"/>
+                                    <field name="section_id"/>
+                                    <field name="type"/>
+                                    <field name="state" widget="badge" 
+                                           decoration-success="state == 'done'" 
+                                           decoration-warning="state == 'draft'" 
+                                           decoration-danger="state == 'cancel'"/>
+                                    <field name="inscription_date"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- TAB 6: Profesores y Materias -->
+                        <page string="Profesores" name="professors">
+                            <group string="Resumen de Profesores">
+                                <field name="professor_summary_json" 
+                                       widget="professor_summary_widget" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+
+                            <group string="Materias con Mayor Dificultad">
+                                <field name="difficult_subjects_json" 
+                                       widget="difficult_subjects_chart" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 7: Evaluaciones -->
+                        <page string="Evaluaciones" name="evaluations">
+                            <group string="Estadísticas de Evaluaciones">
+                                <field name="evaluations_stats_json" 
+                                       widget="evaluations_stats_widget"
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                            
+                            <group string="Evaluaciones Recientes">
+                                <field name="recent_evaluations_json" 
+                                       widget="evaluations_timeline" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- school_year action window -->
+
+    <record id="school_year_action" model="ir.actions.act_window">
+        <field name="name">Año escolar</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.year</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="current_school_year_action_tag" model="ir.actions.client">
+        <field name="name">Año Escolar Actual</field>
+        <field name="tag">current_school_year_action</field>
+    </record>
+</odoo>

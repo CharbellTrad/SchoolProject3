@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_register_subject_view_form" model="ir.ui.view">
+        <field name="name">school.register.subject.view.form</field>
+        <field name="model">school.register.subject</field>
+        <field name="arch" type="xml">
+            <form string="Secciones">
+                <sheet>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name" default_focus="1" placeholder="e.g. Química"/>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Profesores asignados">
+                            <field name="professor_ids" nolabel="1" colspan="2" domain="[('school_employee_type', '=', 'docente'), ('active','=',True)]">
+                                <list editable="top" create="0">
+                                    <field name="name" string="Profesor" readonly="1"/>
+                                </list>
+                            </field>
+                        </group>
+                        <group string="Secciones asignadas">
+                            <field name="section_ids" nolabel="1" colspan="2">
+                                <list editable="top" create="0">
+                                    <field name="name" readonly="1"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_register_subject_view_tree" model="ir.ui.view">
+        <field name="name">school.register.subject.view.tree</field>
+        <field name="model">school.register.subject</field>
+        <field name="arch" type="xml">
+            <list string="Secciones">
+                <field name="name"/>
+                <field name="professor_ids" widget="many2many_tags"/>
+                <field name="section_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- school.register.section action window -->
+    <record id="school_register_subject_action" model="ir.actions.act_window">
+        <field name="name">Materias</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.register.subject</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>
