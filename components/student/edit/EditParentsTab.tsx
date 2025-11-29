@@ -1,16 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { Parent, ParentFormData } from '../../../services-odoo/personService';
 import { formatPhone } from '../../../utils/formatHelpers';
 import { ImagePickerComponent } from '../../ImagePicker';
-import {
-    GenderSelectorDropdown,
-    NationalitySelectorDropdown,
-    YesNoSelectorDropdown
-} from '../../selectors';
+import { GenderSelectorDropdown, NationalitySelectorDropdown, YesNoSelectorDropdown } from '../../selectors';
 import { Input } from '../../ui/Input';
+import { EditParentsTabSkeleton } from './skeletons';
 
 interface EditParentsTabProps {
   parents: Array<Partial<Parent> & { id?: number }>;
@@ -59,6 +56,34 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
   getImage,
   loading = false,
 }) => {
+  // Estados para el crossfade
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [showSkeleton, setShowSkeleton] = useState(true);
+
+  // Efecto para hacer crossfade cuando loading cambia
+  useEffect(() => {
+    if (!loading && showSkeleton) {
+      // Fade out del skeleton
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // Ocultar skeleton y hacer fade in del contenido
+        setShowSkeleton(false);
+        fadeAnim.setValue(0);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      });
+    } else if (loading) {
+      setShowSkeleton(true);
+      fadeAnim.setValue(1);
+    }
+  }, [loading, showSkeleton, fadeAnim]);
+
   const formatBirthDate = (text: string) => {
     let formatted = text.replace(/[^\d]/g, '');
     if (formatted.length >= 2) {
@@ -375,10 +400,7 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Cargando representantes...</Text>
-        </View>
+        <EditParentsTabSkeleton />
       ) : parents.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="people" size={64} color={Colors.textTertiary} />

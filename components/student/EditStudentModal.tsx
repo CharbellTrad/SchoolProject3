@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { useParentManagement, useStudentEdit } from '../../hooks';
 import * as authService from '../../services-odoo/authService';
@@ -9,6 +9,7 @@ import { formatDateToOdoo, normalizeGender, normalizeYesNo } from '../../utils/f
 import { validateStudentField } from '../../validators/fieldValidators';
 import { showAlert } from '../showAlert';
 import { EditBirthTab, EditDocumentsTab, EditGeneralTab, EditParentsTab, EditSizesTab } from './edit';
+import { EditGeneralTabSkeleton } from './edit/skeletons';
 
 type EditTab = 'general' | 'sizes' | 'birth' | 'parents' | 'documents';
 
@@ -40,11 +41,17 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const [fullStudent, setFullStudent] = useState<Student | null>(null);
   const [loadingFullDetails, setLoadingFullDetails] = useState(false);
 
+  // Estados para el crossfade
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [showSkeleton, setShowSkeleton] = useState(true);
+
   // ⚡ Cargar detalles completos cuando el modal se abre
   useEffect(() => {
     if (!visible) {
       setActiveTab('general');
       setFullStudent(null);
+      setShowSkeleton(true);
+      fadeAnim.setValue(1);
       return;
     }
 
@@ -52,6 +59,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
     const loadFullDetails = async () => {
       setLoadingFullDetails(true);
+      setShowSkeleton(true);
+      fadeAnim.setValue(1);
       
       if (__DEV__) {
         console.log(`🔍 Cargando detalles completos para edición del estudiante ${student.id}`);
@@ -76,6 +85,27 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
     loadFullDetails();
   }, [visible, student]);
+
+  // Efecto para hacer crossfade cuando los datos están listos
+  useEffect(() => {
+    if (!loadingFullDetails && fullStudent && showSkeleton) {
+      // Fade out del skeleton
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // Ocultar skeleton y hacer fade in del contenido
+        setShowSkeleton(false);
+        fadeAnim.setValue(0);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      });
+    }
+  }, [loadingFullDetails, fullStudent, showSkeleton, fadeAnim]);
 
   const {
     formData,
@@ -107,21 +137,9 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     clearImage
   );
 
-  // Mostrar loading mientras carga detalles
-  if (loadingFullDetails || !formData) {
-    return (
-      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingLabel}>Cargando información...</Text>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-
   const validateForm = (): boolean => {
+    if (!formData) return false;
+
     const newErrors: Record<string, string> = {};
     let isValid = true;
 
@@ -165,6 +183,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   const handleSave = async () => {
+    if (!formData) return;
+
     const serverHealth = await authService.checkServerHealth();
 
     if (!serverHealth.ok) {
@@ -369,6 +389,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   const renderTabContent = () => {
+    if (!formData) return null;
+
     switch (activeTab) {
       case 'general':
         return (
@@ -426,6 +448,19 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
   };
 
+  // Renderizar skeleton según el tab activo
+  const renderSkeletonContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return <EditGeneralTabSkeleton />;
+      default:
+        return null;
+    }
+  };
+
+  // Determinar si el tab actual necesita skeleton
+  const needsSkeleton = activeTab === 'general' || activeTab === 'parents';
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -434,7 +469,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.content}>
-          {/* Header */}
+          {/* Header - SIEMPRE VISIBLE */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <View style={styles.studentIconBox}>
@@ -447,7 +482,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Tabs */}
+          {/* Tabs - SIEMPRE VISIBLE (deshabilitados durante carga) */}
           <View style={styles.tabsWrapper}>
             <ScrollView
               horizontal
@@ -459,7 +494,12 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
                   key={tab.id}
                   onPress={() => setActiveTab(tab.id)}
                   activeOpacity={0.7}
-                  style={[styles.tabButton, activeTab === tab.id && styles.tabButtonActive]}
+                  style={[
+                    styles.tabButton, 
+                    activeTab === tab.id && styles.tabButtonActive,
+                    showSkeleton && styles.tabButtonDisabled
+                  ]}
+                  disabled={showSkeleton}
                 >
                   <Ionicons
                     name={tab.icon}
@@ -479,51 +519,71 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
             </ScrollView>
           </View>
 
-          {/* Body */}
-          <ScrollView
-            style={styles.body}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.bodyContent}
-            keyboardShouldPersistTaps="handled"
-            nestedScrollEnabled={true}
-            scrollEventThrottle={16}
-          >
-            {renderTabContent()}
+          {/* Body - CROSSFADE */}
+          <View style={styles.bodyContainer}>
+            {/* SKELETON del contenido (solo para general y parents) */}
+            {showSkeleton && needsSkeleton && (
+              <Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>
+                <ScrollView
+                  style={styles.body}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.bodyContent}
+                >
+                  {renderSkeletonContent()}
+                </ScrollView>
+              </Animated.View>
+            )}
 
-            {/* Danger Zone */}
-            <View style={styles.dangerZone}>
-              <View style={styles.dangerZoneHeader}>
-                <Ionicons name="warning-outline" size={22} color={Colors.error} />
-                <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
-              </View>
-              <Text style={styles.dangerZoneText}>
-                Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.
-              </Text>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => {
-                  onClose();
-                  setTimeout(() => onDelete(formData), 300);
-                }}
-                activeOpacity={0.8}
+            {/* CONTENIDO REAL */}
+            <Animated.View style={[styles.absoluteFill, { opacity: showSkeleton && needsSkeleton ? 0 : fadeAnim }]}>
+              <ScrollView
+                style={styles.body}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.bodyContent}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+                scrollEventThrottle={16}
               >
-                <Ionicons name="trash-outline" size={18} color="#fff" />
-                <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
-              </TouchableOpacity>
-            </View>
+                {renderTabContent()}
 
-            <View style={{ height: 100 }} />
-          </ScrollView>
+                {/* Danger Zone */}
+                {!showSkeleton && formData && (
+                  <View style={styles.dangerZone}>
+                    <View style={styles.dangerZoneHeader}>
+                      <Ionicons name="warning-outline" size={22} color={Colors.error} />
+                      <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
+                    </View>
+                    <Text style={styles.dangerZoneText}>
+                      Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        onClose();
+                        setTimeout(() => onDelete(formData), 300);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#fff" />
+                      <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
 
-          {/* Footer */}
+                <View style={{ height: 100 }} />
+              </ScrollView>
+            </Animated.View>
+          </View>
+
+          {/* Footer - SIEMPRE VISIBLE */}
           <View style={styles.footer}>
             <TouchableOpacity
               style={[
                 styles.saveBtn,
-                (isLoading || parentManagement.showAddParent) && styles.saveBtnDisabled
+                (isLoading || parentManagement.showAddParent || showSkeleton) && styles.saveBtnDisabled
               ]}
               onPress={handleSave}
-              disabled={isLoading || parentManagement.showAddParent}
+              disabled={isLoading || parentManagement.showAddParent || showSkeleton}
               activeOpacity={0.75}
             >
               {isLoading ? (
@@ -626,6 +686,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary + '15',
     borderColor: Colors.primary,
   },
+  tabButtonDisabled: {
+    opacity: 0.5,
+  },
   tabLabel: {
     fontSize: 13,
     fontWeight: '600',
@@ -634,6 +697,13 @@ const styles = StyleSheet.create({
   tabLabelActive: {
     color: Colors.primary,
     fontWeight: '700',
+  },
+  bodyContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  absoluteFill: {
+    ...StyleSheet.absoluteFillObject,
   },
   body: {
     flex: 1,
@@ -683,36 +753,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.1,
-  },
-  loadingOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingBox: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    paddingHorizontal: 32,
-    paddingVertical: 28,
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  loadingLabel: {
-    marginTop: 16,
-    fontSize: 15,
-    color: Colors.textSecondary,
-    fontWeight: '600',
   },
   footer: {
     paddingHorizontal: 20,
