@@ -1,6 +1,5 @@
 import * as NavigationBar from 'expo-navigation-bar'
 import { Slot, useRouter, useSegments } from "expo-router"
-import * as SplashScreen from "expo-splash-screen"
 import LottieView from "lottie-react-native"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Dimensions, LogBox, Platform, StyleSheet, Text, View } from "react-native"
@@ -12,8 +11,6 @@ import { AppReadyProvider, useAppReady } from "../contexts/AppReady"
 import { AuthProvider, useAuth } from "../contexts/AuthContext"
 import { ROLE_DASHBOARDS, type UserRole } from "../types/auth"
 
-// Prevenir que el splash nativo se oculte automáticamente
-SplashScreen.preventAutoHideAsync()
 
 // Suprimir warnings específicos en desarrollo
 LogBox.ignoreLogs(["shadow*", "props.pointerEvents is deprecated", "useNativeDriver"])
@@ -70,7 +67,6 @@ function RootLayoutNav() {
       try {
         // Pequeño delay para asegurar que la animación Lottie está renderizada
         await new Promise((resolve) => setTimeout(resolve, 100))
-        await SplashScreen.hideAsync()
         setSplashHidden(true)
 
         if (isDev) {

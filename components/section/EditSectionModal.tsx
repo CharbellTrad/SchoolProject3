@@ -1,8 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -31,30 +29,11 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Section>>({
     name: '',
     type: 'primary',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Animación para el slide
-  const slideAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      // Slide up
-      Animated.spring(slideAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        damping: 20,
-        stiffness: 90,
-      }).start();
-    } else {
-      // Slide down
-      slideAnim.setValue(0);
-    }
-  }, [visible]);
 
   // Cargar datos cuando el modal se abre
   useEffect(() => {
@@ -124,41 +103,42 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
       return;
     }
 
-    setIsLoading(true);
+    // Cerrar el modal PRIMERO
+    onClose();
 
-    try {
-      if (__DEV__) {
-        console.log('📝 Actualizando sección...');
-      }
+    // Pequeño delay para que el modal termine de cerrarse
+    setTimeout(async () => {
+      try {
+        if (__DEV__) {
+          console.log('📝 Actualizando sección...');
+        }
 
-      const result = await updateSection(section.id, {
-        name: formData.name,
-        type: formData.type,
-      });
+        const result = await updateSection(section.id, {
+          name: formData.name,
+          type: formData.type,
+        });
 
-      if (result.success) {
-        showAlert('Éxito', 'Sección actualizada correctamente');
-        onSave();
-        onClose();
-      } else {
-        showAlert('Error al actualizar sección', result.message || 'No se pudo actualizar');
-      }
-    } catch (error: any) {
-      if (__DEV__) {
-        console.error('❌ Error al guardar:', error);
-      }
+        if (result.success) {
+          showAlert('Éxito', 'Sección actualizada correctamente');
+          onSave();
+        } else {
+          showAlert('Error al actualizar sección', result.message || 'No se pudo actualizar');
+        }
+      } catch (error: any) {
+        if (__DEV__) {
+          console.error('❌ Error al guardar:', error);
+        }
 
-      if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
-        showAlert(
-          'Error de conexión',
-          'Se perdió la conexión durante la actualización. Por favor, verifica tu conexión e intenta nuevamente.'
-        );
-      } else {
-        showAlert('Error', error.message || 'Ocurrió un error inesperado');
+        if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+          showAlert(
+            'Error de conexión',
+            'Se perdió la conexión durante la actualización. Por favor, verifica tu conexión e intenta nuevamente.'
+          );
+        } else {
+          showAlert('Error', error.message || 'Ocurrió un error inesperado');
+        }
       }
-    } finally {
-      setIsLoading(false);
-    }
+    }, 300);
   };
 
   const handleDelete = async () => {
@@ -182,53 +162,47 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
               return;
             }
 
-            setIsLoading(true);
-            try {
-              const result = await deleteSection(section.id);
-              if (result.success) {
-                showAlert('Éxito', 'Sección eliminada correctamente');
-                onSave();
-                onClose();
-              } else {
-                showAlert('Error', result.message || 'No se pudo eliminar la sección');
+            // Cerrar el modal PRIMERO
+            onClose();
+            
+            // Pequeño delay para que el modal termine de cerrarse
+            setTimeout(async () => {
+              try {
+                const result = await deleteSection(section.id);
+                
+                if (result.success) {
+                  showAlert('Éxito', 'Sección eliminada correctamente');
+                  onSave();
+                } else {
+                  showAlert('Error', result.message || 'No se pudo eliminar la sección');
+                }
+              } catch (error: any) {
+                if (__DEV__) {
+                  console.error('❌ Error al eliminar:', error);
+                }
+                showAlert('Error', error.message || 'Ocurrió un error inesperado');
               }
-            } catch (error: any) {
-              if (__DEV__) {
-                console.error('❌ Error al eliminar:', error);
-              }
-              showAlert('Error', error.message || 'Ocurrió un error inesperado');
-            } finally {
-              setIsLoading(false);
-            }
+            }, 300);
           },
         },
       ]
     );
   };
 
-  const translateY = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [600, 0],
-  });
-
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={onClose}
+      presentationStyle="overFullScreen"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <View style={styles.overlay}>
-          <Animated.View 
-            style={[
-              styles.content,
-              { transform: [{ translateY }] }
-            ]}
-          >
+          <View style={styles.content}>
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
@@ -260,7 +234,6 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
                   placeholder="Ej: 1er Grado A"
                   placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="words"
-                  editable={!isLoading}
                 />
                 {errors.name && (
                   <Text style={styles.errorText}>{errors.name}</Text>
@@ -283,7 +256,6 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
                         formData.type === key && { borderColor: color, backgroundColor: color + '15' },
                       ]}
                       onPress={() => updateField('type', key as SectionType)}
-                      disabled={isLoading}
                       activeOpacity={0.7}
                     >
                       <Ionicons
@@ -319,7 +291,6 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={handleDelete}
-                  disabled={isLoading}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="trash" size={18} color="#fff" />
@@ -330,30 +301,23 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
 
             {/* Footer */}
             <View style={styles.footer}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color={Colors.primary} />
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={styles.cancelBtn}
-                    onPress={onClose}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.cancelBtnText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.saveBtn, isLoading && styles.saveBtnDisabled]}
-                    onPress={handleSave}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="save-outline" size={18} color="#fff" />
-                    <Text style={styles.saveBtnLabel}>Guardar</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={onClose}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSave}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="save-outline" size={18} color="#fff" />
+                <Text style={styles.saveBtnLabel}>Guardar</Text>
+              </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -363,7 +327,7 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   content: {
@@ -541,9 +505,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 20,
     gap: 8,
-  },
-  saveBtnDisabled: {
-    backgroundColor: Colors.textTertiary,
   },
   saveBtnLabel: {
     fontSize: 15,

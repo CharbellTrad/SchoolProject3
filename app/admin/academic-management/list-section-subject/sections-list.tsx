@@ -4,8 +4,8 @@ import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { EmptyState, SearchBarSkeleton, StatsCardsSkeleton } from '../../../../components/list';
-import { EditSectionModal, SectionCard, SectionCardSkeleton, SectionFilters, SectionSearchBar, SectionStatsCard } from '../../../../components/section';
+import { EmptyState } from '../../../../components/list';
+import { EditSectionModal, SectionCard, SectionCardSkeleton, SectionFilters, SectionFiltersSkeleton, SectionSearchBar, SectionSearchBarSkeleton, SectionStatsCard, SectionStatsCardSkeleton } from '../../../../components/section';
 import { showAlert } from '../../../../components/showAlert';
 import Colors from '../../../../constants/Colors';
 import { useSections } from '../../../../hooks';
@@ -105,7 +105,7 @@ export default function SectionsListScreen() {
                 return;
               }
               if (!showSkeleton) {
-                router.push('/admin/academic-management/register-section-subject/register-section' as any);
+                router.push('/admin/academic-management/list-section-subject/register-section' as any);
               }
             }}
             disabled={isOfflineMode || showSkeleton}
@@ -118,8 +118,16 @@ export default function SectionsListScreen() {
         <View style={styles.content}>
           {showSkeleton ? (
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-              <StatsCardsSkeleton />
-              <SearchBarSkeleton />
+              {/* Stats Card Skeleton */}
+              <SectionStatsCardSkeleton />
+              
+              {/* Filters Skeleton */}
+              <SectionFiltersSkeleton />
+              
+              {/* Search Bar Skeleton */}
+              <SectionSearchBarSkeleton />
+              
+              {/* Lista de Cards Skeleton */}
               <ScrollView
                 style={styles.listContainer}
                 showsVerticalScrollIndicator={false}
