@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ParentsManagement, StudentBirthForm, StudentDocumentsForm, StudentGeneralForm, StudentSizesForm } from '../../../../components/forms';
 import { useImagePicker } from '../../../../components/ImagePicker';
 import { showAlert } from '../../../../components/showAlert';
@@ -355,92 +357,95 @@ export default function RegisterStudentTabsScreen() {
   };
 
   return (
-    <>
-      <Head>
-        <title>Registrar Estudiante</title>
-      </Head>
-      <View style={styles.container}>
-        <LinearGradient 
-          colors={[Colors.primary, Colors.primaryDark]} 
-          style={styles.header}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-            activeOpacity={0.7}
+    <SafeAreaProvider>
+      <StatusBar style="light" translucent />   
+      <>
+        <Head>
+          <title>Registrar Estudiante</title>
+        </Head>
+        <View style={styles.container}>
+          <LinearGradient 
+            colors={[Colors.primary, Colors.primaryDark]} 
+            style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Matrícula de Estudiante</Text>
-          <View style={{ width: 40 }} />
-        </LinearGradient>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Matrícula de Estudiante</Text>
+            <View style={{ width: 40 }} />
+          </LinearGradient>
 
-        <View style={styles.tabsContainer}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabsScrollContent}
+          <View style={styles.tabsContainer}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsScrollContent}
+            >
+              {TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[
+                    styles.tab, 
+                    activeTab === tab.id && styles.activeTab
+                  ]}
+                  onPress={() => changeTab(tab.id)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={tab.icon as any}
+                    size={20}
+                    color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
+                  />
+                  <Text style={[
+                    styles.tabText,
+                    activeTab === tab.id && styles.activeTabText
+                  ]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            {TABS.map((tab) => (
-              <TouchableOpacity
-                key={tab.id}
-                style={[
-                  styles.tab, 
-                  activeTab === tab.id && styles.activeTab
-                ]}
-                onPress={() => changeTab(tab.id)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={tab.icon as any}
-                  size={20}
-                  color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
-                />
-                <Text style={[
-                  styles.tabText,
-                  activeTab === tab.id && styles.activeTabText
-                ]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            <ScrollView
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.scrollContent}
+              nestedScrollEnabled={true}
+              scrollEventThrottle={16}
+            >
+              {renderTabContent()}
+              <View style={{ height: 120 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+
+          <View style={styles.floatingButtonContainer}>
+            <Button
+              title={isLoading ? "Guardando..." : "Guardar Matrícula"}
+              onPress={validateAndSubmit}
+              loading={isLoading}
+              icon={isLoading ? undefined : "save"}
+              iconPosition="left"
+              variant="primary"
+              size="large"
+              disabled={isLoading}
+            />
+          </View>
         </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
-            nestedScrollEnabled={true}
-            scrollEventThrottle={16}
-          >
-            {renderTabContent()}
-            <View style={{ height: 120 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-        <View style={styles.floatingButtonContainer}>
-          <Button
-            title={isLoading ? "Guardando..." : "Guardar Matrícula"}
-            onPress={validateAndSubmit}
-            loading={isLoading}
-            icon={isLoading ? undefined : "save"}
-            iconPosition="left"
-            variant="primary"
-            size="large"
-            disabled={isLoading}
-          />
-        </View>
-      </View>
-    </>
+      </>
+    </SafeAreaProvider>
   );
 }
 
@@ -464,10 +469,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   backButton: {
@@ -488,11 +490,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    ...Platform.select({
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   tabsScrollContent: {
     paddingHorizontal: 12,
@@ -548,10 +545,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
 });

@@ -395,10 +395,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   headerContent: {
@@ -476,10 +473,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   content: {
@@ -497,11 +491,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 24,
     gap: 10,
-    ...Platform.select({
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   offlineText: {
     color: '#fff',
@@ -543,10 +532,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   cardDisabled: {
@@ -594,10 +580,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   infoHeader: {
@@ -680,10 +663,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   logoutGradient: {

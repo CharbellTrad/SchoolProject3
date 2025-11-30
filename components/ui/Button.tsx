@@ -163,10 +163,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   buttonPrimary: {
@@ -182,10 +179,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowOpacity: 0,
-      },
-      android: {
-        elevation: 0,
-      },
+      }
     }),
   },
   buttonDanger: {
@@ -212,10 +206,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowOpacity: 0,
-      },
-      android: {
-        elevation: 0,
-      },
+      }
     }),
   },
   fullWidth: {

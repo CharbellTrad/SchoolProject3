@@ -9,8 +9,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.uenbciudadjardin.schoolproject",
-      "userInterfaceStyle": "light"
+      "bundleIdentifier": "com.uenbciudadjardin.schoolproject"
     },
     "android": {
       "package": "com.uenbciudadjardin.schoolproject",

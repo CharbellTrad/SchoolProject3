@@ -2,105 +2,110 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Colors from '../../../../constants/Colors';
 
 export default function SelectRoleScreen() {
   return (
-    <>
-      <Head>
-        <title>Seleccionar Tipo de Persona</title>
-      </Head>
-      <View style={styles.container}>
-        <LinearGradient
-          colors={[Colors.primary, Colors.primaryDark]}
-          style={styles.header}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-            activeOpacity={0.7}
+    <SafeAreaProvider>
+      <StatusBar style="light" translucent />   
+      <>
+        <Head>
+          <title>Seleccionar Tipo de Persona</title>
+        </Head>
+        <View style={styles.container}>
+          <LinearGradient
+            colors={[Colors.primary, Colors.primaryDark]}
+            style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Registrar Persona</Text>
-          <View style={{ width: 40 }} />
-        </LinearGradient>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Registrar Persona</Text>
+            <View style={{ width: 40 }} />
+          </LinearGradient>
 
-        <ScrollView 
-          style={styles.content} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <View style={styles.instruction}>
-            <View style={styles.instructionIconContainer}>
-              <Ionicons name="people" size={40} color={Colors.primary} />
+          <ScrollView 
+            style={styles.content} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.instruction}>
+              <View style={styles.instructionIconContainer}>
+                <Ionicons name="people" size={40} color={Colors.primary} />
+              </View>
+              <Text style={styles.instructionTitle}>Selecciona el tipo de persona</Text>
+              <Text style={styles.instructionText}>
+                Elige el rol de la persona que deseas registrar en el sistema
+              </Text>
             </View>
-            <Text style={styles.instructionTitle}>Selecciona el tipo de persona</Text>
-            <Text style={styles.instructionText}>
-              Elige el rol de la persona que deseas registrar en el sistema
-            </Text>
-          </View>
 
-          <View style={styles.rolesContainer}>
-            <RoleCard
-              icon="school-outline"
-              title="Estudiante"
-              description="Registrar un nuevo estudiante con información académica"
-              accentColor="#3b82f6"
-              onPress={() => router.push('/admin/academic-management/register-person/register-student' as any)}
-            />
+            <View style={styles.rolesContainer}>
+              <RoleCard
+                icon="school-outline"
+                title="Estudiante"
+                description="Registrar un nuevo estudiante con información académica"
+                accentColor="#3b82f6"
+                onPress={() => router.push('/admin/academic-management/register-person/register-student' as any)}
+              />
 
-            <RoleCard
-              icon="book-outline"
-              title="Docente"
-              description="Registrar un docente con especialización y datos"
-              accentColor="#10b981"
-              onPress={() => router.push('/admin/academic-management/register-person?role=teacher' as any)}
-            />
+              <RoleCard
+                icon="book-outline"
+                title="Docente"
+                description="Registrar un docente con especialización y datos"
+                accentColor="#10b981"
+                onPress={() => router.push('/admin/academic-management/register-person?role=teacher' as any)}
+              />
 
-            <RoleCard
-              icon="shield-checkmark-outline"
-              title="Administrativo"
-              description="Registrar personal administrativo con cargo"
-              accentColor="#f59e0b"
-              onPress={() => router.push('/admin/academic-management/register-person?role=admin' as any)}
-            />
-            
-            <RoleCard
-              icon="construct-outline"
-              title="Obrero"
-              description="Registrar personal de mantenimiento y servicios"
-              accentColor="#6366f1"
-              onPress={() => router.push('/admin/academic-management/register-person?role=obrero' as any)}
-            />
-            
-            <RoleCard
-              icon="restaurant-outline"
-              title="Comedor"
-              description="Registrar personal del comedor escolar"
-              accentColor="#8b5cf6"
-              onPress={() => router.push('/admin/academic-management/register-person?role=cenar' as any)}
-            />
-          </View>
-
-          <View style={styles.infoBox}>
-            <View style={styles.infoIconWrapper}>
-              <Ionicons name="information-circle" size={20} color={Colors.primary} />
+              <RoleCard
+                icon="shield-checkmark-outline"
+                title="Administrativo"
+                description="Registrar personal administrativo con cargo"
+                accentColor="#f59e0b"
+                onPress={() => router.push('/admin/academic-management/register-person?role=admin' as any)}
+              />
+              
+              <RoleCard
+                icon="construct-outline"
+                title="Obrero"
+                description="Registrar personal de mantenimiento y servicios"
+                accentColor="#6366f1"
+                onPress={() => router.push('/admin/academic-management/register-person?role=obrero' as any)}
+              />
+              
+              <RoleCard
+                icon="restaurant-outline"
+                title="Comedor"
+                description="Registrar personal del comedor escolar"
+                accentColor="#8b5cf6"
+                onPress={() => router.push('/admin/academic-management/register-person?role=cenar' as any)}
+              />
             </View>
-            <Text style={styles.infoText}>
-              <Text style={styles.infoTextBold}>Nota:</Text> Este registro es para información de personas. 
-              Para crear usuarios con acceso al sistema, usa "Gestionar Usuarios"
-            </Text>
-          </View>
 
-          <View style={{ height: 20 }} />
-        </ScrollView>
-      </View>
-    </>
+            <View style={styles.infoBox}>
+              <View style={styles.infoIconWrapper}>
+                <Ionicons name="information-circle" size={20} color={Colors.primary} />
+              </View>
+              <Text style={styles.infoText}>
+                <Text style={styles.infoTextBold}>Nota:</Text> Este registro es para información de personas. 
+                Para crear usuarios con acceso al sistema, usa "Gestionar Usuarios"
+              </Text>
+            </View>
+
+            <View style={{ height: 20 }} />
+          </ScrollView>
+        </View>
+      </>
+    </SafeAreaProvider>
   );
 }
 
@@ -151,10 +156,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   backButton: {
@@ -191,10 +193,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   instructionIconContainer: {
@@ -236,10 +235,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   roleIconContainer: {
@@ -275,11 +271,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderLeftWidth: 4,
     borderLeftColor: Colors.primary,
-    ...Platform.select({
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   infoIconWrapper: {
     marginRight: 12,

@@ -341,10 +341,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
-      },
-      android: {
-        elevation: 10,
-      },
+      }
     }),
   },
   header: {

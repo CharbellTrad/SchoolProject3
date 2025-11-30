@@ -97,10 +97,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
+      }
     }),
   },
   filterChipSelected: {
@@ -112,10 +109,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   filterChipText: {

@@ -19,7 +19,6 @@ export const GlobalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   cardSmall: {
     backgroundColor: '#fff',
@@ -30,7 +29,6 @@ export const GlobalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   
   // Headers
@@ -78,7 +76,6 @@ export const GlobalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
   },
   dashedButton: {
     flexDirection: 'row',
@@ -134,7 +131,6 @@ export const GlobalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
-    elevation: 2,
   },
   tab: {
     flexDirection: 'row',
@@ -169,7 +165,6 @@ export const GlobalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 2,
   },
   emptyStateText: {
     fontSize: 16,
@@ -288,7 +283,6 @@ export const listStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   cardMain: {
     flexDirection: 'row',

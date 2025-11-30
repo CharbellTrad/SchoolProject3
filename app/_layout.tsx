@@ -1,16 +1,16 @@
-import * as NavigationBar from 'expo-navigation-bar'
-import { Slot, useRouter, useSegments } from "expo-router"
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
+import { Stack, useRouter, useSegments } from "expo-router"
 import LottieView from "lottie-react-native"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Dimensions, LogBox, Platform, StyleSheet, Text, View } from "react-native"
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 import splashAnimation from "../assets/lotties/splashAnimation.json"
 import Colors from "../constants/Colors"
 import { AppReadyProvider, useAppReady } from "../contexts/AppReady"
 import { AuthProvider, useAuth } from "../contexts/AuthContext"
 import { ROLE_DASHBOARDS, type UserRole } from "../types/auth"
-
 
 // Suprimir warnings específicos en desarrollo
 LogBox.ignoreLogs(["shadow*", "props.pointerEvents is deprecated", "useNativeDriver"])
@@ -157,9 +157,24 @@ function RootLayoutNav() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-      <Slot />
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <Stack
+          screenOptions={{
+            animation: 'slide_from_right',
+            gestureEnabled: true,
+            gestureDirection: 'horizontal',
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="admin" />
+          <Stack.Screen name="teacher" />
+          <Stack.Screen name="student" />
+        </Stack>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   )
 }
 
@@ -172,14 +187,6 @@ const bottomPosition =
  * Layout principal con Provider
  */
 export default function RootLayout() {
-  useEffect(() => {
-    // Solo para Android
-    if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync('#FFFFFF');
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-  }, []);
-
   return (
     <SafeAreaProvider style={{ backgroundColor: '#FFFFFF' }}>
       <AppReadyProvider>

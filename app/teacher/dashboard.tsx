@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useCallback, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -83,209 +84,211 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <>
-      <Head>
-        <title>Panel del Profesor</title>
-      </Head>
-      <View style={styles.container}>
-        <LinearGradient
-          colors={[Colors.secondary, Colors.secondaryDark]}
-          style={styles.header}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.greeting}>Hola Profesor 👨‍🏫</Text>
-              <Text style={styles.userName}>{user.fullName}</Text>
-              <View style={styles.roleContainer}>
-                <View style={styles.roleBadge}>
-                  <Ionicons name="book" size={12} color={Colors.secondary} />
-                  <Text style={styles.roleText}>Docente</Text>
-                </View>
-                {__DEV__ && (
-                  <View style={styles.devBadge}>
-                    <Ionicons name="code-working" size={10} color="#f59e0b" />
-                    <Text style={styles.devBadgeText}>DEV</Text>
+    <SafeAreaView>
+      <>
+        <Head>
+          <title>Panel del Profesor</title>
+        </Head>
+        <View style={styles.container}>
+          <LinearGradient
+            colors={[Colors.secondary, Colors.secondaryDark]}
+            style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.headerContent}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.greeting}>Hola Profesor 👨‍🏫</Text>
+                <Text style={styles.userName}>{user.fullName}</Text>
+                <View style={styles.roleContainer}>
+                  <View style={styles.roleBadge}>
+                    <Ionicons name="book" size={12} color={Colors.secondary} />
+                    <Text style={styles.roleText}>Docente</Text>
                   </View>
-                )}
-              </View>
-            </View>
-            <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
-              <LinearGradient
-                colors={['#ffffff', '#ecfdf5']}
-                style={styles.avatar}
-              >
-                <Ionicons name="person" size={28} color={Colors.secondary} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[Colors.secondary]}
-              tintColor={Colors.secondary}
-              title="Actualizando..."
-              titleColor={Colors.textSecondary}
-            />
-          }
-        >
-          <View style={styles.dashboardContent}>
-            {isOfflineMode && (
-              <View style={styles.offlineBanner}>
-                <Ionicons name="cloud-offline" size={20} color="#fff" />
-                <Text style={styles.offlineText}>
-                  Sin conexión • Funciones limitadas
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="briefcase-outline" size={24} color={Colors.secondary} />
-                <Text style={styles.sectionTitle}>Mis Actividades</Text>
-              </View>
-
-              <View style={styles.cardsGrid}>
-                <TeacherCard
-                  icon="calendar-outline"
-                  title="Mi Horario"
-                  description="Ver clases programadas"
-                  accentColor="#10b981"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="people-outline"
-                  title="Mis Estudiantes"
-                  description="Lista de estudiantes"
-                  accentColor="#3b82f6"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="clipboard-outline"
-                  title="Asistencia"
-                  description="Registro de asistencias"
-                  accentColor="#8b5cf6"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="stats-chart-outline"
-                  title="Calificaciones"
-                  description="Cargar notas"
-                  accentColor="#f59e0b"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="documents-outline" size={24} color={Colors.secondary} />
-                <Text style={styles.sectionTitle}>Material Educativo</Text>
-              </View>
-
-              <View style={styles.cardsGrid}>
-                <TeacherCard
-                  icon="book-outline"
-                  title="Planificaciones"
-                  description="Planes de clase"
-                  accentColor="#06b6d4"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="document-text-outline"
-                  title="Evaluaciones"
-                  description="Exámenes y pruebas"
-                  accentColor="#ec4899"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="folder-open-outline"
-                  title="Recursos"
-                  description="Material de apoyo"
-                  accentColor="#6366f1"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <TeacherCard
-                  icon="chatbubbles-outline"
-                  title="Comunicados"
-                  description="Mensajes y avisos"
-                  accentColor="#ef4444"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-              </View>
-            </View>
-
-            <View style={styles.infoCard}>
-              <View style={styles.infoHeader}>
-                <View style={styles.infoHeaderLeft}>
-                  <Ionicons name="person-circle-outline" size={24} color={Colors.secondary} />
-                  <Text style={styles.infoTitle}>Mi Información</Text>
+                  {__DEV__ && (
+                    <View style={styles.devBadge}>
+                      <Ionicons name="code-working" size={10} color="#f59e0b" />
+                      <Text style={styles.devBadgeText}>DEV</Text>
+                    </View>
+                  )}
                 </View>
-                {refreshing && (
-                  <View style={styles.refreshingBadge}>
-                    <Text style={styles.refreshingText}>Actualizando</Text>
-                  </View>
-                )}
               </View>
+              <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
+                <LinearGradient
+                  colors={['#ffffff', '#ecfdf5']}
+                  style={styles.avatar}
+                >
+                  <Ionicons name="person" size={28} color={Colors.secondary} />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
 
-              <View style={styles.infoContent}>
-                <InfoRow label="Usuario" value={user.username} icon="at" />
-                <InfoRow label="Email" value={user.email} icon="mail" />
-                <InfoRow label="Rol" value="Docente" icon="book" />
-                <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
-                {__DEV__ && (
-                  <InfoRow 
-                    label="Entorno" 
-                    value="Desarrollo" 
-                    icon="code-slash"
-                    highlight
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[Colors.secondary]}
+                tintColor={Colors.secondary}
+                title="Actualizando..."
+                titleColor={Colors.textSecondary}
+              />
+            }
+          >
+            <View style={styles.dashboardContent}>
+              {isOfflineMode && (
+                <View style={styles.offlineBanner}>
+                  <Ionicons name="cloud-offline" size={20} color="#fff" />
+                  <Text style={styles.offlineText}>
+                    Sin conexión • Funciones limitadas
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="briefcase-outline" size={24} color={Colors.secondary} />
+                  <Text style={styles.sectionTitle}>Mis Actividades</Text>
+                </View>
+
+                <View style={styles.cardsGrid}>
+                  <TeacherCard
+                    icon="calendar-outline"
+                    title="Mi Horario"
+                    description="Ver clases programadas"
+                    accentColor="#10b981"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
                   />
-                )}
+                  
+                  <TeacherCard
+                    icon="people-outline"
+                    title="Mis Estudiantes"
+                    description="Lista de estudiantes"
+                    accentColor="#3b82f6"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <TeacherCard
+                    icon="clipboard-outline"
+                    title="Asistencia"
+                    description="Registro de asistencias"
+                    accentColor="#8b5cf6"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <TeacherCard
+                    icon="stats-chart-outline"
+                    title="Calificaciones"
+                    description="Cargar notas"
+                    accentColor="#f59e0b"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                </View>
               </View>
-            </View>
 
-            <TouchableOpacity 
-              style={styles.logoutButton} 
-              onPress={handleLogout}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[Colors.error, '#b91c1c']}
-                style={styles.logoutGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="documents-outline" size={24} color={Colors.secondary} />
+                  <Text style={styles.sectionTitle}>Material Educativo</Text>
+                </View>
+
+                <View style={styles.cardsGrid}>
+                  <TeacherCard
+                    icon="book-outline"
+                    title="Planificaciones"
+                    description="Planes de clase"
+                    accentColor="#06b6d4"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <TeacherCard
+                    icon="document-text-outline"
+                    title="Evaluaciones"
+                    description="Exámenes y pruebas"
+                    accentColor="#ec4899"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <TeacherCard
+                    icon="folder-open-outline"
+                    title="Recursos"
+                    description="Material de apoyo"
+                    accentColor="#6366f1"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <TeacherCard
+                    icon="chatbubbles-outline"
+                    title="Comunicados"
+                    description="Mensajes y avisos"
+                    accentColor="#ef4444"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.infoCard}>
+                <View style={styles.infoHeader}>
+                  <View style={styles.infoHeaderLeft}>
+                    <Ionicons name="person-circle-outline" size={24} color={Colors.secondary} />
+                    <Text style={styles.infoTitle}>Mi Información</Text>
+                  </View>
+                  {refreshing && (
+                    <View style={styles.refreshingBadge}>
+                      <Text style={styles.refreshingText}>Actualizando</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.infoContent}>
+                  <InfoRow label="Usuario" value={user.username} icon="at" />
+                  <InfoRow label="Email" value={user.email} icon="mail" />
+                  <InfoRow label="Rol" value="Docente" icon="book" />
+                  <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
+                  {__DEV__ && (
+                    <InfoRow 
+                      label="Entorno" 
+                      value="Desarrollo" 
+                      icon="code-slash"
+                      highlight
+                    />
+                  )}
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                style={styles.logoutButton} 
+                onPress={handleLogout}
+                activeOpacity={0.8}
               >
-                <Ionicons name="log-out-outline" size={22} color="#fff" />
-                <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={[Colors.error, '#b91c1c']}
+                  style={styles.logoutGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="log-out-outline" size={22} color="#fff" />
+                  <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+                </LinearGradient>
+              </TouchableOpacity>
 
-            <View style={{ height: 20 }} />
-          </View>
-        </ScrollView>
-      </View>
-    </>
+              <View style={{ height: 20 }} />
+            </View>
+          </ScrollView>
+        </View>
+      </>
+    </SafeAreaView>
   );
 }
 
@@ -395,10 +398,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   headerContent: {
@@ -476,10 +476,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   content: {
@@ -497,11 +494,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 24,
     gap: 10,
-    ...Platform.select({
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   offlineText: {
     color: '#fff',
@@ -543,10 +535,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   cardDisabled: {
@@ -594,10 +583,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   infoHeader: {
@@ -680,10 +666,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   logoutGradient: {

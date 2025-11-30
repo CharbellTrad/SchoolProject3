@@ -273,10 +273,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   backButton: {
@@ -322,11 +319,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 20,
     gap: 10,
-    ...Platform.select({
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   offlineText: {
     color: '#fff',

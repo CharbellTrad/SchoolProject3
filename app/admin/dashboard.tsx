@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,7 +17,6 @@ export default function AdminDashboard() {
   const { user, logout, updateUser, handleSessionExpired } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -94,218 +95,221 @@ export default function AdminDashboard() {
 
 
   return (
-    <>
-      <Head>
-        <title>Panel Principal</title>
-      </Head>
-      <View style={styles.container}>
-        <LinearGradient
-          colors={[Colors.primary, Colors.primaryDark]}
-          style={styles.header}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.greeting}>Hola de nuevo 👋</Text>
-              <Text style={styles.userName}>{user.fullName}</Text>
-              <View style={styles.roleContainer}>
-                <View style={styles.roleBadge}>
-                  <Ionicons name="shield-checkmark" size={12} color={Colors.primary} />
-                  <Text style={styles.roleText}>Administrador</Text>
-                </View>
-                {__DEV__ && (
-                  <View style={styles.devBadge}>
-                    <Ionicons name="code-working" size={10} color="#f59e0b" />
-                    <Text style={styles.devBadgeText}>DEV</Text>
+    <SafeAreaProvider>
+      <StatusBar style="light" translucent />
+      <>
+        <Head>
+          <title>Panel Principal</title>
+        </Head>
+        <View style={styles.container}>
+          <LinearGradient
+            colors={[Colors.primary, Colors.primaryDark]}
+            style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.headerContent}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.greeting}>Hola de nuevo 👋</Text>
+                <Text style={styles.userName}>{user.fullName}</Text>
+                <View style={styles.roleContainer}>
+                  <View style={styles.roleBadge}>
+                    <Ionicons name="shield-checkmark" size={12} color={Colors.primary} />
+                    <Text style={styles.roleText}>Administrador</Text>
                   </View>
-                )}
-              </View>
-            </View>
-            <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
-              <LinearGradient
-                colors={['#ffffff', '#f0f9ff']}
-                style={styles.avatar}
-              >
-                <Ionicons name="person" size={28} color={Colors.primary} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-
-
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[Colors.primary]}
-              tintColor={Colors.primary}
-              title="Actualizando..."
-              titleColor={Colors.textSecondary}
-            />
-          }
-        >
-          <View style={styles.dashboardContent}>
-            {isOfflineMode && (
-              <View style={styles.offlineBanner}>
-                <Ionicons name="cloud-offline" size={20} color="#fff" />
-                <Text style={styles.offlineText}>
-                  Sin conexión • Funciones limitadas
-                </Text>
-              </View>
-            )}
-
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="school-outline" size={24} color={Colors.primary} />
-                <Text style={styles.sectionTitle}>Gestión Académica</Text>
-              </View>
-
-
-              <View style={styles.cardsGrid}>
-                <DashboardCard
-                  icon="person-add-outline"
-                  title="Nueva Persona"
-                  description="Registrar estudiantes o personal"
-                  accentColor="#3b82f6"
-                  disabled={isOfflineMode}
-                  onPress={() => router.push('/admin/academic-management/register-person/select-role' as any)}
-                />
-                
-                <DashboardCard
-                  icon="book-outline"
-                  title="Sección/Materia"
-                  description="Gestionar secciones y materias"
-                  accentColor="#10b981"
-                  disabled={isOfflineMode}
-                  onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
-                />
-                
-                <DashboardCard
-                  icon="people-outline"
-                  title="Directorio"
-                  description="Ver personas registradas"
-                  accentColor="#8b5cf6"
-                  disabled={isOfflineMode}
-                  onPress={() => router.push('/admin/academic-management/lists-persons/select-role' as any)}
-                />
-                
-                <DashboardCard
-                  icon="library-outline"
-                  title="Académico"
-                  description="Secciones y materias"
-                  accentColor="#f59e0b"
-                  disabled={isOfflineMode}
-                  onPress={() => router.push('/admin/academic-management/list-section-subject/sections-list' as any)}
-                />
-              </View>
-            </View>
-
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="settings-outline" size={24} color={Colors.primary} />
-                <Text style={styles.sectionTitle}>Gestión del Sistema</Text>
-              </View>
-
-
-              <View style={styles.cardsGrid}>
-                <DashboardCard
-                  icon="key-outline"
-                  title="Usuarios"
-                  description="Administrar accesos"
-                  accentColor="#ef4444"
-                  disabled={isOfflineMode}
-                  onPress={() => router.push('/admin/prueba' as any)}
-                />
-                
-                <DashboardCard
-                  icon="stats-chart-outline"
-                  title="Reportes"
-                  description="Estadísticas del sistema"
-                  accentColor="#06b6d4"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <DashboardCard
-                  icon="calendar-outline"
-                  title="Año Escolar"
-                  description="Gestionar períodos"
-                  accentColor="#ec4899"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-                
-                <DashboardCard
-                  icon="cog-outline"
-                  title="Configuración"
-                  description="Ajustes generales"
-                  accentColor="#6366f1"
-                  disabled={isOfflineMode}
-                  onPress={() => {}}
-                />
-              </View>
-            </View>
-
-
-            <View style={styles.infoCard}>
-              <View style={styles.infoHeader}>
-                <View style={styles.infoHeaderLeft}>
-                  <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
-                  <Text style={styles.infoTitle}>Mi Información</Text>
+                  {__DEV__ && (
+                    <View style={styles.devBadge}>
+                      <Ionicons name="code-working" size={10} color="#f59e0b" />
+                      <Text style={styles.devBadgeText}>DEV</Text>
+                    </View>
+                  )}
                 </View>
-                {refreshing && (
-                  <View style={styles.refreshingBadge}>
-                    <Text style={styles.refreshingText}>Actualizando</Text>
-                  </View>
-                )}
               </View>
+              <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
+                <LinearGradient
+                  colors={['#ffffff', '#f0f9ff']}
+                  style={styles.avatar}
+                >
+                  <Ionicons name="person" size={28} color={Colors.primary} />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
 
 
-              <View style={styles.infoContent}>
-                <InfoRow label="Usuario" value={user.username} icon="at" />
-                <InfoRow label="Email" value={user.email} icon="mail" />
-                <InfoRow label="Rol" value="Administrador Principal" icon="shield-checkmark" />
-                <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
-                {__DEV__ && (
-                  <InfoRow 
-                    label="Entorno" 
-                    value="Desarrollo" 
-                    icon="code-slash"
-                    highlight
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[Colors.primary]}
+                tintColor={Colors.primary}
+                title="Actualizando..."
+                titleColor={Colors.textSecondary}
+              />
+            }
+          >
+            <View style={styles.dashboardContent}>
+              {isOfflineMode && (
+                <View style={styles.offlineBanner}>
+                  <Ionicons name="cloud-offline" size={20} color="#fff" />
+                  <Text style={styles.offlineText}>
+                    Sin conexión • Funciones limitadas
+                  </Text>
+                </View>
+              )}
+
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="school-outline" size={24} color={Colors.primary} />
+                  <Text style={styles.sectionTitle}>Gestión Académica</Text>
+                </View>
+
+
+                <View style={styles.cardsGrid}>
+                  <DashboardCard
+                    icon="person-add-outline"
+                    title="Nueva Persona"
+                    description="Registrar estudiantes o personal"
+                    accentColor="#3b82f6"
+                    disabled={isOfflineMode}
+                    onPress={() => router.push('/admin/academic-management/register-person/select-role' as any)}
                   />
-                )}
+                  
+                  <DashboardCard
+                    icon="book-outline"
+                    title="Sección/Materia"
+                    description="Gestionar secciones y materias"
+                    accentColor="#10b981"
+                    disabled={isOfflineMode}
+                    onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
+                  />
+                  
+                  <DashboardCard
+                    icon="people-outline"
+                    title="Directorio"
+                    description="Ver personas registradas"
+                    accentColor="#8b5cf6"
+                    disabled={isOfflineMode}
+                    onPress={() => router.push('/admin/academic-management/lists-persons/select-role' as any)}
+                  />
+                  
+                  <DashboardCard
+                    icon="library-outline"
+                    title="Académico"
+                    description="Secciones y materias"
+                    accentColor="#f59e0b"
+                    disabled={isOfflineMode}
+                    onPress={() => router.push('/admin/academic-management/list-section-subject/sections-list' as any)}
+                  />
+                </View>
               </View>
-            </View>
 
 
-            <TouchableOpacity 
-              style={styles.logoutButton} 
-              onPress={handleLogout}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[Colors.error, '#b91c1c']}
-                style={styles.logoutGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="settings-outline" size={24} color={Colors.primary} />
+                  <Text style={styles.sectionTitle}>Gestión del Sistema</Text>
+                </View>
+
+
+                <View style={styles.cardsGrid}>
+                  <DashboardCard
+                    icon="key-outline"
+                    title="Usuarios"
+                    description="Administrar accesos"
+                    accentColor="#ef4444"
+                    disabled={isOfflineMode}
+                    onPress={() => router.push('/admin/prueba' as any)}
+                  />
+                  
+                  <DashboardCard
+                    icon="stats-chart-outline"
+                    title="Reportes"
+                    description="Estadísticas del sistema"
+                    accentColor="#06b6d4"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <DashboardCard
+                    icon="calendar-outline"
+                    title="Año Escolar"
+                    description="Gestionar períodos"
+                    accentColor="#ec4899"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                  
+                  <DashboardCard
+                    icon="cog-outline"
+                    title="Configuración"
+                    description="Ajustes generales"
+                    accentColor="#6366f1"
+                    disabled={isOfflineMode}
+                    onPress={() => {}}
+                  />
+                </View>
+              </View>
+
+
+              <View style={styles.infoCard}>
+                <View style={styles.infoHeader}>
+                  <View style={styles.infoHeaderLeft}>
+                    <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
+                    <Text style={styles.infoTitle}>Mi Información</Text>
+                  </View>
+                  {refreshing && (
+                    <View style={styles.refreshingBadge}>
+                      <Text style={styles.refreshingText}>Actualizando</Text>
+                    </View>
+                  )}
+                </View>
+
+
+                <View style={styles.infoContent}>
+                  <InfoRow label="Usuario" value={user.username} icon="at" />
+                  <InfoRow label="Email" value={user.email} icon="mail" />
+                  <InfoRow label="Rol" value="Administrador Principal" icon="shield-checkmark" />
+                  <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
+                  {__DEV__ && (
+                    <InfoRow 
+                      label="Entorno" 
+                      value="Desarrollo" 
+                      icon="code-slash"
+                      highlight
+                    />
+                  )}
+                </View>
+              </View>
+
+
+              <TouchableOpacity 
+                style={styles.logoutButton} 
+                onPress={handleLogout}
+                activeOpacity={0.8}
               >
-                <Ionicons name="log-out-outline" size={22} color="#fff" />
-                <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={[Colors.error, '#b91c1c']}
+                  style={styles.logoutGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="log-out-outline" size={22} color="#fff" />
+                  <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+                </LinearGradient>
+              </TouchableOpacity>
 
 
-            <View style={{ height: 20 }} />
-          </View>
-        </ScrollView>
-      </View>
-    </>
+              <View style={{ height: 20 }} />
+            </View>
+          </ScrollView>
+        </View>
+      </>
+    </SafeAreaProvider>
   );
 }
 
@@ -417,10 +421,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   headerContent: {
@@ -498,10 +499,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   content: {
@@ -519,11 +517,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 24,
     gap: 10,
-    ...Platform.select({
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   offlineText: {
     color: '#fff',
@@ -564,10 +557,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   cardDisabled: {
@@ -615,10 +605,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   infoHeader: {
@@ -701,10 +688,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   logoutGradient: {

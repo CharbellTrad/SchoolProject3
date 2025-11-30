@@ -353,10 +353,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
   backButton: {
@@ -396,10 +393,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      }
     }),
   },
   instructionIconContainer: {
@@ -453,10 +447,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
+      }
     }),
   },
   inputIcon: {
@@ -504,10 +495,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
+      }
     }),
   },
   typeIconContainer: {
@@ -543,10 +531,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
+      }
     }),
   },
 });

@@ -64,10 +64,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.04,
         shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
+      }
     }),
   },
   cardSelected: {
@@ -79,10 +76,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
+      }
     }),
   },
   content: {
