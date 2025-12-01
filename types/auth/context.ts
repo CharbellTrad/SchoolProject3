@@ -1,5 +1,6 @@
 /**
  * Tipos relacionados con el contexto de autenticación
+ * 🆕 ACTUALIZADO CON BIOMETRÍA
  */
 
 import { UserSession } from './base';
@@ -10,10 +11,15 @@ import { UserSession } from './base';
 export interface AuthContextType {
   user: UserSession | null;
   login: (username: string, password: string) => Promise<boolean>;
+  loginWithBiometrics: () => Promise<boolean>; // 🆕
   logout: () => Promise<void>;
   loading: boolean;
   updateUser?: (updates: Partial<UserSession>) => Promise<void>;
-  handleSessionExpired: () => void; // 👈 AGREGADO
+  handleSessionExpired: () => void;
+  enableBiometricLogin: () => Promise<boolean>; // 🆕
+  disableBiometricLogin: () => Promise<void>; // 🆕
+  isBiometricAvailable: () => Promise<boolean>; // 🆕
+  isBiometricEnabled: () => Promise<boolean>; // 🆕
 }
 
 /**

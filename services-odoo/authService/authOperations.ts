@@ -43,6 +43,14 @@ const processAuthResponse = (
   sid: string,
   username: string
 ): UserSession => {
+
+  if (__DEV__) {
+    console.log('🔍 DEBUG - authData de Odoo:', {
+      name: authData.name,
+      username: authData.username,
+      uid: authData.uid,
+    });
+  }
   const userRole = mapOdooRoleToAppRole(authData.role || '');
 
   return {

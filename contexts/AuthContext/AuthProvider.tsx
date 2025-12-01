@@ -1,5 +1,6 @@
 /**
  * Provider de autenticación modularizado
+ * 🆕 ACTUALIZADO CON BIOMETRÍA
  */
 
 import React, { ReactNode, useEffect } from 'react';
@@ -19,6 +20,7 @@ export const AuthContext = React.createContext<AuthContextType | undefined>(unde
 
 /**
  * Provider de autenticación para Odoo con manejo robusto de errores
+ * 🆕 INCLUYE AUTENTICACIÓN BIOMÉTRICA
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Estado
@@ -38,8 +40,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser,
   });
 
-  // Operaciones
-  const { login, logout, updateUser } = useAuthOperations({
+  // Operaciones (incluye biometría)
+  const {
+    login,
+    loginWithBiometrics,
+    logout,
+    updateUser,
+    enableBiometricLogin,
+    disableBiometricLogin,
+    isBiometricAvailable,
+    isBiometricEnabled,
+  } = useAuthOperations({
     user,
     setUser,
     setLoading,
@@ -90,6 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
 
+      // ⏱️ Verificar sesión (incluye validación de 4 horas)
       const validSession = await authService.verifySession();
 
       if (validSession) {
@@ -117,15 +129,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     odooApi.setSessionExpiredCallback(handleSessionExpired);
     initializeAuth();
-  }, []); // Solo ejecutar una vez al montar
+  }, []);
 
   const value: AuthContextType = {
     user,
     login,
+    loginWithBiometrics, // 🆕
     logout,
     loading,
     updateUser,
-    handleSessionExpired, // 👈 EXPONER handleSessionExpired
+    handleSessionExpired,
+    enableBiometricLogin, // 🆕
+    disableBiometricLogin, // 🆕
+    isBiometricAvailable, // 🆕
+    isBiometricEnabled, // 🆕
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
