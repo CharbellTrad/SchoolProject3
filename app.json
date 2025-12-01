@@ -4,20 +4,24 @@
     "slug": "SchoolProject",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-light.png",
     "scheme": "schoolproject",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.uenbciudadjardin.schoolproject"
+      "bundleIdentifier": "com.uenbciudadjardin.schoolproject",
+      "icon":{
+        "dark": "./assets/images/icon-dark.png",
+        "light": "./assets/images/icon-light.png",
+        "tinted": "./assets/images/icon-dark.png"
+      }
     },
     "android": {
       "package": "com.uenbciudadjardin.schoolproject",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/images/icon-light.png",
+        "monochromeImage": "./assets/images/icon-light.png"
       },
       "softwareKeyboardLayoutMode": "pan",
       "edgeToEdgeEnabled": true,
@@ -35,9 +39,13 @@
       [
         "expo-splash-screen",
         {
+          "image": "./assets/images/icon-light.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#ffffff"
+            "image": "./assets/images/icon-dark.png",
+            "backgroundColor": "#000000"
           }
         }
       ],

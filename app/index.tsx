@@ -1,20 +1,10 @@
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { View, useColorScheme } from 'react-native'
 
 export default function Index() {
-  // Este componente solo se ve por un instante
-  // mientras _layout.tsx redirige al login o dashboard
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#007AFF" />
-    </View>
-  );
-}
+  const colorScheme = useColorScheme()
+  
+  // Color adaptativo según el tema del sistema
+  const backgroundColor = colorScheme === 'dark' ? '#000000' : '#FFFFFF'
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-});
+  return <View style={{ flex: 1, backgroundColor }} />
+}
