@@ -1,3 +1,4 @@
+import { showAlert } from '@/components/showAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -58,6 +59,7 @@ export default function SelectRoleScreen() {
                 title="Estudiantes"
                 description="Lista de estudiantes registrados"
                 accentColor="#3b82f6"
+                disabled={false}
                 onPress={() => router.push('/admin/academic-management/lists-persons/students-list' as any)}
               />
 
@@ -67,6 +69,7 @@ export default function SelectRoleScreen() {
                 title="Docentes"
                 description="Lista de profesores del plantel"
                 accentColor="#10b981"
+                disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/teachers-list' as any)}
               />
 
@@ -76,6 +79,7 @@ export default function SelectRoleScreen() {
                 title="Administrativos"
                 description="Personal administrativo"
                 accentColor="#f59e0b"
+                disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/administrators-list' as any)}
               />
               
@@ -84,6 +88,7 @@ export default function SelectRoleScreen() {
                 title="Obreros"
                 description="Personal de mantenimiento"
                 accentColor="#6366f1"
+                disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/workman-list' as any)}
               />
               
@@ -92,6 +97,7 @@ export default function SelectRoleScreen() {
                 title="Comedor"
                 description="Personal del comedor escolar"
                 accentColor="#8b5cf6"
+                disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/dining-list' as any)}
               />
             </View>
@@ -122,28 +128,48 @@ interface RoleCardProps {
   title: string;
   description: string;
   accentColor: string;
+  disabled?: boolean;
   onPress: () => void;
 }
 
+const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, disabled, onPress }) => {
 
-const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, onPress }) => {
+  const handlePress = () => {
+    if (disabled) {
+      showAlert(
+        'Error',
+        'Esta función esta deshabilitada o requiere conexión a internet.'
+      );
+      return;
+    }
+    onPress();
+  };
+
   return (
     <TouchableOpacity 
-      style={styles.roleCard} 
-      onPress={onPress} 
-      activeOpacity={0.7}
+      style={[ styles.roleCard, disabled && styles.cardDisabled ]} 
+      onPress={handlePress}
+      activeOpacity={disabled ? 1 : 0.7}
     >
-      <View style={[styles.roleIconContainer, { backgroundColor: accentColor + '15' }]}>
-        <Ionicons name={icon} size={32} color={accentColor} />
+      <View style={[styles.roleIconContainer, { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }]}>
+        <Ionicons name={icon} size={32} color={disabled ? Colors.textSecondary : accentColor}  />
       </View>
       <View style={styles.roleContent}>
-        <Text style={styles.roleTitle}>{title}</Text>
+        <Text style={[styles.roleTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
         <Text style={styles.roleDescription}>{description}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+
+      {disabled && (
+        <View style={styles.disabledIndicator}>
+          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+        </View>
+      )}
+
     </TouchableOpacity>
   );
 };
+
 
 
 const styles = StyleSheet.create({
@@ -297,5 +323,17 @@ const styles = StyleSheet.create({
   infoTextBold: {
     fontWeight: '800',
     color: Colors.primary,
+  },
+  cardDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f9fafb',
+  },
+  cardTitleDisabled: {
+    color: Colors.textSecondary,
+  },
+  disabledIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
   },
 });

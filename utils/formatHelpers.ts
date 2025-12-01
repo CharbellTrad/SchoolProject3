@@ -427,6 +427,27 @@ export const getCurrentVenezuelaTime = (): string => {
   return venezuelaDate.toISOString();
 };
 
+
+/**
+ * Formatea una fecha en formato completo legible
+ */
+export const formatFullDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+
+    return date.toLocaleDateString('es-ES', options);
+  } catch (error) {
+    return 'Fecha inválida';
+  }
+};
 /**
  * Ejemplos de uso:
  * 

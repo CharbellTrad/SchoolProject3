@@ -209,3 +209,55 @@ export const disableBiometric = async (): Promise<void> => {
     }
   }
 };
+
+/**
+ * 🆕 Actualiza la información del dispositivo al guardar credenciales
+ * (Para mantener info actualizada cuando se habilita biometría)
+ */
+export const saveBiometricCredentialsWithDeviceInfo = async (
+  username: string,
+  password: string,
+  fullName: string
+): Promise<boolean> => {
+  try {
+    // Importar dinámicamente para evitar dependencias circulares
+    const { getDeviceInfo } = await import('./deviceInfo');
+    const deviceInfo = await getDeviceInfo();
+
+    const credentials: BiometricCredentials = {
+      username,
+      password,
+      fullName,
+      isEnabled: true,
+      enrolledAt: new Date().toISOString(),
+      lastUsedAt: undefined, // Se actualizará en el primer uso
+      deviceInfo: JSON.stringify(deviceInfo), // 🆕 Guardamos info del dispositivo
+    };
+
+    await SecureStore.setItemAsync(
+      BIOMETRIC_KEY,
+      JSON.stringify(credentials),
+      {
+        ...(Platform.OS === 'ios' && !__DEV__ && { requireAuthentication: true }),
+      }
+    );
+
+    await SecureStore.setItemAsync(BIOMETRIC_ENABLED_KEY, 'true');
+
+    if (__DEV__) {
+      console.log('✅ Credenciales biométricas guardadas con info del dispositivo:', {
+        username,
+        device: deviceInfo.deviceName,
+        platform: deviceInfo.platform,
+      });
+    }
+
+    return true;
+  } catch (error) {
+    if (__DEV__) {
+      console.error('❌ Error guardando credenciales con device info:', error);
+    }
+    // Fallback al método anterior
+    return await saveBiometricCredentials(username, password, fullName);
+  }
+};

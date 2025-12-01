@@ -10,6 +10,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 export interface BiometricAvailability {
   isAvailable: boolean;
   biometricType: BiometricType | null;
+  allTypes?: LocalAuthentication.AuthenticationType[]; 
   hasHardware: boolean;
   isEnrolled: boolean;
 }

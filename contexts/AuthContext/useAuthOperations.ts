@@ -221,6 +221,12 @@ export const useAuthOperations = ({
         });
       }
 
+      await biometricService.updateLastUsed();
+
+      if (__DEV__) {
+        console.log('📅 Timestamp de último uso actualizado');
+      }
+
       setUser(validSession);
       setSessionExpiredHandled(false);
       return true;
@@ -277,7 +283,7 @@ export const useAuthOperations = ({
       }
 
       // ✅ CORREGIR AQUÍ: Agregar fullName
-      const saved = await biometricService.saveBiometricCredentials(
+      const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
         user.username, 
         user.password,
         user.fullName // ✅ Agregar este parámetro

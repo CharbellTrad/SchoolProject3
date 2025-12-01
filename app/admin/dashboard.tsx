@@ -184,7 +184,7 @@ export default function AdminDashboard() {
                     title="Sección/Materia"
                     description="Gestionar secciones y materias"
                     accentColor="#10b981"
-                    disabled={isOfflineMode}
+                    disabled={true}
                     onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
                   />
                   
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                     title="Usuarios"
                     description="Administrar accesos"
                     accentColor="#ef4444"
-                    disabled={isOfflineMode}
+                    disabled={true}
                     onPress={() => router.push('/admin/prueba' as any)}
                   />
                   
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                     title="Reportes"
                     description="Estadísticas del sistema"
                     accentColor="#06b6d4"
-                    disabled={isOfflineMode}
+                    disabled={true}
                     onPress={() => {}}
                   />
                   
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
                     title="Año Escolar"
                     description="Gestionar períodos"
                     accentColor="#ec4899"
-                    disabled={isOfflineMode}
+                    disabled={true}
                     onPress={() => {}}
                   />
                   
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
                     description="Ajustes generales"
                     accentColor="#6366f1"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => router.push('/admin/biometric-devices' as any)}
                   />
                 </View>
               </View>
@@ -335,8 +335,8 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   const handlePress = () => {
     if (disabled) {
       showAlert(
-        'Sin conexión',
-        'Esta función requiere conexión a internet.'
+        'Error',
+        'Esta función esta deshabilitada o requiere conexión a internet.'
       );
       return;
     }

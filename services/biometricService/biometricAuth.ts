@@ -5,16 +5,16 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Platform } from 'react-native';
 import {
-    getBiometricCredentials,
-    isBiometricEnabled,
-    updateLastUsed,
+  getBiometricCredentials,
+  isBiometricEnabled,
+  updateLastUsed,
 } from './biometricStorage';
 import {
-    BiometricAuthResult,
-    BiometricAvailability,
-    BiometricErrorCode,
-    BiometricPromptConfig,
-    BiometricType,
+  BiometricAuthResult,
+  BiometricAvailability,
+  BiometricErrorCode,
+  BiometricPromptConfig,
+  BiometricType,
 } from './types';
 
 /**
@@ -30,6 +30,7 @@ export const checkBiometricAvailability = async (): Promise<BiometricAvailabilit
       return {
         isAvailable: false,
         biometricType: null,
+        allTypes: [], // 🆕
         hasHardware: false,
         isEnrolled: false,
       };
@@ -42,18 +43,20 @@ export const checkBiometricAvailability = async (): Promise<BiometricAvailabilit
       return {
         isAvailable: false,
         biometricType: null,
+        allTypes: [], // 🆕
         hasHardware: true,
         isEnrolled: false,
       };
     }
 
-    // Obtener tipos de autenticación soportados
+    // 🆕 MOVER ESTA LÍNEA AQUÍ (antes de usar supportedTypes)
     const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
     const biometricType = mapAuthTypeToString(supportedTypes);
 
     return {
       isAvailable: true,
       biometricType,
+      allTypes: supportedTypes, // 🆕 Ahora ya existe
       hasHardware: true,
       isEnrolled: true,
     };
@@ -65,6 +68,7 @@ export const checkBiometricAvailability = async (): Promise<BiometricAvailabilit
     return {
       isAvailable: false,
       biometricType: null,
+      allTypes: [], // 🆕
       hasHardware: false,
       isEnrolled: false,
     };
@@ -92,12 +96,43 @@ const mapAuthTypeToString = (
 /**
  * Obtiene el nombre legible del tipo de biometría
  */
-export const getBiometricTypeName = (type: BiometricType | null): string => {
+/**
+ * Obtiene el nombre legible del tipo de biometría
+ * @param type - Tipo principal detectado
+ * @param allTypes - Todos los tipos soportados (opcional, para Android)
+ */
+export const getBiometricTypeName = (
+  type: BiometricType | null,
+  allTypes?: LocalAuthentication.AuthenticationType[]
+): string => {
+  // iOS: Solo tiene un tipo, podemos ser específicos
+  if (Platform.OS === 'ios') {
+    switch (type) {
+      case BiometricType.FACIAL_RECOGNITION:
+        return 'Face ID';
+      case BiometricType.FINGERPRINT:
+        return 'Touch ID';
+      case BiometricType.IRIS:
+        return 'Reconocimiento de Iris';
+      default:
+        return 'Biometría';
+    }
+  }
+
+  // Android: Si tiene múltiples tipos, ser genérico (más honesto)
+  if (allTypes && allTypes.length > 1) {
+    if (__DEV__) {
+      console.log('🔐 Dispositivo con múltiples biometrías, usando nombre genérico');
+    }
+    return 'Biometría';
+  }
+
+  // Android: Si solo tiene uno, ser específico
   switch (type) {
-    case BiometricType.FACIAL_RECOGNITION:
-      return Platform.OS === 'ios' ? 'Face ID' : 'Reconocimiento Facial';
     case BiometricType.FINGERPRINT:
-      return Platform.OS === 'ios' ? 'Touch ID' : 'Huella Digital';
+      return 'Huella Digital';
+    case BiometricType.FACIAL_RECOGNITION:
+      return 'Reconocimiento Facial';
     case BiometricType.IRIS:
       return 'Reconocimiento de Iris';
     default:
@@ -154,7 +189,7 @@ export const authenticateWithBiometrics = async (
     }
 
     // 4. Mostrar prompt biométrico
-    const biometricTypeName = getBiometricTypeName(availability.biometricType);
+    const biometricTypeName = getBiometricTypeName(availability.biometricType, availability.allTypes);
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage:
         config?.promptMessage || `Usa ${biometricTypeName} para continuar`,

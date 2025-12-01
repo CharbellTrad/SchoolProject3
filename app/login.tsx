@@ -1,3 +1,4 @@
+import { getBiometricIcon } from '@/utils/biometricHelpers';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Head from 'expo-router/head';
@@ -75,7 +76,7 @@ export default function LoginScreen() {
       setBiometricFullName(savedFullName);
 
       if (availability.biometricType) {
-        const typeName = biometricService.getBiometricTypeName(availability.biometricType);
+        const typeName = biometricService.getBiometricTypeName(availability.biometricType, availability.allTypes);
         setBiometricType(typeName);
       }
 
@@ -146,7 +147,7 @@ export default function LoginScreen() {
         return;
       }
 
-      const biometricName = biometricService.getBiometricTypeName(availability.biometricType);
+      const biometricName = biometricService.getBiometricTypeName(availability.biometricType, availability.allTypes);
 
       Alert.alert(
         `¿Usar ${biometricName}?`,
@@ -189,7 +190,7 @@ export default function LoginScreen() {
                 }
 
                 // ✅ Guardar con el fullName correcto
-                const saved = await biometricService.saveBiometricCredentials(
+                const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
                   loggedUsername,
                   loggedPassword,
                   loggedFullName // ✅ Ya tienes el nombre correcto aquí
@@ -421,13 +422,7 @@ export default function LoginScreen() {
                           end={{ x: 1, y: 1 }}
                         >
                           <Ionicons
-                            name={
-                              biometricType === 'Face ID'
-                                ? 'scan'
-                                : biometricType.includes('Huella')
-                                ? 'finger-print'
-                                : 'shield-checkmark'
-                            }
+                            name={getBiometricIcon(biometricType)}
                             size={32}
                             color="#ffffff"
                           />
