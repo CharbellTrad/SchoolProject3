@@ -241,7 +241,7 @@ export default function SectionsListScreen() {
                     />
                   ))
                 )}
-                <View style={{ height: 20 }} />
+                <View style={{ height: 40 }} />
               </ScrollView>
             </Animated.View>
           )}

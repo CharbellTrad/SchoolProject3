@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     height: 90,
-    width: '500%',
+    width: '100%',
     borderRadius: 14,
     backgroundColor: '#e5e7eb',
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   filterChip: {
-    width: Platform.OS === 'android' ? 112 : 120,
+    width: Platform.OS === 'android' ? 112 : 123.5,
     height: Platform.OS === 'android' ? 42 : 35,
     borderRadius: 12,
     backgroundColor: '#e5e7eb',

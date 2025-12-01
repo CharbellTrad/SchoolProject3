@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import Colors from '../constants/Colors';
@@ -47,6 +47,7 @@ export default function LoginScreen() {
   const slideAnim = useRef(new Animated.Value(50)).current;
   const logoScale = useRef(new Animated.Value(0.8)).current;
   const biometricButtonScale = useRef(new Animated.Value(0)).current; // 🆕
+  const insets = useSafeAreaInsets();
 
   // 🆕 Verificar disponibilidad de biometría al montar y cuando la pantalla gana foco
   useEffect(() => {
@@ -342,8 +343,7 @@ export default function LoginScreen() {
         <Head>
           <title>Iniciar Sesión - Sistema Escolar</title>
         </Head>
-
-        <View style={styles.container}>
+        <View style={{...styles.container, paddingTop: insets.top, paddingBottom: insets.bottom }}>
           {/* Elementos decorativos modernos */}
           <View style={styles.decorativeCircle1} />
           <View style={styles.decorativeCircle2} />
@@ -407,14 +407,7 @@ export default function LoginScreen() {
 
                   {/* 🆕 Mostrar botón biométrico si está disponible y habilitado */}
                   {biometricAvailable && biometricEnabled && biometricUsername && (
-                    <Animated.View
-                      style={[
-                        styles.biometricSection,
-                        {
-                          transform: [{ scale: biometricButtonScale }],
-                        },
-                      ]}
-                    >
+                    <Animated.View style={{ transform: [{ scale: biometricButtonScale }]}}>
                       <TouchableOpacity
                         style={styles.biometricButton}
                         onPress={handleBiometricLogin}
@@ -422,7 +415,7 @@ export default function LoginScreen() {
                         activeOpacity={0.7}
                       >
                         <LinearGradient
-                          colors={['#6366f1', '#8b5cf6']}
+                          colors={[Colors.primary, Colors.primary, Colors.primary, Colors.primaryDark]}
                           style={styles.biometricGradient}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
@@ -585,27 +578,24 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    minHeight: height,
   },
   loginContainer: {
     flex: 1,
-    minHeight: height,
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 80 : 70,
-    paddingBottom: 40,
+    minHeight: 20,
+    paddingHorizontal: 20,
     justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 16,
   },
   logoContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   logoGradient: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
+    width: 80,
+    height: 80,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({
@@ -618,29 +608,29 @@ const styles = StyleSheet.create({
     }),
   },
   title: {
-    fontSize: 32,
+    fontSize: 25,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 2,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 2,
     fontWeight: '500',
   },
   schoolName: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.primary,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginTop: 4,
+    marginTop: 2,
   },
   formCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 16,
+    padding: 15,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -656,7 +646,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonWrapper: {
-    marginTop: 8,
+    marginTop: 6,
   },
   errorBanner: {
     flexDirection: 'row',
@@ -680,33 +670,30 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   // 🆕 Estilos biométricos
-  biometricSection: {
-    marginBottom: 24,
-  },
   biometricButton: {
-    borderRadius: 16,
+    borderRadius: 15,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: 5,
   },
   biometricGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    gap: 12,
   },
   biometricTextContainer: {
     flex: 1,
   },
   biometricButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   biometricUsernameText: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   divider: {
@@ -727,7 +714,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 20,
   },
   securityBadge: {
     flexDirection: 'row',
@@ -738,7 +725,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#dcfce7',
-    marginBottom: 12,
+    marginBottom: 5,
     gap: 6,
   },
   securityText: {
@@ -755,16 +742,16 @@ const styles = StyleSheet.create({
   // 🆕 Botón temporal para limpiar biometría
   clearBiometricButton: {
     backgroundColor: '#fee2e2',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 5,
     borderWidth: 1,
     borderColor: '#fecaca',
   },
   clearBiometricText: {
     color: '#dc2626',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },

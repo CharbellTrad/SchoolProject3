@@ -87,7 +87,6 @@ export const PaginationSkeleton: React.FC = () => {
         <Animated.View style={[styles.paginationButton, { opacity }]} />
         <Animated.View style={[styles.paginationButton, { opacity }]} />
         <Animated.View style={[styles.paginationButton, { opacity }]} />
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
       </View>
 
       {/* Flecha derecha */}
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   paginationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     gap: 8,
     marginBottom: 8,
   },

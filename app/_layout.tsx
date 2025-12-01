@@ -2,7 +2,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { Stack, useRouter, useSegments } from "expo-router"
 import * as SplashScreen from 'expo-splash-screen'
 import { useCallback, useEffect, useState } from "react"
-import { LogBox } from "react-native"
+import { LogBox, View, useColorScheme } from "react-native"
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { AppReadyProvider, useAppReady } from "../contexts/AppReady"
@@ -34,41 +34,74 @@ SplashScreen.preventAutoHideAsync()
 /**
  * Navegación principal con protección de rutas
  */
+/**
+ * Navegación principal con protección de rutas - VERSIÓN CORREGIDA
+ */
 function RootLayoutNav() {
   const { user, loading } = useAuth()
   const { setAppReady } = useAppReady()
   const segments = useSegments()
   const router = useRouter()
   const [appIsReady, setAppIsReady] = useState(false)
+  const [splashHidden, setSplashHidden] = useState(false)
+  const [splashPrevented, setSplashPrevented] = useState(false)
+  const colorScheme = useColorScheme()
+  
+  // Color adaptativo según el tema del sistema
+  const backgroundColor = colorScheme === 'dark' ? '#000000' : '#FFFFFF'
 
-  // Preparar la app
+  // ✅ 1. Prevenir splash UNA SOLA VEZ al montar el componente
+  useEffect(() => {
+    if (!splashPrevented) {
+      SplashScreen.preventAutoHideAsync()
+      setSplashPrevented(true)
+      if (isDev) console.log("🛡️ Splash preventAutoHide ejecutado")
+    }
+  }, [splashPrevented])
+
+  // ✅ 2. Preparar app - REDUCIDO a 300ms
   useEffect(() => {
     async function prepare() {
       try {
-        // Dar tiempo para que se cargue todo
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 300))
       } catch (e) {
         console.warn(e)
       } finally {
         setAppIsReady(true)
         setAppReady(true)
+        if (isDev) console.log("✅ App lista")
       }
     }
-
     prepare()
   }, [])
 
-  // Ocultar splash cuando todo esté listo
+  // ✅ 3. FALLBACK DE SEGURIDAD - máximo 3 segundos
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (!splashHidden) {
+        await SplashScreen.hideAsync()
+        setSplashHidden(true)
+        if (isDev) console.log("🛡️ FALLBACK: Splash ocultado por timeout")
+      }
+    }, 3000)
+
+    return () => clearTimeout(timeout)
+  }, [splashHidden])
+
+  // ✅ 4. Ocultar splash cuando el layout se renderice
   const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync()
-      if (isDev) {
-        console.log("✅ Splash screen ocultado")
+    if (!splashHidden && appIsReady) {
+      try {
+        await SplashScreen.hideAsync()
+        setSplashHidden(true)
+        if (isDev) console.log("✅ Splash screen ocultado normalmente")
+      } catch (e) {
+        console.warn("Error hiding splash:", e)
       }
     }
-  }, [appIsReady])
+  }, [appIsReady, splashHidden])
 
-  // Navegación protegida
+  // Navegación protegida - IGUAL que antes
   useEffect(() => {
     if (loading || !appIsReady) {
       return
@@ -105,11 +138,14 @@ function RootLayoutNav() {
     }
   }, [user, segments, loading, router, appIsReady])
 
-  // Esperar a que la app esté lista
+  // ✅ 5. SIEMPRE renderizar ALGO (nunca return null)
   if (!appIsReady) {
-    return null
+    return (
+      <View style={{ flex: 1, backgroundColor }} />
+    )
   }
 
+  // Layout principal
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <BottomSheetModalProvider>
@@ -132,6 +168,7 @@ function RootLayoutNav() {
     </GestureHandlerRootView>
   )
 }
+
 
 /**
  * Layout principal con Providers

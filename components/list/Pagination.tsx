@@ -15,7 +15,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
 }) => {
   const [windowStart, setWindowStart] = useState(1);
-  const WINDOW_SIZE = 6;
+  const WINDOW_SIZE = 5;
 
   useEffect(() => {
     const windowEnd = windowStart + WINDOW_SIZE - 1;

@@ -682,6 +682,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 50,
     ...Platform.select({
       ios: {
         shadowColor: Colors.error,
