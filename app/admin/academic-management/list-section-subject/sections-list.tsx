@@ -46,7 +46,7 @@ export default function SectionsListScreen() {
 
   // Crossfade suave cuando hay datos
   useEffect(() => {
-    if (!initialLoading && showSkeleton && sections.length > 0) {
+    if (!initialLoading && showSkeleton) {
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
@@ -61,7 +61,7 @@ export default function SectionsListScreen() {
         }).start();
       });
     }
-  }, [initialLoading, showSkeleton, sections.length, fadeAnim]);
+  }, [initialLoading, showSkeleton, fadeAnim]);
 
   const handleEdit = (section: Section) => {
     if (isOfflineMode) {

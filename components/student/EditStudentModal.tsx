@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '../../constants/Colors';
 import { useParentManagement, useStudentEdit } from '../../hooks';
@@ -40,7 +40,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   onDelete
 }) => {
   // ========== REFS ==========
-  // Referencia al BottomSheetModal para controlarlo programáticamente
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   // ========== ESTADOS ==========
@@ -48,6 +47,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [fullStudent, setFullStudent] = useState<Student | null>(null);
   const [loadingFullDetails, setLoadingFullDetails] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Estados para animación de crossfade entre skeleton y contenido
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -57,27 +57,46 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const insets = useSafeAreaInsets();
 
   // ========== SNAP POINTS ==========
-  // Definir las alturas donde el bottom sheet puede "anclarse"
   const snapPoints = useMemo(() => ['90%'], []);
+
+  // ========== KEYBOARD LISTENERS ==========
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   // ========== EFECTOS ==========
   
-  // Efecto para abrir/cerrar el bottom sheet según prop visible
   useEffect(() => {
     if (visible) {
-      bottomSheetRef.current?.present(); // Abrir
+      bottomSheetRef.current?.present();
     } else {
-      bottomSheetRef.current?.dismiss(); // Cerrar
+      bottomSheetRef.current?.dismiss();
     }
   }, [visible]);
 
-  // ⚡ Cargar detalles completos cuando el modal se abre
   useEffect(() => {
     if (!visible) {
-      // Resetear estados cuando el modal se cierra
       setActiveTab('general');
       setFullStudent(null);
       setShowSkeleton(true);
+      setKeyboardHeight(0);
       fadeAnim.setValue(1);
       return;
     }
@@ -94,7 +113,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       }
 
       try {
-        // Cargar datos completos del estudiante desde Odoo
         const details = await loadStudentFullDetails(student.id);
         setFullStudent(details);
 
@@ -105,7 +123,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         if (__DEV__) {
           console.error('❌ Error cargando detalles completos:', error);
         }
-        // Si falla, usar datos básicos del estudiante
         setFullStudent(student);
       } finally {
         setLoadingFullDetails(false);
@@ -115,20 +132,16 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     loadFullDetails();
   }, [visible, student]);
 
-  // Efecto para hacer crossfade cuando los datos están listos
   useEffect(() => {
     if (!loadingFullDetails && fullStudent && showSkeleton) {
-      // Fade out del skeleton (300ms)
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        // Ocultar skeleton y preparar fade in
         setShowSkeleton(false);
         fadeAnim.setValue(0);
         
-        // Fade in del contenido real (400ms)
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 400,
@@ -138,10 +151,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
   }, [loadingFullDetails, fullStudent, showSkeleton, fadeAnim]);
 
-
   // ========== HOOKS PERSONALIZADOS ==========
   
-  // Hook para manejar edición de estudiante (formData, errores, etc.)
   const {
     formData,
     sizesData,
@@ -160,7 +171,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     loadingParents,
   } = useStudentEdit(fullStudent);
 
-  // Hook para gestión de representantes (agregar, editar, eliminar)
   const parentManagement = useParentManagement(
     parents,
     setParents,
@@ -175,14 +185,12 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
   // ========== VALIDACIÓN ==========
   
-  // Validar todos los campos del formulario
   const validateForm = (): boolean => {
     if (!formData) return false;
 
     const newErrors: Record<string, string> = {};
     let isValid = true;
 
-    // Campos obligatorios del estudiante
     const requiredFields: (keyof Student)[] = [
       'name', 'vat', 'nationality', 'born_date', 'sex', 'blood_type',
       'email', 'phone', 'emergency_phone_number', 'street',
@@ -190,7 +198,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       'pregnat_finished', 'gestation_time', 'peso_al_nacer', 'born_complication'
     ];
 
-    // Validar cada campo requerido
     requiredFields.forEach((field) => {
       const value = formData[field];
       const stringValue = value !== null && value !== undefined ? String(value) : '';
@@ -201,7 +208,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       }
     });
 
-    // Validación condicional: si sufre enfermedad, debe especificar cuál
     const sufferIllness = formData.suffer_illness_treatment?.toLowerCase();
     if (sufferIllness === 'si' || sufferIllness === 'sí') {
       const error = validateStudentField('what_illness_treatment', formData.what_illness_treatment || '');
@@ -211,7 +217,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       }
     }
 
-    // Validación condicional: si hubo complicación al nacer, debe especificar cuál
     const bornComplication = formData.born_complication?.toLowerCase();
     if (bornComplication === 'si' || bornComplication === 'sí') {
       const error = validateStudentField('complication', formData.complication || '');
@@ -230,7 +235,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const handleSave = async () => {
     if (!formData) return;
 
-    // Verificar conexión al servidor antes de intentar guardar
     const serverHealth = await authService.checkServerHealth();
     if (!serverHealth.ok) {
       if (__DEV__) {
@@ -243,13 +247,11 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       return;
     }
 
-    // Validar formulario antes de enviar
     if (!validateForm()) {
       showAlert('Error', 'Complete todos los campos requeridos correctamente');
       return;
     }
 
-    // Validar que tenga al menos un representante
     if (parents.length === 0) {
       showAlert('Error', 'Debe tener al menos un representante');
       setActiveTab('parents');
@@ -259,7 +261,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     setIsLoading(true);
 
     try {
-      // PASO 1: Eliminar representantes marcados para eliminación
+      // PASO 1: Eliminar representantes
       for (const parentId of parentsToDelete) {
         try {
           if (__DEV__) {
@@ -287,7 +289,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       const savedParentIds: number[] = [];
 
       for (const parent of parents) {
-        // Datos comunes para crear/actualizar representante
         const commonData = {
           born_date: formatDateToOdoo(parent.born_date || ''),
           sex: normalizeGender(parent.sex || ''),
@@ -300,7 +301,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
         try {
           if (parent.id) {
-            // Actualizar representante existente
             const parentData: Partial<Student> = {
               ...parent,
               ...commonData,
@@ -320,9 +320,8 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
               }
             }
           } else {
-            // Crear nuevo representante - validar campos requeridos
             if (!parent.name || !parent.vat || !parent.nationality || !parent.email || !parent.phone || !parent.job_place || !parent.job) {
-              continue; // Saltar si faltan campos
+              continue;
             }
 
             if (__DEV__) {
@@ -414,7 +413,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
       if (result.success) {
         showAlert('Éxito', 'Estudiante actualizado correctamente');
-        onSave(); // Callback al padre para refrescar datos
+        onSave();
       } else {
         showAlert('Error al actualizar estudiante', result.message || 'No se pudo actualizar');
       }
@@ -437,7 +436,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
   // ========== CALLBACKS ==========
   
-  // Renderizar backdrop (fondo oscuro detrás del bottom sheet)
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
@@ -450,16 +448,14 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     []
   );
 
-  // Callback cuando el bottom sheet cambia de estado
   const handleSheetChanges = useCallback((index: number) => {
     if (index === -1) {
-      onClose(); // Cerrado completamente
+      onClose();
     }
   }, [onClose]);
 
   // ========== RENDERIZADO DE CONTENIDO ==========
   
-  // Renderizar contenido según pestaña activa
   const renderTabContent = () => {
     if (!formData) return null;
 
@@ -520,7 +516,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
   };
 
-  // Renderizar skeleton según pestaña activa
   const renderSkeletonContent = () => {
     switch (activeTab) {
       case 'general':
@@ -530,16 +525,13 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
     }
   };
 
-  // Determinar si el tab actual necesita skeleton
   const needsSkeleton = activeTab === 'general' || activeTab === 'parents';
 
   // ========== RENDER ==========
   return (
     <>
-      {/* StatusBar para texto claro mientras el modal está abierto */}
       {visible && <StatusBar style="light" />}
 
-      {/* BottomSheetModal principal */}
       <BottomSheetModal
         ref={bottomSheetRef}
         index={1}
@@ -553,277 +545,141 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         enableContentPanningGesture={false}
         enableHandlePanningGesture={true}
         enableOverDrag={false}
-        
-        // ========== CONFIGURACIÓN POR PLATAFORMA ==========
-        keyboardBehavior={Platform.OS === 'ios' ? 'interactive' : 'fillParent'}
+        keyboardBehavior="fillParent"
         keyboardBlurBehavior="restore"
-        android_keyboardInputMode="adjustResize"
+        android_keyboardInputMode="adjustPan"
       >
-        {/* Usar KeyboardAvoidingView SOLO en iOS */}
-        {Platform.OS === 'ios' ? (
-          <KeyboardAvoidingView
-            behavior="padding"
-            style={{ flex: 1 }}
-            keyboardVerticalOffset={50}
-          >
-            <View style={[styles.contentContainer, { paddingBottom: insets.bottom }]}>
-              
-              {/* ========== HEADER ========== */}
-              <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                  <View style={styles.studentIconBox}>
-                    <Ionicons name="pencil" size={24} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.headerTitle}>Editar Estudiante</Text>
-                </View>
-                <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-                  <Ionicons name="close-circle" size={28} color={Colors.error} />
-                </TouchableOpacity>
+        <View style={[styles.contentContainer, { paddingBottom: insets.bottom }]}>
+          
+          {/* ========== HEADER ========== */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.studentIconBox}>
+                <Ionicons name="pencil" size={24} color={Colors.primary} />
               </View>
+              <Text style={styles.headerTitle}>Editar Estudiante</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+              <Ionicons name="close-circle" size={28} color={Colors.error} />
+            </TouchableOpacity>
+          </View>
 
-              {/* ========== TABS ========== */}
-              <View style={styles.tabsWrapper}>
-                <BottomSheetScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tabsList}
+          {/* ========== TABS ========== */}
+          <View style={styles.tabsWrapper}>
+            <BottomSheetScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsList}
+            >
+              {TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  onPress={() => setActiveTab(tab.id)}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.tabButton,
+                    activeTab === tab.id && styles.tabButtonActive,
+                    showSkeleton && styles.tabButtonDisabled
+                  ]}
+                  disabled={showSkeleton}
                 >
-                  {TABS.map((tab) => (
-                    <TouchableOpacity
-                      key={tab.id}
-                      onPress={() => setActiveTab(tab.id)}
-                      activeOpacity={0.7}
-                      style={[
-                        styles.tabButton,
-                        activeTab === tab.id && styles.tabButtonActive,
-                        showSkeleton && styles.tabButtonDisabled
-                      ]}
-                      disabled={showSkeleton}
-                    >
-                      <Ionicons
-                        name={tab.icon}
-                        size={16}
-                        color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
-                      />
-                      <Text
-                        style={[
-                          styles.tabLabel,
-                          activeTab === tab.id && styles.tabLabelActive,
-                        ]}
-                      >
-                        {tab.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </BottomSheetScrollView>
-              </View>
-
-              {/* ========== BODY CON CROSSFADE ========== */}
-              <View style={styles.bodyContainer}>
-                
-                {/* SKELETON: Mostrado durante carga */}
-                {showSkeleton && needsSkeleton && (
-                  <Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>
-                    <BottomSheetScrollView
-                      style={styles.body}
-                      contentContainerStyle={styles.bodyContent}
-                    >
-                      {renderSkeletonContent()}
-                    </BottomSheetScrollView>
-                  </Animated.View>
-                )}
-
-                {/* CONTENIDO REAL: Mostrado después de cargar */}
-                <Animated.View style={[styles.absoluteFill, { opacity: showSkeleton ? 0 : fadeAnim }]}>
-                  <BottomSheetScrollView
-                    style={styles.body}
-                    contentContainerStyle={styles.bodyContent}
-                  >
-                    {renderTabContent()}
-
-                    {/* Danger Zone - Zona de eliminación */}
-                    {!showSkeleton && formData && (
-                      <View style={styles.dangerZone}>
-                        <View style={styles.dangerZoneHeader}>
-                          <Ionicons name="warning" size={22} color={Colors.error} />
-                          <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
-                        </View>
-                        <Text style={styles.dangerZoneText}>
-                          Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.
-                        </Text>
-                        <TouchableOpacity
-                          style={styles.deleteButton}
-                          onPress={() => {
-                            onClose();
-                            setTimeout(() => onDelete(formData), 300);
-                          }}
-                          activeOpacity={0.8}
-                        >
-                          <Ionicons name="trash-outline" size={18} color="#fff" />
-                          <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </BottomSheetScrollView>
-                </Animated.View>
-              </View>
-
-              {/* ========== FOOTER ========== */}
-              <View style={styles.footer}>
-                {isLoading ? (
-                  <ActivityIndicator size="large" color={Colors.primary} />
-                ) : parentManagement.showAddParent ? (
-                  <TouchableOpacity
-                    style={[styles.saveBtn, styles.saveBtnDisabled]}
-                    disabled
-                  >
-                    <Text style={styles.saveBtnLabel}>Termine de editar</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.saveBtn, showSkeleton && styles.saveBtnDisabled]}
-                    onPress={handleSave}
-                    activeOpacity={0.75}
-                    disabled={showSkeleton}
-                  >
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                    <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-            </View>
-          </KeyboardAvoidingView>
-        ) : (
-          // ========== ANDROID: SIN KeyboardAvoidingView ==========
-          <View style={[styles.contentContainer, { paddingBottom: insets.bottom }]}>
-            
-            {/* ========== HEADER ========== */}
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <View style={styles.studentIconBox}>
-                  <Ionicons name="pencil" size={24} color={Colors.primary} />
-                </View>
-                <Text style={styles.headerTitle}>Editar Estudiante</Text>
-              </View>
-              <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-                <Ionicons name="close-circle" size={28} color={Colors.error} />
-              </TouchableOpacity>
-            </View>
-
-            {/* ========== TABS ========== */}
-            <View style={styles.tabsWrapper}>
-              <BottomSheetScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tabsList}
-              >
-                {TABS.map((tab) => (
-                  <TouchableOpacity
-                    key={tab.id}
-                    onPress={() => setActiveTab(tab.id)}
-                    activeOpacity={0.7}
+                  <Ionicons
+                    name={tab.icon}
+                    size={16}
+                    color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
+                  />
+                  <Text
                     style={[
-                      styles.tabButton,
-                      activeTab === tab.id && styles.tabButtonActive,
-                      showSkeleton && styles.tabButtonDisabled
+                      styles.tabLabel,
+                      activeTab === tab.id && styles.tabLabelActive,
                     ]}
-                    disabled={showSkeleton}
                   >
-                    <Ionicons
-                      name={tab.icon}
-                      size={16}
-                      color={activeTab === tab.id ? Colors.primary : Colors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        styles.tabLabel,
-                        activeTab === tab.id && styles.tabLabelActive,
-                      ]}
-                    >
-                      {tab.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </BottomSheetScrollView>
-            </View>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </BottomSheetScrollView>
+          </View>
 
-            {/* ========== BODY CON CROSSFADE ========== */}
-            <View style={styles.bodyContainer}>
-              
-              {/* SKELETON: Mostrado durante carga */}
-              {showSkeleton && needsSkeleton && (
-                <Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>
-                  <BottomSheetScrollView
-                    style={styles.body}
-                    contentContainerStyle={styles.bodyContent}
-                  >
-                    {renderSkeletonContent()}
-                  </BottomSheetScrollView>
-                </Animated.View>
-              )}
-
-              {/* CONTENIDO REAL: Mostrado después de cargar */}
-              <Animated.View style={[styles.absoluteFill, { opacity: showSkeleton ? 0 : fadeAnim }]}>
+          {/* ========== BODY CON CROSSFADE ========== */}
+          <View style={styles.bodyContainer}>
+            
+            {/* SKELETON: Mostrado durante carga */}
+            {showSkeleton && needsSkeleton && (
+              <Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>
                 <BottomSheetScrollView
                   style={styles.body}
                   contentContainerStyle={styles.bodyContent}
                 >
-                  {renderTabContent()}
-
-                  {/* Danger Zone - Zona de eliminación */}
-                  {!showSkeleton && formData && (
-                    <View style={styles.dangerZone}>
-                      <View style={styles.dangerZoneHeader}>
-                        <Ionicons name="warning" size={22} color={Colors.error} />
-                        <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
-                      </View>
-                      <Text style={styles.dangerZoneText}>
-                        Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => {
-                          onClose();
-                          setTimeout(() => onDelete(formData), 300);
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="trash-outline" size={18} color="#fff" />
-                        <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                  {renderSkeletonContent()}
                 </BottomSheetScrollView>
               </Animated.View>
-            </View>
+            )}
 
-            {/* ========== FOOTER ========== */}
-            <View style={styles.footer}>
-              {isLoading ? (
-                <ActivityIndicator size="large" color={Colors.primary} />
-              ) : parentManagement.showAddParent ? (
-                <TouchableOpacity
-                  style={[styles.saveBtn, styles.saveBtnDisabled]}
-                  disabled
-                >
-                  <Text style={styles.saveBtnLabel}>Termine de editar</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.saveBtn, showSkeleton && styles.saveBtnDisabled]}
-                  onPress={handleSave}
-                  activeOpacity={0.75}
-                  disabled={showSkeleton}
-                >
-                  <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                  <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            {/* CONTENIDO REAL: Mostrado después de cargar */}
+            <Animated.View style={[styles.absoluteFill, { opacity: showSkeleton ? 0 : fadeAnim }]}>
+              <BottomSheetScrollView
+                style={styles.body}
+                contentContainerStyle={[
+                  styles.bodyContent,
+                  { paddingBottom: keyboardHeight * 1 }
+                ]}
+                keyboardShouldPersistTaps="handled"
+              >
+                {renderTabContent()}
 
+                {/* Danger Zone - Zona de eliminación */}
+                {!showSkeleton && formData && (
+                  <View style={styles.dangerZone}>
+                    <View style={styles.dangerZoneHeader}>
+                      <Ionicons name="warning" size={22} color={Colors.error} />
+                      <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
+                    </View>
+                    <Text style={styles.dangerZoneText}>
+                      Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        onClose();
+                        setTimeout(() => onDelete(formData), 300);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#fff" />
+                      <Text style={styles.deleteButtonText}>Eliminar Estudiante</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </BottomSheetScrollView>
+            </Animated.View>
           </View>
-        )}
+
+          {/* ========== FOOTER ========== */}
+          <View style={styles.footer}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : parentManagement.showAddParent ? (
+              <TouchableOpacity
+                style={[styles.saveBtn, styles.saveBtnDisabled]}
+                disabled
+              >
+                <Text style={styles.saveBtnLabel}>Termine de editar</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.saveBtn, showSkeleton && styles.saveBtnDisabled]}
+                onPress={handleSave}
+                activeOpacity={0.75}
+                disabled={showSkeleton}
+              >
+                <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+        </View>
       </BottomSheetModal>
     </>
   );

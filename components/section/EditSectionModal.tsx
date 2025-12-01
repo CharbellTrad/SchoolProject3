@@ -1,20 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Modal,
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
+import { StatusBar } from 'expo-status-bar';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Keyboard,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import Colors from '../../constants/Colors';
 import * as authService from '../../services-odoo/authService';
 import { deleteSection, updateSection, type Section, type SectionType } from '../../services-odoo/sectionService';
 import { showAlert } from '../showAlert';
+
 
 interface EditSectionModalProps {
   visible: boolean;
@@ -29,13 +38,34 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
   onClose,
   onSave,
 }) => {
+  // ========== REFS ==========
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  // ========== ESTADOS ==========
   const [formData, setFormData] = useState<Partial<Section>>({
     name: '',
     type: 'primary',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Cargar datos cuando el modal se abre
+  // Obtener safe area insets para respetar áreas seguras del dispositivo
+  const insets = useSafeAreaInsets();
+
+  // ========== SNAP POINTS ==========
+  const snapPoints = useMemo(() => ['95%'], []);
+  const { height } = Dimensions.get('window');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // ========== EFECTOS ==========
+  useEffect(() => {
+    if (visible) {
+      bottomSheetRef.current?.present();
+    } else {
+      bottomSheetRef.current?.dismiss();
+    }
+  }, [visible]);
+
   useEffect(() => {
     if (!visible) {
       setFormData({ name: '', type: 'primary' });
@@ -51,9 +81,31 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
     }
   }, [visible, section]);
 
+  // ========== KEYBOARD LISTENERS ==========
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  // ========== FUNCIONES ==========
   const updateField = (field: keyof Section, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Limpiar error del campo
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -84,13 +136,11 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
   const handleSave = async () => {
     if (!section || !formData) return;
 
-    // Verificar conexión
     const serverHealth = await authService.checkServerHealth();
     if (!serverHealth.ok) {
       if (__DEV__) {
         console.log('🔴 Servidor no disponible para actualizar');
       }
-
       showAlert(
         'Sin conexión',
         'No se puede actualizar la sección sin conexión a internet. Por favor, verifica tu conexión e intenta nuevamente.'
@@ -103,42 +153,41 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
       return;
     }
 
-    // Cerrar el modal PRIMERO
-    onClose();
+    setIsLoading(true);
 
-    // Pequeño delay para que el modal termine de cerrarse
-    setTimeout(async () => {
-      try {
-        if (__DEV__) {
-          console.log('📝 Actualizando sección...');
-        }
-
-        const result = await updateSection(section.id, {
-          name: formData.name,
-          type: formData.type,
-        });
-
-        if (result.success) {
-          showAlert('Éxito', 'Sección actualizada correctamente');
-          onSave();
-        } else {
-          showAlert('Error al actualizar sección', result.message || 'No se pudo actualizar');
-        }
-      } catch (error: any) {
-        if (__DEV__) {
-          console.error('❌ Error al guardar:', error);
-        }
-
-        if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
-          showAlert(
-            'Error de conexión',
-            'Se perdió la conexión durante la actualización. Por favor, verifica tu conexión e intenta nuevamente.'
-          );
-        } else {
-          showAlert('Error', error.message || 'Ocurrió un error inesperado');
-        }
+    try {
+      if (__DEV__) {
+        console.log('📝 Actualizando sección...');
       }
-    }, 300);
+
+      const result = await updateSection(section.id, {
+        name: formData.name!,
+        type: formData.type!,
+      });
+
+      if (result.success) {
+        showAlert('Éxito', 'Sección actualizada correctamente');
+        onSave();
+        onClose(); 
+      } else {
+        showAlert('Error al actualizar sección', result.message || 'No se pudo actualizar');
+      }
+    } catch (error: any) {
+      if (__DEV__) {
+        console.error('❌ Error al guardar:', error);
+      }
+
+      if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+        showAlert(
+          'Error de conexión',
+          'Se perdió la conexión durante la actualización. Por favor, verifica tu conexión e intenta nuevamente.'
+        );
+      } else {
+        showAlert('Error', error.message || 'Ocurrió un error inesperado');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -162,17 +211,14 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
               return;
             }
 
-            // Cerrar el modal PRIMERO
             onClose();
-            
-            // Pequeño delay para que el modal termine de cerrarse
             setTimeout(async () => {
               try {
                 const result = await deleteSection(section.id);
-                
                 if (result.success) {
                   showAlert('Éxito', 'Sección eliminada correctamente');
                   onSave();
+                  onClose(); 
                 } else {
                   showAlert('Error', result.message || 'No se pudo eliminar la sección');
                 }
@@ -189,159 +235,206 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
     );
   };
 
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-      presentationStyle="overFullScreen"
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.content}>
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <View style={styles.sectionIconBox}>
-                  <Ionicons name="folder-open" size={24} color={Colors.primary} />
-                </View>
-                <Text style={styles.headerTitle}>Editar Sección</Text>
-              </View>
-              <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-                <Ionicons name="close" size={26} color={Colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
+  // ========== CALLBACKS ==========
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
 
-            {/* Body con ScrollView */}
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {/* Nombre */}
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Nombre de la sección</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    errors.name && styles.inputError,
-                  ]}
-                  value={formData.name}
-                  onChangeText={(value) => updateField('name', value)}
-                  placeholder="Ej: 1er Grado A"
-                  placeholderTextColor={Colors.textTertiary}
-                  autoCapitalize="words"
-                />
-                {errors.name && (
-                  <Text style={styles.errorText}>{errors.name}</Text>
-                )}
-              </View>
+  const handleSheetChanges = useCallback((index: number) => {
+    if (index === -1) {
+      onClose();
+    }
+  }, [onClose]);
 
-              {/* Tipo */}
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Tipo de sección</Text>
-                <View style={styles.typeGrid}>
-                  {[
-                    { key: 'pre', label: 'Preescolar', icon: 'color-palette', color: '#ec4899' },
-                    { key: 'primary', label: 'Primaria', icon: 'book', color: '#3b82f6' },
-                    { key: 'secundary', label: 'Media', icon: 'school', color: '#10b981' },
-                  ].map(({ key, label, icon, color }) => (
-                    <TouchableOpacity
-                      key={key}
-                      style={[
-                        styles.typeButton,
-                        formData.type === key && { borderColor: color, backgroundColor: color + '15' },
-                      ]}
-                      onPress={() => updateField('type', key as SectionType)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={icon as any}
-                        size={24}
-                        color={formData.type === key ? color : Colors.textSecondary}
-                      />
-                      <Text
-                        style={[
-                          styles.typeLabel,
-                          formData.type === key && { color, fontWeight: '700' },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                {errors.type && (
-                  <Text style={styles.errorText}>{errors.type}</Text>
-                )}
-              </View>
-
-              {/* Danger Zone */}
-              <View style={styles.dangerZone}>
-                <View style={styles.dangerZoneHeader}>
-                  <Ionicons name="warning" size={22} color={Colors.error} />
-                  <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
-                </View>
-                <Text style={styles.dangerZoneText}>
-                  Esta acción no se puede deshacer. Todos los datos de la sección serán eliminados permanentemente.
-                </Text>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDelete}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="trash" size={18} color="#fff" />
-                  <Text style={styles.deleteButtonText}>Eliminar Sección</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={onClose}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.saveBtn}
-                onPress={handleSave}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="save-outline" size={18} color="#fff" />
-                <Text style={styles.saveBtnLabel}>Guardar</Text>
-              </TouchableOpacity>
-            </View>
+  // ========== RENDER CONTENIDO ==========
+  const renderContent = () => (
+    <>
+      {/* ========== HEADER ========== */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={styles.sectionIconBox}>
+            <Ionicons name="layers-outline" size={22} color={Colors.primary} />
           </View>
+          <Text style={styles.headerTitle}>Editar Sección</Text>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+        <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+          <Ionicons name="close-circle" size={28} color={Colors.error} />
+        </TouchableOpacity>
+      </View>
+
+      {/* ========== BODY ========== */}
+      <BottomSheetScrollView
+        contentContainerStyle={[
+          styles.bodyContent,
+          { paddingBottom: keyboardHeight * 1 }
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Nombre */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Nombre de la sección</Text>
+          <TextInput
+            style={[styles.input, errors.name && styles.inputError]}
+            value={formData.name}
+            onChangeText={(value) => updateField('name', value)}
+            placeholder="Ej: 1er Grado A"
+            placeholderTextColor={Colors.textTertiary}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          {errors.name && (
+            <Text style={styles.errorText}>{errors.name}</Text>
+          )}
+        </View>
+
+        {/* Tipo */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Tipo de sección</Text>
+          <View style={styles.typeGrid}>
+            {[
+              { key: 'pre', label: 'Preescolar', icon: 'color-palette', color: '#ec4899' },
+              { key: 'primary', label: 'Primaria', icon: 'book', color: '#3b82f6' },
+              { key: 'secundary', label: 'Media', icon: 'school', color: '#10b981' },
+            ].map(({ key, label, icon, color }) => (
+              <TouchableOpacity
+                key={key}
+                onPress={() => updateField('type', key as SectionType)}
+                activeOpacity={0.7}
+                disabled={isLoading}
+                style={[
+                  styles.typeButton,
+                  formData.type === key && {
+                    borderColor: color,
+                    backgroundColor: color + '15',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={icon as any}
+                  size={28}
+                  color={formData.type === key ? color : Colors.textTertiary}
+                />
+                <Text
+                  style={[
+                    styles.typeLabel,
+                    formData.type === key && { color, fontWeight: '700' },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {errors.type && (
+            <Text style={styles.errorText}>{errors.type}</Text>
+          )}
+        </View>
+
+        {/* Danger Zone */}
+        <View style={styles.dangerZone}>
+          <View style={styles.dangerZoneHeader}>
+            <Ionicons name="warning" size={24} color={Colors.error} />
+            <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
+          </View>
+          <Text style={styles.dangerZoneText}>
+            Esta acción no se puede deshacer. Todos los datos de la sección serán eliminados permanentemente.
+          </Text>
+          <TouchableOpacity
+            onPress={handleDelete}
+            style={styles.deleteButton}
+            activeOpacity={0.8}
+            disabled={isLoading}
+          >
+            <Ionicons name="trash-outline" size={20} color="#fff" />
+            <Text style={styles.deleteButtonText}>Eliminar Sección</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetScrollView>
+
+      {/* ========== FOOTER ========== */}
+      <View style={[
+        styles.footer,
+        // { paddingBottom: Math.max(insets.bottom + 16, 16) }
+      ]}>
+        {isLoading ? (
+          <View style={styles.saveBtn}>
+            <ActivityIndicator size="small" color="#fff" />
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={handleSave}
+            style={styles.saveBtn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+            <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </>
+  );
+
+  // ========== RENDER ==========
+  return (
+    <>
+      {visible && <StatusBar style="light" />}
+
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        index={1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backdropComponent={renderBackdrop}
+        enablePanDownToClose={true}
+        handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={styles.bottomSheetBackground}
+        topInset={insets.top}
+        enableContentPanningGesture={false}
+        enableHandlePanningGesture={true}
+        enableOverDrag={false}
+        keyboardBehavior="fillParent"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustPan"
+      >
+        <View style={{...styles.container, paddingBottom: insets.bottom}}>
+          {renderContent()}
+        </View>
+      </BottomSheetModal>
+    </>
   );
 };
 
+// ========== ESTILOS ==========
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: '#f8fafc',
   },
-  content: {
+  handleIndicator: {
+    backgroundColor: Colors.border,
+    width: 40,
+    height: 4,
+  },
+  bottomSheetBackground: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    maxHeight: '85%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
-      }
+      },
     }),
   },
   header: {
@@ -352,6 +445,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    backgroundColor: '#fff',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -373,9 +467,9 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: -0.3,
   },
-  scrollContent: {
+  bodyContent: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 20,
     gap: 20,
   },
   fieldGroup: {
@@ -429,7 +523,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dangerZone: {
-    marginTop: 12,
+    marginTop: 32,
     padding: 20,
     backgroundColor: Colors.error + '08',
     borderRadius: 16,
@@ -471,27 +565,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   footer: {
-    flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: '#f8fafc',
-    gap: 12,
-    justifyContent: 'flex-end',
-  },
-  cancelBtn: {
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: '#fff',
-  },
-  cancelBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textSecondary,
   },
   saveBtn: {
     flexDirection: 'row',

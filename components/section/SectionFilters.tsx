@@ -77,8 +77,8 @@ export const SectionFilters: React.FC<SectionFiltersProps> = ({
 const styles = StyleSheet.create({
   filtersContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexWrap: 'nowrap',
+    gap: Platform.OS === 'android' ? 2 : 8,
     marginBottom: 10,
   },
   filterChip: {
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     }),
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     color: Colors.textSecondary,
   },

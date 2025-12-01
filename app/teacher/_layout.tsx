@@ -4,10 +4,11 @@ export default function TeacherLayout() {
   return (
     <Stack
       screenOptions={{
-        animation: 'slide_from_right',
+        headerShown: false,
+        animation: 'slide_from_bottom',
+        presentation: 'containedTransparentModal', 
         gestureEnabled: true,
         gestureDirection: 'horizontal',
-        headerShown: false,
       }}
     >
       <Stack.Screen name="dashboard" />

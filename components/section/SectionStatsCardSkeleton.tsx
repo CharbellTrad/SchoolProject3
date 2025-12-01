@@ -9,7 +9,7 @@ export const SectionStatsCardSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -36,7 +36,7 @@ export const SectionFiltersSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -65,7 +65,7 @@ export const SectionSearchBarSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -92,7 +92,7 @@ export const SectionCardSkeleton: React.FC<{ count: number }> = ({ count }) => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     height: 90,
-    width: '100%',
+    width: '500%',
     borderRadius: 14,
     backgroundColor: '#e5e7eb',
   },
@@ -145,13 +145,13 @@ const styles = StyleSheet.create({
   // Filters
   filtersContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexWrap: 'nowrap',
+    gap: Platform.OS === 'android' ? 2 : 8,
     marginBottom: 10,
   },
   filterChip: {
-    width: 120,
-    height: 35,
+    width: Platform.OS === 'android' ? 112 : 120,
+    height: Platform.OS === 'android' ? 42 : 35,
     borderRadius: 12,
     backgroundColor: '#e5e7eb',
   },

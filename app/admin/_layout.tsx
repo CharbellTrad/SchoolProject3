@@ -1,16 +1,16 @@
 import { Stack } from 'expo-router';
-import { Platform } from 'react-native';
 
 export default function AdminLayout() {
   return (
-      <Stack
-        screenOptions={{
-          animation: Platform.OS === 'android' ? 'fade' : 'slide_from_right',
-          gestureEnabled: true,
-          gestureDirection: 'horizontal',
-          headerShown: false,
-        }}
-      >
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_bottom',
+        presentation: 'containedTransparentModal', 
+        gestureEnabled: true,
+        gestureDirection: 'horizontal',
+      }}
+    >
       <Stack.Screen name="dashboard" />
       <Stack.Screen name="academic-management/list-section-subject/sections-list" />
       <Stack.Screen name="academic-management/list-section-subject/register-section" />

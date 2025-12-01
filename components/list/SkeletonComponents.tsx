@@ -9,7 +9,7 @@ export const StatsCardsSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -36,7 +36,7 @@ export const SearchBarSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
@@ -63,7 +63,7 @@ export const PaginationSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })

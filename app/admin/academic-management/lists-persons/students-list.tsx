@@ -42,7 +42,7 @@ export default function StudentsListScreen() {
 
   // Efecto para hacer crossfade suave SOLO cuando hay datos
   useEffect(() => {
-    if (!initialLoading && showSkeleton && students.length > 0) {
+    if (!initialLoading && showSkeleton) {
       // Fade out del skeleton
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -59,7 +59,7 @@ export default function StudentsListScreen() {
         }).start();
       });
     }
-  }, [initialLoading, showSkeleton, students.length, fadeAnim]);
+  }, [initialLoading, showSkeleton, fadeAnim]);
 
   const handleView = (student: Student) => {
     setSelectedStudent(student);

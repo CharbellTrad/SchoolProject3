@@ -10,7 +10,7 @@ export const GeneralTabSkeleton: React.FC = () => {
     Animated.loop(
       Animated.timing(shimmerAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 800,
         easing: Easing.ease,
         useNativeDriver: true,
       })
