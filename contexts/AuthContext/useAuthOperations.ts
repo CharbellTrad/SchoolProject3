@@ -11,14 +11,15 @@ import { UserSession } from '../../types/auth';
 import { ERROR_MESSAGES } from './constants';
 
 export interface AuthOperationsHook {
-  login: (username: string, password: string) => Promise<boolean>;
-  loginWithBiometrics: () => Promise<boolean>; // 🆕
+  // ✅ CAMBIAR ESTA LÍNEA
+  login: (username: string, password: string) => Promise<{ success: boolean; user?: UserSession }>;
+  loginWithBiometrics: () => Promise<boolean>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<UserSession>) => Promise<void>;
-  enableBiometricLogin: () => Promise<boolean>; // 🆕
-  disableBiometricLogin: () => Promise<void>; // 🆕
-  isBiometricAvailable: () => Promise<boolean>; // 🆕
-  isBiometricEnabled: () => Promise<boolean>; // 🆕
+  enableBiometricLogin: () => Promise<boolean>;
+  disableBiometricLogin: () => Promise<void>;
+  isBiometricAvailable: () => Promise<boolean>;
+  isBiometricEnabled: () => Promise<boolean>;
 }
 
 interface UseAuthOperationsProps {
@@ -39,9 +40,10 @@ export const useAuthOperations = ({
 }: UseAuthOperationsProps): AuthOperationsHook => {
   /**
    * Login tradicional con Odoo
+   * ✅ MODIFICADO: Retorna { success, user }
    */
   const login = useCallback(
-    async (username: string, password: string): Promise<boolean> => {
+    async (username: string, password: string): Promise<{ success: boolean; user?: UserSession }> => {
       try {
         setLoading(true);
 
@@ -54,7 +56,7 @@ export const useAuthOperations = ({
 
         if (!serverHealth.ok) {
           showAlert('Servidor no disponible', ERROR_MESSAGES.SERVER_UNAVAILABLE);
-          return false;
+          return { success: false }; // ✅ Cambiar aquí
         }
 
         // Intentar login
@@ -76,7 +78,7 @@ export const useAuthOperations = ({
             },
           ]);
 
-          return false;
+          return { success: false }; // ✅ Cambiar aquí
         }
 
         // Login exitoso
@@ -85,6 +87,7 @@ export const useAuthOperations = ({
             console.log('✅ Login exitoso:', {
               username: result.user.username,
               role: result.user.role,
+              fullName: result.user.fullName, // ✅ Debug
               uid: result.user.odooData.uid,
             });
           }
@@ -99,17 +102,17 @@ export const useAuthOperations = ({
 
             showAlert('Error de sesión', ERROR_MESSAGES.SESSION_ERROR);
             await authService.logout();
-            return false;
+            return { success: false }; // ✅ Cambiar aquí
           }
 
           setUser(validSession);
           setSessionExpiredHandled(false);
-          return true;
+          return { success: true, user: validSession }; // ✅ Cambiar aquí
         } else {
           if (__DEV__) {
             console.log('❌ Login fallido:', result.message);
           }
-          return false;
+          return { success: false }; // ✅ Cambiar aquí
         }
       } catch (error: any) {
         if (__DEV__) {
@@ -117,7 +120,7 @@ export const useAuthOperations = ({
         }
 
         showAlert('Error', ERROR_MESSAGES.UNEXPECTED_ERROR);
-        return false;
+        return { success: false }; // ✅ Cambiar aquí
       } finally {
         setLoading(false);
       }
@@ -273,8 +276,12 @@ export const useAuthOperations = ({
         return false;
       }
 
-      // Guardar credenciales
-      const saved = await biometricService.saveBiometricCredentials(user.username, user.password);
+      // ✅ CORREGIR AQUÍ: Agregar fullName
+      const saved = await biometricService.saveBiometricCredentials(
+        user.username, 
+        user.password,
+        user.fullName // ✅ Agregar este parámetro
+      );
 
       if (saved) {
         if (__DEV__) {

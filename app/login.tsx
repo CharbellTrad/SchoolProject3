@@ -41,7 +41,7 @@ export default function LoginScreen() {
   const [biometricUsername, setBiometricUsername] = useState<string | null>(null);
   const [biometricFullName, setBiometricFullName] = useState<string | null>(null);
 
-  const { login, loginWithBiometrics, user } = useAuth();
+  const { login, loginWithBiometrics } = useAuth();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -128,23 +128,25 @@ export default function LoginScreen() {
   }, []);
 
   // 🆕 Ofrecer configurar biometría después del login
-  const offerBiometricSetup = async (loggedUsername: string, loggedPassword: string, loggedFullName: string) => {
+  const offerBiometricSetup = async (
+    loggedUsername: string, 
+    loggedPassword: string, 
+    loggedFullName: string // ✅ Recibe el fullName como parámetro
+  ) => {
     try {
       // Verificar si ya está habilitada
       const alreadyEnabled = await biometricService.isBiometricEnabled();
       if (alreadyEnabled) {
-        return; // Ya está configurada
+        return;
       }
 
-      // Verificar disponibilidad
       const availability = await biometricService.checkBiometricAvailability();
       if (!availability.isAvailable) {
-        return; // No disponible en este dispositivo
+        return;
       }
 
       const biometricName = biometricService.getBiometricTypeName(availability.biometricType);
 
-      // Mostrar prompt
       Alert.alert(
         `¿Usar ${biometricName}?`,
         `Habilita ${biometricName} para iniciar sesión más rápido la próxima vez.`,
@@ -164,12 +166,11 @@ export default function LoginScreen() {
               try {
                 if (__DEV__) {
                   console.log('🔐 Habilitando biometría para:', loggedUsername);
+                  console.log('📝 Full Name:', loggedFullName); // ✅ Debug
                 }
 
-                // 🔧 Importar LocalAuthentication directamente para el setup inicial
                 const LocalAuthentication = await import('expo-local-authentication');
 
-                // Realizar autenticación de prueba (sin verificar si está habilitada)
                 const bioResult = await LocalAuthentication.authenticateAsync({
                   promptMessage: 'Confirma tu identidad para habilitar biometría',
                   cancelLabel: 'Cancelar',
@@ -180,23 +181,23 @@ export default function LoginScreen() {
                   if (__DEV__) {
                     console.log('❌ Autenticación biométrica cancelada o fallida');
                   }
-                  // Solo mostrar error si no fue cancelación
                   if (bioResult.error && !bioResult.error.toLowerCase().includes('cancel')) {
                     Alert.alert('Error', 'No se pudo autenticar con biometría');
                   }
                   return;
                 }
 
-                // 🆕 Guardar credenciales CON contraseña
+                // ✅ Guardar con el fullName correcto
                 const saved = await biometricService.saveBiometricCredentials(
                   loggedUsername,
                   loggedPassword,
-                  loggedFullName
+                  loggedFullName // ✅ Ya tienes el nombre correcto aquí
                 );
 
                 if (saved) {
                   if (__DEV__) {
-                    console.log('✅ Biometría habilitada exitosamente con contraseña guardada');
+                    console.log('✅ Biometría habilitada exitosamente');
+                    console.log('📝 Guardado con nombre:', loggedFullName);
                   }
 
                   Alert.alert(
@@ -204,7 +205,6 @@ export default function LoginScreen() {
                     `Ahora puedes usar ${biometricName} para iniciar sesión rápidamente.`
                   );
 
-                  // Recargar estado de biometría
                   await checkBiometricSupport();
                 }
               } catch (error: any) {
@@ -255,23 +255,24 @@ export default function LoginScreen() {
         console.log('🔐 Intentando login con:', username);
       }
 
-      const success = await login(username, password);
+      // ✅ Ahora login retorna { success, user }
+      const result = await login(username, password);
 
-      if (success) {
+      if (result.success && result.user) {
         if (__DEV__) {
-          console.log('✅ Login exitoso, redirigiendo...');
+          console.log('✅ Login exitoso:', {
+            username: result.user.username,
+            fullName: result.user.fullName,
+          });
         }
-        // 🆕 Preguntar si quiere habilitar biometría (pasamos username Y password)
-        setTimeout(async () => {
-          await offerBiometricSetup(username, password, user?.fullName || username)
-          if (__DEV__) {
-            console.log('🔍 DEBUG - user en offerBiometricSetup:', {
-              username: user?.username,
-              fullName: user?.fullName,
-              email: user?.email,
-            });
-          }
 
+        // ✅ Usar result.user.fullName directamente
+        setTimeout(async () => {
+          await offerBiometricSetup(
+            username,
+            password,
+            result.user!.fullName // ✅ Ahora está disponible
+          );
         }, 800);
 
         Animated.timing(fadeAnim, {
@@ -441,7 +442,7 @@ export default function LoginScreen() {
                             <Text style={styles.biometricButtonText}>
                               Continuar con {biometricType}
                             </Text>
-                            <Text style={styles.biometricUsernameText}>{biometricFullName}</Text>
+                            <Text style={styles.biometricUsernameText}>como {biometricFullName}</Text>
                           </View>
                         </LinearGradient>
                       </TouchableOpacity>
