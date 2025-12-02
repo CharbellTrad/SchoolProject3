@@ -5,7 +5,7 @@ import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ParentsManagement, StudentBirthForm, StudentDocumentsForm, StudentGeneralForm, StudentSizesForm } from '../../../../components/forms';
 import { useImagePicker } from '../../../../components/ImagePicker';
 import { showAlert } from '../../../../components/showAlert';
@@ -29,6 +29,7 @@ export default function RegisterStudentTabsScreen() {
   const { activeTab, changeTab } = useTabs('general');
   const { images, setImage, getImage, clearImage } = useImagePicker();
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
   
   const {
     studentData,
@@ -431,7 +432,7 @@ export default function RegisterStudentTabsScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
 
-          <View style={styles.floatingButtonContainer}>
+          <View style={{...styles.floatingButtonContainer, paddingBottom: insets.bottom }}>
             <Button
               title={isLoading ? "Guardando..." : "Guardar Matrícula"}
               onPress={validateAndSubmit}
@@ -536,6 +537,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 20,
+    // marginBottom: 20,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: Colors.border,

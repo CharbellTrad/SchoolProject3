@@ -3,13 +3,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
 import * as authService from '../../services-odoo/authService';
+import { getSessionTimeRemaining } from '../../services-odoo/authService';
 import { formatTimeAgo } from '../../utils/formatHelpers';
 
 
@@ -17,6 +18,7 @@ export default function AdminDashboard() {
   const { user, logout, updateUser, handleSessionExpired } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [sessionTimeRemaining, setSessionTimeRemaining] = useState<string>('');
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -62,7 +64,8 @@ export default function AdminDashboard() {
         });
       }
 
-
+      const timeRemaining = getSessionTimeRemaining(validSession);
+      setSessionTimeRemaining(timeRemaining);
       setIsOfflineMode(false);
       
       if (__DEV__) {
@@ -82,6 +85,36 @@ export default function AdminDashboard() {
     }
   }, [handleSessionExpired, updateUser]);
 
+
+  useEffect(() => {
+    if (user) {
+      const timeRemaining = getSessionTimeRemaining(user);
+      setSessionTimeRemaining(timeRemaining);
+      
+      // Actualizar cada minuto
+      const interval = setInterval(() => {
+        const newTimeRemaining = getSessionTimeRemaining(user);
+        setSessionTimeRemaining(newTimeRemaining);
+      }, 60000); // 60 segundos
+      
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  /**
+   * Obtiene color según tiempo restante
+   */
+  const getTimeRemainingColor = (timeString: string): string => {
+    if (timeString.includes('Expirada')) return Colors.error;
+    
+    // Extraer horas si existen
+    const hoursMatch = timeString.match(/(\d+)h/);
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+    
+    if (hours >= 3) return Colors.success; // Verde: 3h o más
+    if (hours >= 1) return Colors.warning; // Amarillo: 1-3h
+    return Colors.error; // Rojo: menos de 1h
+  };
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -275,6 +308,7 @@ export default function AdminDashboard() {
                   <InfoRow label="Email" value={user.email} icon="mail" />
                   <InfoRow label="Rol" value="Administrador Principal" icon="shield-checkmark" />
                   <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
+                  <InfoRow label="Tiempo restante de la sesión" value={sessionTimeRemaining} icon="hourglass-outline" valueColor={getTimeRemainingColor(sessionTimeRemaining)} />
                   {__DEV__ && (
                     <InfoRow 
                       label="Entorno" 
@@ -380,10 +414,11 @@ interface InfoRowProps {
   value: string;
   icon: keyof typeof Ionicons.glyphMap;
   highlight?: boolean;
+  valueColor?: string;
 }
 
 
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
+const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight, valueColor }) => {
   return (
     <View style={styles.infoRow}>
       <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
@@ -395,7 +430,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
       </View>
       <View style={styles.infoTextContainer}>
         <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={[styles.infoValue, highlight && styles.infoValueHighlight]}>
+        <Text style={[styles.infoValue, highlight && styles.infoValueHighlight, valueColor && { color: valueColor }]}>
           {value}
         </Text>
       </View>

@@ -23,8 +23,8 @@
       "package": "com.uenbciudadjardin.schoolproject",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/images/icon-light.png",
-        "monochromeImage": "./assets/images/icon-light.png"
+        "foregroundImage": "./assets/images/android-icon.png",
+        "monochromeImage": "./assets/images/android-icon.png"
       },
       "softwareKeyboardLayoutMode": "pan",
       "edgeToEdgeEnabled": true,

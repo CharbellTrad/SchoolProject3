@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../../../components/showAlert';
 import { Button } from '../../../../components/ui/Button';
 import Colors from '../../../../constants/Colors';
@@ -17,6 +18,7 @@ export default function RegisterSectionScreen() {
     type: 'primary' as SectionType,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const insets = useSafeAreaInsets();
 
   const updateField = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -316,7 +318,7 @@ export default function RegisterSectionScreen() {
         </KeyboardAvoidingView>
 
         {/* Botón flotante */}
-        <View style={styles.floatingButtonContainer}>
+        <View style={{...styles.floatingButtonContainer, paddingBottom: insets.bottom }}>
           <Button
             title={isLoading ? 'Guardando...' : 'Crear Sección'}
             onPress={handleSubmit}
