@@ -97,6 +97,7 @@ export const SubjectCardSkeleton: React.FC<{ count: number }> = ({ count }) => {
 
             {/* Chevron */}
             <Animated.View style={[styles.chevronSkeleton, { opacity }]} />
+            <Animated.View style={[styles.chevronSkeleton, { opacity }]} />
           </View>
         </View>
       ))}
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   badgesContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 8,
   },
   badgeSkeleton: {
@@ -177,8 +178,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   chevronSkeleton: {
-    width: 20,
-    height: 20,
+    width: 30,
+    height: 30,
     borderRadius: 4,
     backgroundColor: '#e5e7eb',
     marginLeft: 8,

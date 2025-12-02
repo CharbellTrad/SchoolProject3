@@ -63,6 +63,12 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 
         {/* Acción */}
         <View style={styles.actions}>
+          {isOfflineMode && (
+            <View style={styles.offlineBadge}>
+              <Ionicons name="cloud-offline" size={12} color={Colors.warning} />
+              <Text style={styles.offlineText}>Offline</Text>
+            </View>
+          )}
           <Ionicons
             name="chevron-forward"
             size={20}
@@ -124,6 +130,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   actions: {
+    flexDirection: 'row',
+    gap: 10,
     marginLeft: 8,
   },
   actionButton: {
@@ -137,5 +145,19 @@ const styles = StyleSheet.create({
   actionButtonDisabled: {
     backgroundColor: Colors.backgroundTertiary,
     opacity: 0.5,
+  },
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: Colors.warning + '15',
+    gap: 4,
+  },
+  offlineText: {
+    fontSize: 11,
+    color: Colors.warning,
+    fontWeight: '600',
   },
 });

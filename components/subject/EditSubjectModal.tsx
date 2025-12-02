@@ -1,31 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
-    BottomSheetBackdrop,
-    BottomSheetModal,
-    BottomSheetScrollView,
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Keyboard,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '../../constants/Colors';
 import * as authService from '../../services-odoo/authService';
 import {
-    deleteSubject,
-    updateSubject,
-    type Professor,
-    type Section,
-    type Subject,
+  deleteSubject,
+  updateSubject,
+  type Professor,
+  type Section,
+  type Subject,
 } from '../../services-odoo/subjectService';
 import { showAlert } from '../showAlert';
 
@@ -59,7 +59,7 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ['95%'], []);
+  const snapPoints = useMemo(() => ['90%'], []);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // ========== EFECTOS ==========
@@ -256,7 +256,7 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
 
       <BottomSheetModal
         ref={bottomSheetRef}
-        index={0}
+        index={1}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         backdropComponent={renderBackdrop}
@@ -287,6 +287,7 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
 
           {/* Body */}
           <BottomSheetScrollView
+            style={{ flex: 1}}
             contentContainerStyle={[
               styles.bodyContent,
               { paddingBottom: keyboardHeight },
@@ -307,7 +308,6 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
               />
               {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
             </View>
-
             {/* Secciones */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: '#f8fafc',

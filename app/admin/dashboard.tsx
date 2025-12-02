@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                     description="Secciones y materias"
                     accentColor="#f59e0b"
                     disabled={isOfflineMode}
-                    onPress={() => router.push('/admin/academic-management/list-section-subject/sections-list' as any)}
+                    onPress={() => router.push('/admin/academic-management/section-subject/select-option' as any)}
                   />
                 </View>
               </View>

@@ -7,4 +7,4 @@ export * from './SubjectCard';
 export * from './SubjectSearchBar';
 export * from './SubjectSkeletons';
 export * from './SubjectStatsCard';
-
+export * from './ViewSubjectModal';
