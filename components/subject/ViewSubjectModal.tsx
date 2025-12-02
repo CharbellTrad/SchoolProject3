@@ -1,9 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -297,10 +293,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
+      }
     }),
   },
   sectionHeader: {
@@ -361,10 +354,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
+      }
     }),
   },
   chipText: {

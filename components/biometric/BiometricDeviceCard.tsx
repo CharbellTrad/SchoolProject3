@@ -7,14 +7,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { BiometricDevice, formatPlatform, getPlatformIcon } from '../../services/biometricService';
-import {
-    formatEnrolledDate,
-    formatLastUsed,
-    getBiometricIcon,
-    getDeviceStatusColor,
-    getDeviceStatusText,
-    getShortDeviceId,
-} from '../../utils/biometricHelpers';
+import { formatEnrolledDate, formatLastUsed, getBiometricIcon, getDeviceStatusColor, getDeviceStatusText, getShortDeviceId, } from '../../utils/biometricHelpers';
 
 interface BiometricDeviceCardProps {
   device: BiometricDevice;
@@ -150,7 +143,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 3,
   },
   header: {
     flexDirection: 'row',

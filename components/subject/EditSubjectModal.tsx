@@ -1,33 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Keyboard,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import Colors from '../../constants/Colors';
 import * as authService from '../../services-odoo/authService';
-import {
-  deleteSubject,
-  updateSubject,
-  type Professor,
-  type Section,
-  type Subject,
-} from '../../services-odoo/subjectService';
+import { deleteSubject, updateSubject, type Professor, type Section, type Subject, } from '../../services-odoo/subjectService';
 import { showAlert } from '../showAlert';
+import { SelectionField } from './SelectionField';
 
 interface EditSubjectModalProps {
   visible: boolean;
@@ -287,112 +268,61 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
 
           {/* Body */}
           <BottomSheetScrollView
-            style={{ flex: 1}}
+            style={{ flex: 1 }}
             contentContainerStyle={[
               styles.bodyContent,
-              { paddingBottom: keyboardHeight },
+              { paddingBottom: keyboardHeight * 1},
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Nombre */}
+            {/* Campo: Nombre */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Nombre de la materia</Text>
-              <TextInput
-                style={[styles.input, errors.name && styles.inputError]}
-                value={formData.name}
-                onChangeText={(value) => updateField('name', value)}
-                placeholder="Ej: Química, Matemática"
-                placeholderTextColor={Colors.textTertiary}
-                editable={!isLoading}
-              />
+              <Text style={styles.fieldLabel}>Nombre de la materia *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="text-outline"
+                  size={20}
+                  color={Colors.textSecondary}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[styles.input, errors.name && styles.inputError]}
+                  value={formData.name}
+                  onChangeText={(value) => updateField('name', value)}
+                  placeholder="Ej: Química, Matemática"
+                  placeholderTextColor={Colors.textTertiary}
+                  editable={!isLoading}
+                  autoCapitalize="words"
+                />
+              </View>
               {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
             </View>
-            {/* Secciones */}
+
+            {/* Campo: Secciones */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>
-                Secciones asignadas ({formData.section_ids?.length || 0})
-              </Text>
-              {errors.sections && (
-                <Text style={styles.errorText}>{errors.sections}</Text>
-              )}
-              <View style={styles.listContainer}>
-                {sections.length === 0 ? (
-                  <Text style={styles.emptyText}>No hay secciones disponibles</Text>
-                ) : (
-                  sections.map((section) => {
-                    const isSelected = formData.section_ids?.includes(section.id);
-                    return (
-                      <TouchableOpacity
-                        key={section.id}
-                        style={[
-                          styles.listItem,
-                          isSelected && styles.listItemSelected,
-                        ]}
-                        onPress={() => toggleSection(section.id)}
-                        disabled={isLoading}
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons
-                          name={isSelected ? 'checkbox' : 'square-outline'}
-                          size={24}
-                          color={isSelected ? Colors.primary : Colors.textTertiary}
-                        />
-                        <Text
-                          style={[
-                            styles.listItemText,
-                            isSelected && styles.listItemTextSelected,
-                          ]}
-                        >
-                          {section.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
+              <SelectionField
+                label="Secciones"
+                items={sections}
+                selectedIds={formData.section_ids || []}
+                onToggleItem={toggleSection}
+                required
+                error={errors.sections}
+                isLoading={isLoading}
+                emptyMessage="No hay secciones disponibles"
+              />
             </View>
 
-            {/* Profesores */}
+            {/* Campo: Profesores */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>
-                Profesores asignados ({formData.professor_ids?.length || 0})
-              </Text>
-              <View style={styles.listContainer}>
-                {professors.length === 0 ? (
-                  <Text style={styles.emptyText}>No hay profesores disponibles</Text>
-                ) : (
-                  professors.map((professor) => {
-                    const isSelected = formData.professor_ids?.includes(professor.id);
-                    return (
-                      <TouchableOpacity
-                        key={professor.id}
-                        style={[
-                          styles.listItem,
-                          isSelected && styles.listItemSelected,
-                        ]}
-                        onPress={() => toggleProfessor(professor.id)}
-                        disabled={isLoading}
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons
-                          name={isSelected ? 'checkbox' : 'square-outline'}
-                          size={24}
-                          color={isSelected ? Colors.primary : Colors.textTertiary}
-                        />
-                        <Text
-                          style={[
-                            styles.listItemText,
-                            isSelected && styles.listItemTextSelected,
-                          ]}
-                        >
-                          {professor.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
+              <SelectionField
+                label="Profesores"
+                items={professors}
+                selectedIds={formData.professor_ids || []}
+                onToggleItem={toggleProfessor}
+                isLoading={isLoading}
+                emptyMessage="No hay profesores disponibles"
+              />
             </View>
 
             {/* Danger Zone */}
@@ -402,8 +332,8 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
                 <Text style={styles.dangerZoneTitle}>Zona de Peligro</Text>
               </View>
               <Text style={styles.dangerZoneText}>
-                Esta acción no se puede deshacer. Todos los datos de la materia serán
-                eliminados permanentemente.
+                Esta acción no se puede deshacer. Todos los datos de la materia
+                serán eliminados permanentemente.
               </Text>
               <TouchableOpacity
                 onPress={handleDelete}
@@ -429,7 +359,11 @@ export const EditSubjectModal: React.FC<EditSubjectModalProps> = ({
                 style={styles.saveBtn}
                 activeOpacity={0.8}
               >
-                <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color="#fff"
+                />
                 <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
               </TouchableOpacity>
             )}
@@ -487,26 +421,47 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   bodyContent: {
+    position: 'absolute',
     paddingHorizontal: 20,
     paddingVertical: 20,
-    gap: 20,
+    gap: 15
   },
   fieldGroup: {
-    gap: 8,
+    gap: 5,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      }
+    }),
   },
   fieldLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
     letterSpacing: 0.2,
   },
-  input: {
-    backgroundColor: Colors.backgroundTertiary,
-    borderWidth: 1.5,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 2,
     borderColor: Colors.border,
     borderRadius: 12,
-    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginLeft: 16,
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
     paddingVertical: 14,
+    paddingRight: 16,
     fontSize: 15,
     fontWeight: '500',
     color: Colors.textPrimary,
@@ -520,42 +475,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
   },
-  listContainer: {
-    gap: 8,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  listItemSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '08',
-  },
-  listItemText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  listItemTextSelected: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: Colors.textSecondary,
-    fontSize: 14,
-    fontStyle: 'italic',
-    paddingVertical: 20,
-  },
   dangerZone: {
-    marginTop: 32,
+    marginTop: 8,
     padding: 20,
     backgroundColor: Colors.error + '08',
     borderRadius: 16,
