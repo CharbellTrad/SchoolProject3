@@ -29,8 +29,10 @@ interface EditParentsTabProps {
   onRemoveParent: (index: number) => void;
   onCancelForm: () => void;
   onImageSelected: (key: string, base64: string, filename: string) => void;
-  getImage: (key: string) => { base64?: string } | undefined;
+  getImage: (key: string) => { base64?: string; filename?: string } | undefined;
   loading?: boolean;
+  // ✅ NUEVO: Recibir función para obtener tipo de archivo
+  getFileType?: (key: string) => 'image' | 'pdf';
 }
 
 export const EditParentsTab: React.FC<EditParentsTabProps> = ({
@@ -55,21 +57,18 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
   onImageSelected,
   getImage,
   loading = false,
+  getFileType, // ✅ NUEVO
 }) => {
-  // Estados para el crossfade
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [showSkeleton, setShowSkeleton] = useState(true);
 
-  // Efecto para hacer crossfade cuando loading cambia
   useEffect(() => {
     if (!loading && showSkeleton) {
-      // Fade out del skeleton
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        // Ocultar skeleton y hacer fade in del contenido
         setShowSkeleton(false);
         fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
@@ -193,6 +192,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
             value={getImage('parent_photo')?.base64}
             onImageSelected={(base64, filename) => onImageSelected('parent_photo', base64, filename)}
             circular
+            // ✅ Pasar tipo detectado
+            initialFileType={getFileType ? getFileType('parent_photo') : undefined}
+            initialFilename={getImage('parent_photo')?.filename}
           />
         </View>
 
@@ -350,6 +352,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
               onImageSelected={(base64, filename) => onImageSelected('parent_ci_document', base64, filename)}
               circular={false}
               acceptPDF={true}
+              // ✅ CRÍTICO: Pasar tipo detectado
+              initialFileType={getFileType ? getFileType('parent_ci_document') : undefined}
+              initialFilename={getImage('parent_ci_document')?.filename || 'ci_document.pdf'}
             />
           </View>
 
@@ -360,6 +365,9 @@ export const EditParentsTab: React.FC<EditParentsTabProps> = ({
               onImageSelected={(base64, filename) => onImageSelected('parent_signature', base64, filename)}
               circular={false}
               acceptPDF={false}
+              // ✅ Pasar tipo detectado
+              initialFileType={getFileType ? getFileType('parent_signature') : undefined}
+              initialFilename={getImage('parent_signature')?.filename}
             />
           </View>
         </View>

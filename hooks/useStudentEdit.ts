@@ -46,7 +46,6 @@ export const useStudentEdit = (student: Student | null) => {
         setParents(student.parents);
         setOriginalParentIds(student.parents.map(p => p.id).filter((id): id is number => id !== undefined));
       } else if (student.parents_ids && student.parents_ids.length > 0) {
-        // Cargar padres on-demand
         setLoadingParents(true);
         loadStudentParents(student.id, student.parents_ids)
           .then(loadedParents => {
@@ -60,15 +59,21 @@ export const useStudentEdit = (student: Student | null) => {
         setOriginalParentIds([]);
       }
 
-      // ✅ ACTUALIZADO: setImage ahora acepta 3 parámetros (sin thumbnail porque son datos existentes)
+      // ✅ CORREGIDO: Ahora pasamos el 4to parámetro (thumbnail) como undefined
+      // Esto fuerza a que el hook detecte el tipo correctamente y lo preserve
       if (student.image_1920) {
-        setImage('student_photo', student.image_1920, student.ci_document_filename || 'photo.jpg');
+        setImage('student_photo', student.image_1920, 'photo.jpg', undefined);
       }
+      
+      // ✅ CRÍTICO: Para PDFs, pasar thumbnail como undefined pero asegurar filename correcto
       if (student.ci_document) {
-        setImage('ci_document', student.ci_document, student.ci_document_filename || 'ci_document.pdf');
+        const filename = student.ci_document_filename || 'ci_document.pdf';
+        setImage('ci_document', student.ci_document, filename, undefined);
       }
+      
       if (student.born_document) {
-        setImage('born_document', student.born_document, student.born_document_filename || 'born_document.pdf');
+        const filename = student.born_document_filename || 'born_document.pdf';
+        setImage('born_document', student.born_document, filename, undefined);
       }
     }
   }, [student]);
