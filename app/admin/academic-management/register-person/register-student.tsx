@@ -116,7 +116,7 @@ export default function RegisterStudentTabsScreen() {
       setImage('parent_photo', parent.image_1920, 'parent_photo.jpg');
     }
     if (parent.ci_document) {
-      setImage('parent_ci_document', parent.ci_document, parent.ci_document_filename || 'ci.jpg');
+      setImage('parent_ci_document', parent.ci_document, parent.ci_document_filename || 'ci_document.pdf');
     }
     if (parent.parent_singnature) {
       setImage('parent_signature', parent.parent_singnature, 'signature.jpg');

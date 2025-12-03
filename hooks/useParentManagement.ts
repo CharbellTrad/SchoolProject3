@@ -152,7 +152,7 @@ export const useParentManagement = (
     };
     setCurrentParent(formattedParent);
 
-    // ✅ ACTUALIZADO: setImage ahora acepta 3 parámetros (sin thumbnail porque son datos existentes)
+    // ✅ setImage detecta automáticamente el tipo (PDF o imagen) por contenido
     if (parentToEdit.image_1920) {
       setImage('parent_photo', parentToEdit.image_1920, 'parent_photo.jpg');
     } else {
@@ -160,7 +160,7 @@ export const useParentManagement = (
     }
 
     if (parentToEdit.ci_document) {
-      setImage('parent_ci_document', parentToEdit.ci_document, parentToEdit.ci_document_filename || 'ci.jpg');
+      setImage('parent_ci_document', parentToEdit.ci_document, parentToEdit.ci_document_filename || 'ci_document.pdf');
     } else {
       clearImage('parent_ci_document');
     }

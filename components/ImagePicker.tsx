@@ -407,14 +407,34 @@ const styles = StyleSheet.create({
   },
 });
 
+
 // ============================================
 // HOOK PERSONALIZADO (ACTUALIZADO)
 // ============================================
 
-// ✅ Determina el tipo de archivo basado en el filename
-const detectFileType = (filename: string): 'image' | 'pdf' => {
+const detectFileTypeFromBase64 = (base64: string, filename: string): 'image' | 'pdf' => {
+  // Limpiar el base64
+  const cleanedBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
+  
+  // Verificar si es PDF por contenido (los PDFs empiezan con "JVBERi0" en base64)
+  if (cleanedBase64.startsWith('JVBERi0')) {
+    if (__DEV__) {
+      console.log(`✅ Detectado como PDF por contenido: ${filename}`);
+    }
+    return 'pdf';
+  }
+  
+  // Si el filename dice que es PDF, confiar en eso también
   const extension = filename.toLowerCase().split('.').pop() || '';
-  return extension === 'pdf' ? 'pdf' : 'image';
+  if (extension === 'pdf') {
+    if (__DEV__) {
+      console.log(`✅ Detectado como PDF por extension: ${filename}`);
+    }
+    return 'pdf';
+  }
+  
+  // Por defecto, es imagen
+  return 'image';
 };
 
 export const useImagePicker = () => {
@@ -425,14 +445,9 @@ export const useImagePicker = () => {
     fileType: 'image' | 'pdf';
   }>>({});
 
-  /**
-   * ✅ CORREGIDO: Guarda la imagen/PDF con su tipo correcto
-   * - Detecta automáticamente el tipo basado en filename
-   * - Mantiene el tipo incluso al cambiar de tab
-   */
   const setImage = useCallback((key: string, base64: string, filename: string, thumbnail?: string | null) => {
-    // ✅ Detectar tipo de archivo automáticamente
-    const fileType = detectFileType(filename);
+    // ✅ Detectar tipo PRIMERO por contenido, luego por filename
+    const fileType = detectFileTypeFromBase64(base64, filename);
     
     setImages(prev => ({
       ...prev,
@@ -440,7 +455,7 @@ export const useImagePicker = () => {
         base64, 
         filename,
         thumbnail: fileType === 'pdf' ? thumbnail : undefined,
-        fileType // ✅ Siempre guardamos el tipo correcto
+        fileType
       }
     }));
 
@@ -457,14 +472,9 @@ export const useImagePicker = () => {
     return images[key]?.thumbnail;
   }, [images]);
 
-  /**
-   * ✅ NUEVO: Obtiene el tipo de archivo de forma confiable
-   */
   const getFileType = useCallback((key: string): 'image' | 'pdf' => {
     const image = images[key];
     if (!image) return 'image';
-    
-    // ✅ Siempre retornar el tipo guardado
     return image.fileType || 'image';
   }, [images]);
 

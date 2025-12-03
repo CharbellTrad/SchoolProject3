@@ -62,13 +62,13 @@ export const useStudentEdit = (student: Student | null) => {
 
       // ✅ ACTUALIZADO: setImage ahora acepta 3 parámetros (sin thumbnail porque son datos existentes)
       if (student.image_1920) {
-        setImage('student_photo', student.image_1920, 'photo.jpg');
+        setImage('student_photo', student.image_1920, student.ci_document_filename || 'photo.jpg');
       }
       if (student.ci_document) {
-        setImage('ci_document', student.ci_document, student.ci_document_filename || 'ci.jpg');
+        setImage('ci_document', student.ci_document, student.ci_document_filename || 'ci_document.pdf');
       }
       if (student.born_document) {
-        setImage('born_document', student.born_document, student.born_document_filename || 'born.jpg');
+        setImage('born_document', student.born_document, student.born_document_filename || 'born_document.pdf');
       }
     }
   }, [student]);
