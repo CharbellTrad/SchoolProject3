@@ -12,8 +12,8 @@ export const useParentManagement = (
   parentsToDelete: number[],
   setParentsToDelete: (ids: number[]) => void,
   setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-  getImage: (key: string) => { base64?: string; filename?: string } | undefined,
-  setImage: (key: string, base64: string, filename: string) => void,
+  getImage: (key: string) => { base64?: string; filename?: string; thumbnail?: string | null; fileType?: 'image' | 'pdf' } | undefined,
+  setImage: (key: string, base64: string, filename: string, thumbnail?: string | null) => void,
   clearImage: (key: string) => void
 ) => {
   const [showAddParent, setShowAddParent] = useState(false);
@@ -59,7 +59,6 @@ export const useParentManagement = (
     setSearching(true);
 
     try {
-      // 1️⃣ Verificar conexión primero
       const serverHealth = await authService.checkServerHealth();
 
       if (!serverHealth.ok) {
@@ -75,7 +74,6 @@ export const useParentManagement = (
         return;
       }
 
-      // 2️⃣ Realizar búsqueda
       const results = await searchParents(query);
       const filteredResults = results.filter(
         result => !parents.some(p => p.id === result.id)
@@ -109,7 +107,6 @@ export const useParentManagement = (
   }, [parents, setParents]);
 
   const addOrUpdateParent = useCallback(() => {
-    // ✅ CAMBIO: Agregados 'job_place' y 'job' a los campos requeridos
     const requiredFields = ['name', 'vat', 'nationality', 'born_date', 'sex', 'email', 'phone', 'emergency_phone_number', 'live_with_student', 'active_job', 'job_place', 'job'];
     let isValid = true;
 
@@ -155,6 +152,7 @@ export const useParentManagement = (
     };
     setCurrentParent(formattedParent);
 
+    // ✅ ACTUALIZADO: setImage ahora acepta 3 parámetros (sin thumbnail porque son datos existentes)
     if (parentToEdit.image_1920) {
       setImage('parent_photo', parentToEdit.image_1920, 'parent_photo.jpg');
     } else {
@@ -184,7 +182,6 @@ export const useParentManagement = (
   const removeParent = useCallback(async (index: number, studentId: number) => {
     const parentToRemove = parents[index];
 
-    // Si es un representante nuevo (sin ID), eliminar directamente
     if (!parentToRemove.id) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
@@ -193,16 +190,13 @@ export const useParentManagement = (
 
     const wasOriginallyAssociated = originalParentIds.includes(parentToRemove.id);
 
-    // Si NO era original, solo quitarlo de la lista
     if (!wasOriginallyAssociated) {
       setParents(parents.filter((_, i) => i !== index));
       showAlert('Éxito', 'Representante eliminado');
       return;
     }
 
-    // Para representantes originales, necesitamos validar con el servidor
     try {
-      // 1️⃣ Verificar conexión primero
       const serverHealth = await authService.checkServerHealth();
 
       if (!serverHealth.ok) {
@@ -216,7 +210,6 @@ export const useParentManagement = (
         return;
       }
 
-      // 2️⃣ Validar si se puede eliminar
       const validation = await canDeleteParent(parentToRemove.id, studentId);
 
       if (!validation.canUnlink) {
@@ -224,7 +217,6 @@ export const useParentManagement = (
         return;
       }
 
-      // Si no se puede eliminar completamente, solo desvincular
       if (!validation.canDelete) {
         showAlert(
           validation.hasOtherChildren ? 'Desvincular Representante' : 'No se puede eliminar',
@@ -243,7 +235,6 @@ export const useParentManagement = (
         return;
       }
 
-      // Si se puede eliminar, dar opciones
       showAlert(
         'Eliminar Representante',
         `¿Qué desea hacer con ${parentToRemove.name}?`,
