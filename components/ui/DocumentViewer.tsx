@@ -285,19 +285,33 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                   const page = await pdf.getPage(pageNum);
                   
-                  // Calcular escala para ajustar al ancho de pantalla
+                  // 🔥 MEJORADO: Calcular escala con ALTA CALIDAD
+                  // Usar devicePixelRatio para pantallas de alta densidad
                   const viewport = page.getViewport({ scale: 1 });
-                  const scale = (window.innerWidth - 20) / viewport.width;
-                  const scaledViewport = page.getViewport({ scale });
+                  const desiredWidth = window.innerWidth - 20;
+                  
+                  // Escala base para ajustar al ancho
+                  const baseScale = desiredWidth / viewport.width;
+                  
+                  // Multiplicar por devicePixelRatio para mayor calidad (máximo 3x)
+                  const pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
+                  const renderScale = baseScale * pixelRatio;
+                  
+                  const scaledViewport = page.getViewport({ scale: renderScale });
                   
                   // Crear contenedor de página
                   const pageContainer = document.createElement('div');
                   pageContainer.className = 'page-container';
+                  pageContainer.style.width = desiredWidth + 'px';
                   
-                  // Crear canvas
+                  // Crear canvas con dimensiones escaladas
                   const canvas = document.createElement('canvas');
                   canvas.width = scaledViewport.width;
                   canvas.height = scaledViewport.height;
+                  
+                  // Ajustar tamaño visual del canvas (CSS)
+                  canvas.style.width = desiredWidth + 'px';
+                  canvas.style.height = (scaledViewport.height / pixelRatio) + 'px';
                   
                   // Agregar número de página
                   const pageNumber = document.createElement('div');

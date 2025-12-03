@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../constants/Colors';
 import { generatePdfThumbnail, getFileType } from '../utils/pdfUtils';
@@ -30,21 +30,27 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
   compress = true,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [fileType, setFileType] = useState<'image' | 'pdf'>('image');
-  const [filename, setFilename] = useState<string>('');
+  
+  // ✅ CORREGIDO: Estados separados para evitar pérdida de tipo
+  const [currentFileType, setCurrentFileType] = useState<'image' | 'pdf'>('image');
+  const [currentFilename, setCurrentFilename] = useState<string>('');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
 
-  // Detectar tipo de archivo cuando cambia el valor
+  // ✅ CORREGIDO: Detectar tipo cuando cambia el value
   useEffect(() => {
-    if (value && filename) {
-      const detectedType = getFileType(filename);
+    if (value && currentFilename) {
+      const detectedType = getFileType(currentFilename);
       if (detectedType === 'pdf' || detectedType === 'image') {
-        setFileType(detectedType);
+        setCurrentFileType(detectedType);
+        
+        if (__DEV__) {
+          console.log(`✅ Tipo detectado: ${detectedType} para ${currentFilename}`);
+        }
       }
     }
-  }, [value, filename]);
+  }, [value, currentFilename]);
 
   const requestPermissions = async () => {
     if (Platform.OS !== 'web') {
@@ -88,11 +94,19 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
     return `file_${timestamp}_${random}.${extension}`;
   };
 
+  /**
+   * ✅ CORREGIDO: Maneja el archivo seleccionado y mantiene su tipo
+   */
   const handleFileSelected = async (base64: string, selectedFilename: string) => {
     const detectedType = getFileType(selectedFilename);
     
-    setFilename(selectedFilename);
-    setFileType(detectedType === 'pdf' ? 'pdf' : 'image');
+    // ✅ Guardar en estados locales
+    setCurrentFilename(selectedFilename);
+    setCurrentFileType(detectedType === 'pdf' ? 'pdf' : 'image');
+    
+    if (__DEV__) {
+      console.log(`📁 Archivo seleccionado: ${selectedFilename} (${detectedType})`);
+    }
     
     // Si es PDF, generar thumbnail
     if (detectedType === 'pdf') {
@@ -112,6 +126,7 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
       setThumbnail(null);
     }
     
+    // ✅ Pasar al padre
     onImageSelected(base64, selectedFilename);
   };
 
@@ -192,9 +207,10 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
         const base64 = await convertToBase64(asset.uri);
-        const extension = asset.name.split('.').pop() || 'pdf';
-        const newFilename = generateFilename(extension);
-        await handleFileSelected(base64, newFilename);
+        
+        // ✅ Usar el nombre real del archivo
+        const realFilename = asset.name || generateFilename('pdf');
+        await handleFileSelected(base64, realFilename);
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo seleccionar el archivo');
@@ -239,8 +255,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
   };
 
   const handleDelete = () => {
-    setFileType('image');
-    setFilename('');
+    setCurrentFileType('image');
+    setCurrentFilename('');
     setThumbnail(null);
     onImageSelected('', '');
   };
@@ -254,8 +270,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         {!acceptPDF && value ? (
           <DocumentPreview
             uri={value}
-            fileType={fileType}
-            filename={filename}
+            fileType={currentFileType}
+            filename={currentFilename}
             thumbnail={thumbnail}
             loading={generatingThumbnail}
             circular={circular}
@@ -271,8 +287,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         {acceptPDF && value && (
           <DocumentPreview
             uri={value}
-            fileType={fileType}
-            filename={filename}
+            fileType={currentFileType}
+            filename={currentFilename}
             thumbnail={thumbnail}
             loading={generatingThumbnail}
             circular={false}
@@ -317,8 +333,8 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         <DocumentViewer
           visible={showViewer}
           uri={value}
-          fileType={fileType}
-          filename={filename}
+          fileType={currentFileType}
+          filename={currentFilename}
           onClose={() => setShowViewer(false)}
         />
       )}
@@ -394,6 +410,13 @@ const styles = StyleSheet.create({
 // ============================================
 // HOOK PERSONALIZADO (ACTUALIZADO)
 // ============================================
+
+// ✅ Determina el tipo de archivo basado en el filename
+const detectFileType = (filename: string): 'image' | 'pdf' => {
+  const extension = filename.toLowerCase().split('.').pop() || '';
+  return extension === 'pdf' ? 'pdf' : 'image';
+};
+
 export const useImagePicker = () => {
   const [images, setImages] = useState<Record<string, { 
     base64: string; 
@@ -402,42 +425,60 @@ export const useImagePicker = () => {
     fileType: 'image' | 'pdf';
   }>>({});
 
-  const setImage = (key: string, base64: string, filename: string, thumbnail?: string | null) => {
-    const fileType = getFileType(filename);
+  /**
+   * ✅ CORREGIDO: Guarda la imagen/PDF con su tipo correcto
+   * - Detecta automáticamente el tipo basado en filename
+   * - Mantiene el tipo incluso al cambiar de tab
+   */
+  const setImage = useCallback((key: string, base64: string, filename: string, thumbnail?: string | null) => {
+    // ✅ Detectar tipo de archivo automáticamente
+    const fileType = detectFileType(filename);
+    
     setImages(prev => ({
       ...prev,
       [key]: { 
         base64, 
         filename,
         thumbnail: fileType === 'pdf' ? thumbnail : undefined,
-        fileType: fileType === 'pdf' ? 'pdf' : 'image'
+        fileType // ✅ Siempre guardamos el tipo correcto
       }
     }));
-  };
 
-  const getImage = (key: string) => {
+    if (__DEV__) {
+      console.log(`✅ Archivo guardado: ${key} (${fileType}) - ${filename}`);
+    }
+  }, []);
+
+  const getImage = useCallback((key: string) => {
     return images[key];
-  };
+  }, [images]);
 
-  const getThumbnail = (key: string) => {
+  const getThumbnail = useCallback((key: string) => {
     return images[key]?.thumbnail;
-  };
+  }, [images]);
 
-  const getFileType = (key: string): 'image' | 'pdf' => {
-    return images[key]?.fileType || 'image';
-  };
+  /**
+   * ✅ NUEVO: Obtiene el tipo de archivo de forma confiable
+   */
+  const getFileType = useCallback((key: string): 'image' | 'pdf' => {
+    const image = images[key];
+    if (!image) return 'image';
+    
+    // ✅ Siempre retornar el tipo guardado
+    return image.fileType || 'image';
+  }, [images]);
 
-  const clearImage = (key: string) => {
+  const clearImage = useCallback((key: string) => {
     setImages(prev => {
       const newImages = { ...prev };
       delete newImages[key];
       return newImages;
     });
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setImages({});
-  };
+  }, []);
 
   return { 
     images, 
