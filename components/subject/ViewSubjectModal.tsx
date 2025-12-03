@@ -278,9 +278,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   bodyContent: {
+    position: 'absolute',
     paddingHorizontal: 20,
     paddingVertical: 20,
-    gap: 24,
+    gap: 15
   },
   section: {
     backgroundColor: '#fff',

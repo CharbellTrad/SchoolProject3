@@ -1,8 +1,9 @@
 /**
  * Utilidades para manejo de PDFs
- * Generación de thumbnails y detección de tipo de archivo
+ * - Generación de thumbnails de primera página
+ * - Detección de tipo de archivo
+ * - Validación y formateo
  */
-
 
 /**
  * Determina si un archivo es PDF basándose en su nombre
@@ -45,9 +46,17 @@ export const getFileType = (filename: string): 'image' | 'pdf' | 'unknown' => {
 };
 
 /**
- * Genera un thumbnail de un PDF (primera página)
- * En React Native, esto es más complejo y requiere librerías nativas
- * Por ahora retornamos null y usaremos un placeholder
+ * 🖼️ Genera un thumbnail de un PDF (primera página)
+ * 
+ * NOTA IMPORTANTE:
+ * - En React Native no podemos renderizar PDFs directamente como en web
+ * - Esta función usa un placeholder por ahora
+ * - Para implementación real se necesitaría:
+ *   1. react-native-pdf (para renderizar PDFs)
+ *   2. react-native-view-shot (para capturar screenshot)
+ *   3. O un servicio backend que genere thumbnails
+ * 
+ * POR AHORA: Retornamos null y usamos un placeholder visual
  */
 export const generatePdfThumbnail = async (
   base64: string,
@@ -55,17 +64,44 @@ export const generatePdfThumbnail = async (
 ): Promise<string | null> => {
   try {
     if (__DEV__) {
-      console.log('📄 Generando thumbnail para PDF:', filename);
+      console.log('📄 Intentando generar thumbnail para:', filename);
     }
 
-    // TODO: Implementar generación real de thumbnail
-    // Requiere react-native-pdf + react-native-view-shot
-    // Por ahora retornamos null para usar placeholder
+    // TODO: Implementar con react-native-pdf + react-native-view-shot
+    // 
+    // Ejemplo de implementación futura:
+    // 1. Usar react-native-pdf para cargar el PDF
+    // 2. Renderizar solo la primera página
+    // 3. Usar react-native-view-shot para capturar como imagen
+    // 4. Convertir a base64 y retornar
+    //
+    // Por ahora, simulamos delay y retornamos null (usa placeholder)
     
-    // Simulamos un pequeño delay para el estado de loading
     await new Promise(resolve => setTimeout(resolve, 300));
     
+    // Retornar null hace que DocumentPreview use el placeholder de PDF
     return null;
+    
+    // IMPLEMENTACIÓN FUTURA (ejemplo):
+    /*
+    import Pdf from 'react-native-pdf';
+    import { captureRef } from 'react-native-view-shot';
+    
+    const pdfRef = createRef<Pdf>();
+    
+    // Renderizar PDF offscreen
+    const thumbnailUri = await captureRef(pdfRef, {
+      format: 'jpg',
+      quality: 0.8,
+    });
+    
+    // Convertir URI a base64
+    const base64Thumbnail = await FileSystem.readAsStringAsync(thumbnailUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    return base64Thumbnail;
+    */
   } catch (error) {
     if (__DEV__) {
       console.error('❌ Error generando thumbnail PDF:', error);
@@ -96,7 +132,6 @@ export const isValidImageBase64 = (base64: string): boolean => {
   if (!base64) return false;
   
   try {
-    // Verificar que tenga formato válido de base64
     const cleanBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
     
     // Verificar que comience con caracteres típicos de imágenes

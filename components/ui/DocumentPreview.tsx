@@ -1,6 +1,8 @@
 /**
  * Vista previa de documentos (imágenes y PDFs)
- * Muestra thumbnail y permite abrir en DocumentViewer
+ * - Muestra thumbnail siempre visible
+ * - Permite abrir en DocumentViewer con un tap
+ * - Soporta modo circular para fotos de perfil
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -36,9 +38,11 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   circular = false,
   onPress,
 }) => {
-  // Preparar URI para mostrar
+  
+  // ========== PREPARAR URI PARA MOSTRAR ==========
   const getDisplayUri = () => {
     if (fileType === 'image') {
+      // Para imágenes, mostrar directamente
       if (uri.startsWith('data:')) return uri;
       const base64Clean = cleanBase64(uri);
       return `data:image/jpeg;base64,${base64Clean}`;
@@ -57,6 +61,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const displayUri = getDisplayUri();
   const sizeKB = getFileSize(uri);
 
+  // ========== RENDER ==========
   return (
     <TouchableOpacity
       style={[
@@ -68,7 +73,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       disabled={loading}
     >
       {loading ? (
-        // Estado de carga
+        // ========== ESTADO DE CARGA ==========
         <View style={[
           styles.loadingContainer,
           circular && styles.circularLoading
@@ -78,7 +83,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </View>
       ) : (
         <>
-          {/* Vista previa de la imagen o PDF */}
+          {/* ========== VISTA PREVIA DE LA IMAGEN O PDF ========== */}
           {displayUri ? (
             <Image
               source={{ uri: displayUri }}
@@ -103,7 +108,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             </View>
           )}
 
-          {/* Overlay con información */}
+          {/* ========== OVERLAY CON INFORMACIÓN ========== */}
           <View style={[
             styles.overlay,
             circular && styles.circularOverlay
@@ -122,7 +127,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             </View>
           </View>
 
-          {/* Información del archivo (debajo de la vista previa) */}
+          {/* ========== INFORMACIÓN DEL ARCHIVO (DEBAJO DE LA VISTA PREVIA) ========== */}
           {!circular && filename && (
             <View style={styles.infoContainer}>
               <Text style={styles.filename} numberOfLines={1}>
@@ -139,6 +144,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   );
 };
 
+// ========== ESTILOS ==========
 const styles = StyleSheet.create({
   container: {
     width: 150,
@@ -164,6 +170,8 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 12,
   },
+  
+  // ========== IMAGEN ==========
   image: {
     width: '100%',
     height: 150,
@@ -174,6 +182,8 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 12,
   },
+  
+  // ========== PLACEHOLDER PARA PDF ==========
   pdfPlaceholder: {
     width: '100%',
     height: 150,
@@ -192,6 +202,8 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginTop: 8,
   },
+  
+  // ========== OVERLAY ==========
   overlay: {
     position: 'absolute',
     top: 0,
@@ -199,11 +211,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    opacity: 0,
+    opacity: 0, // Invisible por defecto, se activa al presionar
   },
   circularOverlay: {
     borderRadius: 12,
   },
+  
+  // ========== BADGE DE TIPO DE ARCHIVO ==========
   badge: {
     position: 'absolute',
     top: 8,
@@ -221,6 +235,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
+  
+  // ========== ICONO DE EXPANDIR ==========
   expandIcon: {
     position: 'absolute',
     bottom: 8,
@@ -232,6 +248,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
+  // ========== LOADING ==========
   loadingContainer: {
     width: '100%',
     height: 150,
@@ -250,6 +268,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
   },
+  
+  // ========== INFORMACIÓN DEL ARCHIVO ==========
   infoContainer: {
     padding: 8,
     backgroundColor: '#fff',
