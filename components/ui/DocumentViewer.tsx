@@ -1,30 +1,31 @@
 /**
- * Modal de visualización completa de imágenes y PDFs
- * ✅ Funciona en Expo Go (iOS + Android) y Builds
- * ✅ Muestra todas las páginas del PDF
- * ✅ Título correcto según tipo de archivo
+ * ✅ DOCUMENTVIEWER - VERSIÓN FUNCIONAL CON PDF RENDERING
+ * - Funciona en Expo Go
+ * - Funciona en iOS y Android builds
+ * - PDFs renderizan directamente con Canvas HTML5
+ * - No requiere módulos nativos
  */
 
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Modal,
-    Platform,
-    StatusBar as RNStatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  Platform,
+  StatusBar as RNStatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -51,7 +52,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ========== VALORES PARA ZOOM Y PAN (SOLO IMÁGENES) ==========
+  // Valores para zoom y pan (solo imágenes)
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -60,7 +61,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const originY = useSharedValue(0);
   const insets = useSafeAreaInsets();
 
-  // ========== RESET AL CERRAR ==========
+  // Reset al cerrar
   const handleClose = () => {
     scale.value = withTiming(1);
     translateX.value = withTiming(0);
@@ -73,8 +74,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     onClose();
   };
 
-  // ========== GESTOS MODERNOS PARA IMÁGENES ==========
-  
+  // Gestos para imágenes
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
       scale.value = Math.max(1, Math.min(savedScale.value * e.scale, 5));
@@ -140,91 +140,195 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const getSourceUri = () => {
     if (!uri) return '';
     
-    if (fileType === 'pdf') {
-      const base64Clean = cleanBase64(uri);
-      return `data:application/pdf;base64,${base64Clean}`;
-    }
-    
     if (uri.startsWith('data:')) return uri;
     
     const base64Clean = cleanBase64(uri);
     return `data:image/jpeg;base64,${base64Clean}`;
   };
 
-  // ========== HTML PARA PDF - FUNCIONA EN EXPO GO Y BUILDS ==========
+  // ========== HTML CON PDF.JS EMBEBIDO ==========
   const getPDFHTML = () => {
     const base64Clean = cleanBase64(uri);
     
-    // 🔧 WORKAROUND: En Android, usar Mozilla PDF.js para mejor compatibilidad
-    if (Platform.OS === 'android') {
-      return `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-            <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-              }
-              body {
-                background-color: #000;
-                overflow-x: hidden;
-              }
-              iframe {
-                width: 100%;
-                min-height: 100vh;
-                border: none;
-              }
-            </style>
-          </head>
-          <body>
-            <iframe 
-              src="https://mozilla.github.io/pdf.js/web/viewer.html?file=data:application/pdf;base64,${base64Clean}"
-              width="100%" 
-              height="100%"
-            ></iframe>
-          </body>
-        </html>
-      `;
-    }
-    
-    // 🍎 iOS: usar embed nativo (funciona perfecto en iOS)
     return `
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
           <style>
             * {
               margin: 0;
               padding: 0;
               box-sizing: border-box;
+              -webkit-touch-callout: none;
+              -webkit-user-select: none;
             }
-            body {
-              background-color: #303030;
-              display: flex;
-              justify-content: center;
-              align-items: flex-start;
-              min-height: 100vh;
-              overflow-x: hidden;
-              padding: 10px;
-            }
-            embed {
+            html, body {
               width: 100%;
-              min-height: 100vh;
-              border: none;
+              height: 100%;
+              overflow-x: hidden;
+              overflow-y: auto;
+              background-color: #303030;
+              font-family: system-ui, -apple-system, sans-serif;
+            }
+            #container {
+              width: 100%;
+              min-height: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 10px;
+              gap: 10px;
+            }
+            .page-container {
+              width: 100%;
+              max-width: 100%;
+              background: white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              margin-bottom: 10px;
+              position: relative;
+            }
+            canvas {
+              display: block;
+              width: 100%;
+              height: auto;
+            }
+            #loading {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              color: white;
+              text-align: center;
+              z-index: 100;
+            }
+            .spinner {
+              border: 3px solid rgba(255,255,255,0.3);
+              border-radius: 50%;
+              border-top: 3px solid white;
+              width: 40px;
+              height: 40px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 10px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            #error {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              color: #ff6b6b;
+              text-align: center;
+              padding: 20px;
+              background: rgba(0,0,0,0.9);
+              border-radius: 8px;
+              display: none;
+            }
+            .page-number {
+              position: absolute;
+              bottom: 5px;
+              right: 5px;
+              background: rgba(0,0,0,0.7);
+              color: white;
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+              font-weight: 600;
             }
           </style>
         </head>
         <body>
-          <embed 
-            src="data:application/pdf;base64,${base64Clean}" 
-            type="application/pdf" 
-            width="100%" 
-            height="100%"
-          />
+          <div id="loading">
+            <div class="spinner"></div>
+            <p>Cargando PDF...</p>
+          </div>
+          <div id="error">
+            <p style="font-size: 18px; margin-bottom: 10px;">⚠️ Error al cargar PDF</p>
+            <p style="font-size: 14px;">El archivo puede estar corrupto o ser muy grande</p>
+          </div>
+          <div id="container"></div>
+          
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+          <script>
+            (async function() {
+              const loading = document.getElementById('loading');
+              const error = document.getElementById('error');
+              const container = document.getElementById('container');
+              
+              try {
+                // Configurar PDF.js
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 
+                  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                
+                // Convertir base64 a Uint8Array
+                const base64Data = '${base64Clean}';
+                const binaryString = atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                console.log('📄 Loading PDF, size:', bytes.length, 'bytes');
+                
+                // Cargar el PDF
+                const loadingTask = pdfjsLib.getDocument({ data: bytes });
+                const pdf = await loadingTask.promise;
+                
+                console.log('✅ PDF loaded, pages:', pdf.numPages);
+                loading.style.display = 'none';
+                
+                // Renderizar cada página
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                  const page = await pdf.getPage(pageNum);
+                  
+                  // Calcular escala para ajustar al ancho de pantalla
+                  const viewport = page.getViewport({ scale: 1 });
+                  const scale = (window.innerWidth - 20) / viewport.width;
+                  const scaledViewport = page.getViewport({ scale });
+                  
+                  // Crear contenedor de página
+                  const pageContainer = document.createElement('div');
+                  pageContainer.className = 'page-container';
+                  
+                  // Crear canvas
+                  const canvas = document.createElement('canvas');
+                  canvas.width = scaledViewport.width;
+                  canvas.height = scaledViewport.height;
+                  
+                  // Agregar número de página
+                  const pageNumber = document.createElement('div');
+                  pageNumber.className = 'page-number';
+                  pageNumber.textContent = pageNum + ' / ' + pdf.numPages;
+                  
+                  pageContainer.appendChild(canvas);
+                  pageContainer.appendChild(pageNumber);
+                  container.appendChild(pageContainer);
+                  
+                  // Renderizar página
+                  const context = canvas.getContext('2d');
+                  const renderContext = {
+                    canvasContext: context,
+                    viewport: scaledViewport
+                  };
+                  
+                  await page.render(renderContext).promise;
+                  console.log('✅ Rendered page', pageNum);
+                }
+                
+                console.log('🎉 All pages rendered successfully');
+                
+              } catch (err) {
+                console.error('❌ PDF Error:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.querySelector('p:last-child').textContent = err.message || 'Error desconocido';
+              }
+            })();
+          </script>
         </body>
       </html>
     `;
@@ -244,7 +348,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         <View style={[styles.container, { paddingBottom: insets.bottom }]}>
           
           {/* ========== HEADER ========== */}
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 40 : insets.top + 10 }]}>
             <View style={styles.headerContent}>
               <View style={styles.headerLeft}>
                 <Ionicons
@@ -279,7 +383,9 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#fff" />
-                <Text style={styles.loadingText}>Cargando {fileType === 'pdf' ? 'PDF' : 'imagen'}...</Text>
+                <Text style={styles.loadingText}>
+                  Cargando {fileType === 'pdf' ? 'PDF' : 'imagen'}...
+                </Text>
               </View>
             )}
 
@@ -311,40 +417,68 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
               </GestureDetector>
             )}
 
-            {/* PDF con WebView - TODAS LAS PÁGINAS */}
+            {/* PDF con WebView + PDF.js */}
             {!error && fileType === 'pdf' && (
               <WebView
                 source={{ html: getPDFHTML() }}
                 style={styles.webview}
-                onLoadStart={() => setLoading(true)}
-                onLoadEnd={() => setLoading(false)}
+                onLoadStart={() => {
+                  setLoading(true);
+                  console.log('📱 WebView: Load started');
+                }}
+                onLoadEnd={() => {
+                  // Damos tiempo para que PDF.js termine de renderizar
+                  setTimeout(() => {
+                    setLoading(false);
+                    console.log('✅ WebView: Load ended');
+                  }, 500);
+                }}
                 onError={(syntheticEvent) => {
                   const { nativeEvent } = syntheticEvent;
+                  console.error('❌ WebView error:', nativeEvent);
                   setLoading(false);
-                  setError('Error al cargar el PDF');
-                  if (__DEV__) {
-                    console.error('WebView error:', nativeEvent);
-                  }
+                  setError('Error al inicializar el visor de PDF');
                 }}
+                onHttpError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.warn('⚠️ HTTP error:', nativeEvent.statusCode);
+                }}
+                // Configuración esencial
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
                 scalesPageToFit={true}
                 bounces={true}
                 scrollEnabled={true}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                startInLoadingState={true}
+                startInLoadingState={false}
                 allowFileAccess={true}
                 allowUniversalAccessFromFileURLs={true}
+                originWhitelist={['*']}
+                mixedContentMode="always"
+                cacheEnabled={false}
+                // Handlers de mensajes desde el HTML
+                onMessage={(event) => {
+                  const data = event.nativeEvent.data;
+                  console.log('📨 Message from WebView:', data);
+                  
+                  // Puedes recibir eventos del HTML aquí
+                  if (data === 'pdf_loaded') {
+                    setLoading(false);
+                  } else if (data.startsWith('error:')) {
+                    setError(data.replace('error:', ''));
+                    setLoading(false);
+                  }
+                }}
               />
             )}
           </View>
 
-          {/* ========== FOOTER CON INSTRUCCIONES ========== */}
+          {/* ========== FOOTER ========== */}
           {!loading && !error && (
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
               <Text style={styles.footerText}>
                 {fileType === 'pdf' 
-                  ? 'Desliza para ver todas las páginas • Pellizca para hacer zoom'
-                  : 'Pellizca para hacer zoom • Toca dos veces para ajustar'
+                  ? '📄 Desliza verticalmente para ver todas las páginas • Pellizca para zoom'
+                  : '🔍 Pellizca para zoom • Toca dos veces para ajustar'
                 }
               </Text>
             </View>
@@ -362,8 +496,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   header: {
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 40 : 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     paddingBottom: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -446,7 +579,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT - 120,
+    height: SCREEN_HEIGHT - 160,
   },
   webview: {
     flex: 1,
@@ -454,7 +587,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#303030',
   },
   footer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -462,9 +595,9 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   footerText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
   },
 });

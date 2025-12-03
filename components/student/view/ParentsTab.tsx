@@ -15,8 +15,6 @@ interface ParentsTabProps {
 
 export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
   const [expandedParent, setExpandedParent] = useState<number | null>(null);
-  
-  // ========== ESTADO PARA CONTROLAR MODAL DE DOCUMENTOS ==========
   const [viewerVisible, setViewerVisible] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<{
     uri: string;
@@ -24,7 +22,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
     filename: string;
   } | null>(null);
 
-  // ========== FUNCIÓN PARA ABRIR DOCUMENTO ==========
   const openDocument = (uri: string, filename: string) => {
     const isPdf = filename.toLowerCase().endsWith('.pdf') || 
                   cleanBase64(uri).startsWith('JVBERi0');
@@ -37,7 +34,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
     setViewerVisible(true);
   };
 
-  // ========== FUNCIÓN PARA CERRAR VISOR ==========
   const closeViewer = () => {
     setViewerVisible(false);
     setTimeout(() => {
@@ -68,13 +64,43 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                 onPress={() => setExpandedParent(isExpanded ? null : parent.id)}
                 style={listStyles.cardMain}
               >
+                {/* ========== AVATAR CLICKEABLE ========== */}
                 <View style={listStyles.avatarContainer}>
                   {parent.image_1920 ? (
-                    <Image
-                      source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
-                      style={styles.parentAvatar}
-                      resizeMode='cover'
-                    />
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation(); // Evitar que abra/cierre el accordion
+                        openDocument(parent.image_1920!, `${parent.name}_foto.jpg`);
+                      }}
+                      activeOpacity={0.8}
+                      style={{
+                        position: 'relative',
+                        width: 50,
+                        height: 50,
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: `data:image/jpeg;base64,${parent.image_1920}` }}
+                        style={styles.parentAvatar}
+                        resizeMode='cover'
+                      />
+                      {/* Indicador de expandir */}
+                      <View style={{
+                        position: 'absolute',
+                        bottom: 2,
+                        right: 2,
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                        <Ionicons name="expand" size={10} color="#fff" />
+                      </View>
+                    </TouchableOpacity>
                   ) : (
                     <Ionicons name="person" size={32} color={Colors.primary} />
                   )}
@@ -113,7 +139,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                   <InfoRow label="Lugar de Trabajo" value={parent.job_place || "No disponible"} icon="business" />
                   <InfoRow label="Cargo" value={parent.job || "No disponible"} icon="briefcase" />
 
-                  {/* ========== CÉDULA DEL REPRESENTANTE ========== */}
                   {parent.ci_document && (
                     <View style={styles.documentSection}>
                       <Text style={styles.documentSectionTitle}>Cédula de Identidad</Text>
@@ -141,7 +166,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                     </View>
                   )}
 
-                  {/* ========== FIRMA DEL REPRESENTANTE ========== */}
                   {parent.parent_singnature && (
                     <View style={styles.documentSection}>
                       <Text style={styles.documentSectionTitle}>Firma</Text>
@@ -175,7 +199,6 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
         })}
       </InfoSection>
 
-      {/* ========== MODAL DE VISUALIZACIÓN ========== */}
       {currentDocument && (
         <DocumentViewer
           visible={viewerVisible}
