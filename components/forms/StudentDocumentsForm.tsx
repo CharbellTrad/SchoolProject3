@@ -13,9 +13,7 @@ interface StudentDocumentsFormProps {
   bornDocument?: string;
   onCiDocumentSelected: (base64: string, filename: string) => void;
   onBornDocumentSelected: (base64: string, filename: string) => void;
-  // ✅ NUEVO: Recibir función para obtener tipo de archivo
   getFileType?: (key: string) => 'image' | 'pdf';
-  // ✅ NUEVO: Recibir función para obtener info de imagen
   getImage?: (key: string) => { base64?: string; filename?: string } | undefined;
 }
 
@@ -28,8 +26,8 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
   bornDocument,
   onCiDocumentSelected,
   onBornDocumentSelected,
-  getFileType, // ✅ NUEVO
-  getImage,    // ✅ NUEVO
+  getFileType, 
+  getImage,  
 }) => {
   return (
     <View style={styles.container}>
@@ -82,7 +80,6 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
             onImageSelected={onCiDocumentSelected}
             circular={false}
             acceptPDF={true}
-            // ✅ CRÍTICO: Pasar tipo detectado
             initialFileType={getFileType ? getFileType('ci_document') : undefined}
             initialFilename={getImage ? getImage('ci_document')?.filename : undefined}
           />
@@ -96,7 +93,6 @@ export const StudentDocumentsForm: React.FC<StudentDocumentsFormProps> = ({
             onImageSelected={onBornDocumentSelected}
             circular={false}
             acceptPDF={true}
-            // ✅ CRÍTICO: Pasar tipo detectado
             initialFileType={getFileType ? getFileType('born_document') : undefined}
             initialFilename={getImage ? getImage('born_document')?.filename : undefined}
           />

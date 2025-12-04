@@ -1,24 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Dimensions,
-  Keyboard,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { ActivityIndicator, Dimensions, Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import Colors from '../../constants/Colors';
 import * as authService from '../../services-odoo/authService';
 import { deleteSection, updateSection, type Section, type SectionType } from '../../services-odoo/sectionService';
@@ -38,22 +23,13 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
   onClose,
   onSave,
 }) => {
-  // ========== REFS ==========
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  // ========== ESTADOS ==========
-  const [formData, setFormData] = useState<Partial<Section>>({
-    name: '',
-    type: 'primary',
-  });
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [formData, setFormData] = useState<Partial<Section>>({ name: '', type: 'primary', });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  // Obtener safe area insets para respetar áreas seguras del dispositivo
   const insets = useSafeAreaInsets();
-
-  // ========== SNAP POINTS ==========
-  const snapPoints = useMemo(() => ['95%'], []);
+  const snapPoints = useMemo(() => ['90%'], []);
   const { height } = Dimensions.get('window');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 

@@ -35,21 +35,16 @@ export default function StudentsListScreen() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  // Estados para controlar el crossfade
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [showSkeleton, setShowSkeleton] = useState(true);
 
-  // Efecto para hacer crossfade suave SOLO cuando hay datos
   useEffect(() => {
     if (!initialLoading && showSkeleton) {
-      // Fade out del skeleton
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        // Después del fade out, oculta el skeleton y hace fade in del contenido
         setShowSkeleton(false);
         fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {

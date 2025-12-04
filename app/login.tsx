@@ -34,8 +34,6 @@ export default function LoginScreen() {
   const [isFocused, setIsFocused] = useState({ username: false, password: false });
   const [errors, setErrors] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
-
-  // 🆕 Estados para biometría
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricType, setBiometricType] = useState<string>('Biometría');
@@ -50,7 +48,7 @@ export default function LoginScreen() {
   const biometricButtonScale = useRef(new Animated.Value(0)).current; // 🆕
   const insets = useSafeAreaInsets();
 
-  // 🆕 Verificar disponibilidad de biometría al montar y cuando la pantalla gana foco
+  // Verificar disponibilidad de biometría al montar y cuando la pantalla gana foco
   useEffect(() => {
     checkBiometricSupport();
 
@@ -62,7 +60,7 @@ export default function LoginScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🆕 Función para verificar soporte biométrico
+  // Función para verificar soporte biométrico
   const checkBiometricSupport = async () => {
     try {
       const availability = await biometricService.checkBiometricAvailability();
@@ -129,11 +127,11 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
-  // 🆕 Ofrecer configurar biometría después del login
+  // Ofrecer configurar biometría después del login
   const offerBiometricSetup = async (
     loggedUsername: string, 
     loggedPassword: string, 
-    loggedFullName: string // ✅ Recibe el fullName como parámetro
+    loggedFullName: string 
   ) => {
     try {
       // Verificar si ya está habilitada
@@ -168,7 +166,7 @@ export default function LoginScreen() {
               try {
                 if (__DEV__) {
                   console.log('🔐 Habilitando biometría para:', loggedUsername);
-                  console.log('📝 Full Name:', loggedFullName); // ✅ Debug
+                  console.log('📝 Full Name:', loggedFullName);
                 }
 
                 const LocalAuthentication = await import('expo-local-authentication');
@@ -189,11 +187,10 @@ export default function LoginScreen() {
                   return;
                 }
 
-                // ✅ Guardar con el fullName correcto
                 const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
                   loggedUsername,
                   loggedPassword,
-                  loggedFullName // ✅ Ya tienes el nombre correcto aquí
+                  loggedFullName 
                 );
 
                 if (saved) {
@@ -257,7 +254,6 @@ export default function LoginScreen() {
         console.log('🔐 Intentando login con:', username);
       }
 
-      // ✅ Ahora login retorna { success, user }
       const result = await login(username, password);
 
       if (result.success && result.user) {
@@ -268,12 +264,11 @@ export default function LoginScreen() {
           });
         }
 
-        // ✅ Usar result.user.fullName directamente
         setTimeout(async () => {
           await offerBiometricSetup(
             username,
             password,
-            result.user!.fullName // ✅ Ahora está disponible
+            result.user!.fullName 
           );
         }, 800);
 
@@ -299,7 +294,7 @@ export default function LoginScreen() {
     }
   };
 
-  // 🆕 Manejo de login biométrico
+  // Manejo de login biométrico
   const handleBiometricLogin = async (): Promise<void> => {
     setIsLoading(true);
     setLoginError('');
@@ -664,7 +659,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 20,
   },
-  // 🆕 Estilos biométricos
   biometricButton: {
     borderRadius: 15,
     overflow: 'hidden',
@@ -734,7 +728,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  // 🆕 Botón temporal para limpiar biometría
   clearBiometricButton: {
     backgroundColor: '#fee2e2',
     paddingVertical: 8,

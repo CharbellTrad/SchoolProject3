@@ -84,7 +84,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ student }) => {
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${cleanBase64(student.ci_document)}` }}
                   style={styles.documentImage}
-                  resizeMode='cover'
+                  resizeMode='contain'
                 />
                 {/* Overlay con icono de expandir */}
                 <View style={styles.imageOverlay}>
@@ -115,7 +115,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ student }) => {
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${cleanBase64(student.born_document)}` }}
                   style={styles.documentImage}
-                  resizeMode='cover'
+                  resizeMode='contain'
                 />
                 {/* Overlay con icono de expandir */}
                 <View style={styles.imageOverlay}>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   documentPreview: {
     position: 'relative',
     width: '100%',
-    height: 200,
+    height: 300,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',

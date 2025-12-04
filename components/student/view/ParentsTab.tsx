@@ -153,7 +153,7 @@ export const ParentsTab: React.FC<ParentsTabProps> = ({ student }) => {
                           <Image
                             source={{ uri: `data:image/jpeg;base64,${cleanBase64(parent.ci_document)}` }}
                             style={styles.documentImage}
-                            resizeMode='cover'
+                            resizeMode='contain'
                           />
                           <View style={styles.imageOverlay}>
                             <View style={styles.expandIconContainer}>
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   documentPreview: {
     position: 'relative',
     width: '100%',
-    height: 150,
+    height: 300,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   signatureImage: {
     width: '100%',
-    height: 120,
+    height: '100%',
     backgroundColor: '#f9fafb',
   },
   imageOverlay: {

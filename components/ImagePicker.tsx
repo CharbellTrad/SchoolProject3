@@ -17,7 +17,6 @@ interface ImagePickerComponentProps {
   circular?: boolean;
   acceptPDF?: boolean;
   compress?: boolean;
-  // ✅ NUEVO: Aceptar el tipo desde el padre
   initialFileType?: 'image' | 'pdf';
   initialFilename?: string;
 }
@@ -31,19 +30,17 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
   circular = false,
   acceptPDF = false,
   compress = true,
-  initialFileType, // ✅ NUEVO
-  initialFilename,  // ✅ NUEVO
+  initialFileType, 
+  initialFilename, 
 }) => {
   const [loading, setLoading] = useState(false);
   
-  // ✅ Estados separados para evitar pérdida de tipo
   const [currentFileType, setCurrentFileType] = useState<'image' | 'pdf'>(initialFileType || 'image');
   const [currentFilename, setCurrentFilename] = useState<string>(initialFilename || '');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
 
-  // ✅ CRÍTICO: Detectar tipo cuando cambia el value O initialFileType
   useEffect(() => {
     if (!value) {
       setCurrentFileType('image');
@@ -52,7 +49,6 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
       return;
     }
 
-    // 1️⃣ Si viene tipo inicial del padre, USARLO (más confiable)
     if (initialFileType) {
       setCurrentFileType(initialFileType);
       
@@ -60,7 +56,6 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
         console.log(`✅ Usando tipo inicial del padre: ${initialFileType}`);
       }
     } 
-    // 2️⃣ Si no, detectar por contenido base64
     else {
       const detectedType = detectFileTypeFromBase64(value, currentFilename);
       setCurrentFileType(detectedType);
@@ -70,12 +65,11 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
       }
     }
 
-    // 3️⃣ Si hay filename inicial, usarlo
     if (initialFilename) {
       setCurrentFilename(initialFilename);
     }
 
-    // 4️⃣ Si es PDF, generar thumbnail
+    // Si es PDF, generar thumbnail
     if ((initialFileType === 'pdf' || detectFileTypeFromBase64(value, currentFilename) === 'pdf') && acceptPDF) {
       setGeneratingThumbnail(true);
       generatePdfThumbnail(value, currentFilename || initialFilename || 'document.pdf')
@@ -90,7 +84,7 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
     }
   }, [value, initialFileType, initialFilename, currentFilename, acceptPDF]);
 
-  // ✅ Función auxiliar para detectar tipo (igual que en el hook)
+  // Función auxiliar para detectar tipo (igual que en el hook)
   const detectFileTypeFromBase64 = (base64: string, filename: string): 'image' | 'pdf' => {
     const cleanedBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
     
@@ -309,11 +303,11 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
           />
         ) : !acceptPDF && !value ? (
           <View style={[styles.placeholder, circular && styles.circularPlaceholder]}>
-            <Ionicons name="person" size={circular ? 60 : 80} color={Colors.textTertiary} />
+            <Ionicons name="person" size={circular ? 45 : 60} color={Colors.textTertiary} />
           </View>
         ) : null}
 
-        {acceptPDF && value && (
+        {acceptPDF && value ? (
           <DocumentPreview
             uri={value}
             fileType={currentFileType}
@@ -323,7 +317,11 @@ export const ImagePickerComponent: React.FC<ImagePickerComponentProps> = ({
             circular={false}
             onPress={() => setShowViewer(true)}
           />
-        )}
+        ) : acceptPDF && !value ? (
+          <View style={[styles.placeholder, circular && styles.circularPlaceholder]}>
+            <Ionicons name="document-text" size={circular ? 45 : 60} color={Colors.textTertiary} />
+          </View>
+        ) : null}
 
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
@@ -384,8 +382,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   placeholder: {
-    width: 150,
-    height: 150,
+    width: 100,
+    height: 100,
     marginBottom: 16,
     borderRadius: 12,
     justifyContent: 'center',
@@ -395,8 +393,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary + '30',
   },
   circularPlaceholder: {
-    width: 120,
-    height: 120,
+    width: 80,
+    height: 80,
     borderRadius: 12,
   },
   buttonsContainer: {
@@ -439,7 +437,7 @@ const styles = StyleSheet.create({
 // ============================================
 
 const detectFileTypeFromBase64 = (base64: string, filename: string): 'image' | 'pdf' => {
-  // 1️⃣ PRIORIDAD: Detectar por contenido (más confiable)
+  // Detectar por contenido (más confiable)
   const cleanedBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
   
   // Verificar si es PDF por contenido (los PDFs empiezan con "JVBERi0" en base64)
@@ -450,7 +448,7 @@ const detectFileTypeFromBase64 = (base64: string, filename: string): 'image' | '
     return 'pdf';
   }
   
-  // 2️⃣ FALLBACK: Detectar por extensión del filename
+  // Detectar por extensión del filename
   const extension = filename.toLowerCase().split('.').pop() || '';
   if (extension === 'pdf') {
     if (__DEV__) {
@@ -459,7 +457,7 @@ const detectFileTypeFromBase64 = (base64: string, filename: string): 'image' | '
     return 'pdf';
   }
   
-  // 3️⃣ Por defecto, es imagen
+  // Por defecto, es imagen
   return 'image';
 };
 
@@ -472,10 +470,10 @@ export const useImagePicker = () => {
   }>>({});
 
   const setImage = useCallback((key: string, base64: string, filename: string, thumbnail?: string | null) => {
-    // ✅ Detectar tipo SIEMPRE al guardar
+    // Detectar tipo SIEMPRE al guardar
     const fileType = detectFileTypeFromBase64(base64, filename);
     
-    // ✅ NUEVO: Si es PDF y no hay thumbnail, marcarlo explícitamente
+    // Si es PDF y no hay thumbnail, marcarlo explícitamente
     const finalThumbnail = fileType === 'pdf' ? (thumbnail || null) : undefined;
     
     setImages(prev => ({
@@ -484,7 +482,7 @@ export const useImagePicker = () => {
         base64, 
         filename,
         thumbnail: finalThumbnail,
-        fileType // ✅ Guardar tipo detectado EXPLÍCITAMENTE
+        fileType
       }
     }));
 
@@ -496,7 +494,7 @@ export const useImagePicker = () => {
   const getImage = useCallback((key: string) => {
     const image = images[key];
     
-    // ✅ CRÍTICO: Re-detectar tipo al recuperar (por si acaso)
+    // Re-detectar tipo al recuperar (por si acaso)
     if (image && !image.fileType) {
       const correctedType = detectFileTypeFromBase64(image.base64, image.filename);
       
@@ -530,7 +528,7 @@ export const useImagePicker = () => {
     const image = images[key];
     if (!image) return 'image';
     
-    // ✅ Si no tiene tipo guardado, detectar ahora
+    // Si no tiene tipo guardado, detectar ahora
     if (!image.fileType) {
       const detected = detectFileTypeFromBase64(image.base64, image.filename);
       

@@ -285,7 +285,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                   const page = await pdf.getPage(pageNum);
                   
-                  // 🔥 MEJORADO: Calcular escala con ALTA CALIDAD
+                  // Calcular escala con ALTA CALIDAD
                   // Usar devicePixelRatio para pantallas de alta densidad
                   const viewport = page.getViewport({ scale: 1 });
                   const desiredWidth = window.innerWidth - 20;

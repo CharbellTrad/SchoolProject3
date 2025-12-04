@@ -23,7 +23,6 @@ export default function RegisterSectionScreen() {
 
   const updateField = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Limpiar error del campo
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -52,7 +51,6 @@ export default function RegisterSectionScreen() {
   };
 
   const handleSubmit = async () => {
-    // Verificar conexión
     const serverHealth = await authService.checkServerHealth();
     if (!serverHealth.ok) {
       if (__DEV__) {
@@ -65,7 +63,6 @@ export default function RegisterSectionScreen() {
       return;
     }
 
-    // Validar formulario
     if (!validateForm()) {
       showAlert('Error', 'Complete todos los campos requeridos correctamente');
       return;

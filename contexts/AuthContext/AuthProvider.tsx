@@ -134,15 +134,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     login,
-    loginWithBiometrics, // 🆕
+    loginWithBiometrics,
     logout,
     loading,
     updateUser,
     handleSessionExpired,
-    enableBiometricLogin, // 🆕
-    disableBiometricLogin, // 🆕
-    isBiometricAvailable, // 🆕
-    isBiometricEnabled, // 🆕
+    enableBiometricLogin, 
+    disableBiometricLogin, 
+    isBiometricAvailable, 
+    isBiometricEnabled, 
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

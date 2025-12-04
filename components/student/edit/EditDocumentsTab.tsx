@@ -12,7 +12,6 @@ interface EditDocumentsTabProps {
   bornDocument?: string;
   onCiDocumentSelected: (base64: string, filename: string) => void;
   onBornDocumentSelected: (base64: string, filename: string) => void;
-  // ✅ NUEVO: Recibir función para obtener el tipo de archivo del hook
   getFileType?: (key: string) => 'image' | 'pdf';
 }
 
@@ -23,7 +22,7 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
   bornDocument,
   onCiDocumentSelected,
   onBornDocumentSelected,
-  getFileType, // ✅ NUEVO
+  getFileType, 
 }) => {
   return (
     <View style={styles.container}>
@@ -103,7 +102,6 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
             onImageSelected={onCiDocumentSelected}
             circular={false}
             acceptPDF={true}
-            // ✅ CRÍTICO: Pasar el tipo detectado por el hook
             initialFileType={getFileType ? getFileType('ci_document') : undefined}
             initialFilename={formData.ci_document_filename || 'ci_document.pdf'}
           />
@@ -128,7 +126,6 @@ export const EditDocumentsTab: React.FC<EditDocumentsTabProps> = ({
             onImageSelected={onBornDocumentSelected}
             circular={false}
             acceptPDF={true}
-            // ✅ CRÍTICO: Pasar el tipo detectado por el hook
             initialFileType={getFileType ? getFileType('born_document') : undefined}
             initialFilename={formData.born_document_filename || 'born_document.pdf'}
           />

@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   spinning: {
-    // Animación de rotación se puede agregar con Animated API
   },
   content: {
     flex: 1,

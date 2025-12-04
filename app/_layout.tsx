@@ -34,9 +34,7 @@ SplashScreen.preventAutoHideAsync()
 /**
  * Navegación principal con protección de rutas
  */
-/**
- * Navegación principal con protección de rutas - VERSIÓN CORREGIDA
- */
+
 function RootLayoutNav() {
   const { user, loading } = useAuth()
   const { setAppReady } = useAppReady()
@@ -50,7 +48,6 @@ function RootLayoutNav() {
   // Color adaptativo según el tema del sistema
   const backgroundColor = colorScheme === 'dark' ? '#000000' : '#FFFFFF'
 
-  // ✅ 1. Prevenir splash UNA SOLA VEZ al montar el componente
   useEffect(() => {
     if (!splashPrevented) {
       SplashScreen.preventAutoHideAsync()
@@ -59,7 +56,6 @@ function RootLayoutNav() {
     }
   }, [splashPrevented])
 
-  // ✅ 2. Preparar app - REDUCIDO a 300ms
   useEffect(() => {
     async function prepare() {
       try {
@@ -75,7 +71,6 @@ function RootLayoutNav() {
     prepare()
   }, [])
 
-  // ✅ 3. FALLBACK DE SEGURIDAD - máximo 3 segundos
   useEffect(() => {
     const timeout = setTimeout(async () => {
       if (!splashHidden) {
@@ -88,7 +83,6 @@ function RootLayoutNav() {
     return () => clearTimeout(timeout)
   }, [splashHidden])
 
-  // ✅ 4. Ocultar splash cuando el layout se renderice
   const onLayoutRootView = useCallback(async () => {
     if (!splashHidden && appIsReady) {
       try {
@@ -101,7 +95,7 @@ function RootLayoutNav() {
     }
   }, [appIsReady, splashHidden])
 
-  // Navegación protegida - IGUAL que antes
+  // Navegación protegida
   useEffect(() => {
     if (loading || !appIsReady) {
       return
@@ -138,7 +132,6 @@ function RootLayoutNav() {
     }
   }, [user, segments, loading, router, appIsReady])
 
-  // ✅ 5. SIEMPRE renderizar ALGO (nunca return null)
   if (!appIsReady) {
     return (
       <View style={{ flex: 1, backgroundColor }} />

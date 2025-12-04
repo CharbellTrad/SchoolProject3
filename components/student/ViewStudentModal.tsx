@@ -218,7 +218,7 @@ export const ViewStudentModal: React.FC<ViewStudentModalProps> = ({
         enablePanDownToClose               // Permitir cerrar arrastrando hacia abajo
         handleIndicatorStyle={styles.handleIndicator} // Estilo del indicador (barrita arriba)
         backgroundStyle={styles.bottomSheetBackground} // Estilo del fondo del sheet
-        topInset={insets.top}              // Respetar área segura superior
+        topInset={insets.top + 20}              // Respetar área segura superior
         enableContentPanningGesture={false}  // Deshabilitar gesto de arrastre en el contenido
         enableHandlePanningGesture={true}    // Solo permitir arrastre desde el handle (barrita superior)
         enableOverDrag={false}               // Evitar sobre-arrastre

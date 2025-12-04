@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+
 import Colors from '../../constants/Colors';
 import { cleanBase64, formatFileSize, getFileSize } from '../../utils/pdfUtils';
 
@@ -38,7 +39,6 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   circular = false,
   onPress,
 }) => {
-  
   // ========== PREPARAR URI PARA MOSTRAR ==========
   const getDisplayUri = () => {
     if (fileType === 'image') {
@@ -48,14 +48,26 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return `data:image/jpeg;base64,${base64Clean}`;
     }
 
-    // Para PDF, usar thumbnail si existe
+    // Para PDF:
+    // 1. Primero intentar usar el thumbnail si existe
     if (thumbnail) {
       if (thumbnail.startsWith('data:')) return thumbnail;
       const base64Clean = cleanBase64(thumbnail);
       return `data:image/jpeg;base64,${base64Clean}`;
     }
 
-    return null;
+    // 2. Si no hay thumbnail, intentar mostrar el PDF directamente
+    // (algunos viewers pueden renderizar la primera página)
+    if (uri.startsWith('data:application/pdf')) {
+      return uri;
+    }
+    
+    if (uri.startsWith('data:')) return uri;
+    
+    // 3. Si el URI es base64 sin header, agregarlo
+    const base64Clean = cleanBase64(uri);
+    // Intentar como imagen (algunos PDFs base64 se pueden renderizar así)
+    return `data:image/png;base64,${base64Clean}`;
   };
 
   const displayUri = getDisplayUri();
@@ -64,20 +76,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   // ========== RENDER ==========
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        circular && styles.circularContainer
-      ]}
       onPress={onPress}
+      style={[styles.container, circular && styles.circularContainer]}
       activeOpacity={0.8}
-      disabled={loading}
     >
       {loading ? (
         // ========== ESTADO DE CARGA ==========
-        <View style={[
-          styles.loadingContainer,
-          circular && styles.circularLoading
-        ]}>
+        <View style={[styles.loadingContainer, circular && styles.circularLoading]}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Procesando...</Text>
         </View>
@@ -87,44 +92,36 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           {displayUri ? (
             <Image
               source={{ uri: displayUri }}
-              style={[
-                styles.image,
-                circular && styles.circularImage
-              ]}
-              resizeMode="cover"
+              style={[styles.image, circular && styles.circularImage]}
+              resizeMode={circular ? 'cover' : 'contain'}
+              onError={(error) => {
+                if (__DEV__) {
+                  console.log('Error cargando imagen/PDF:', error.nativeEvent.error);
+                }
+              }}
             />
           ) : (
             // Placeholder para PDF sin thumbnail
-            <View style={[
-              styles.pdfPlaceholder,
-              circular && styles.circularPlaceholder
-            ]}>
-              <Ionicons 
-                name="document-text" 
-                size={circular ? 48 : 64} 
-                color={Colors.primary} 
-              />
+            <View style={[styles.pdfPlaceholder, circular && styles.circularPlaceholder]}>
+              <Ionicons name="document-text" size={48} color={Colors.primary} />
               <Text style={styles.pdfText}>PDF</Text>
             </View>
           )}
 
           {/* ========== OVERLAY CON INFORMACIÓN ========== */}
-          <View style={[
-            styles.overlay,
-            circular && styles.circularOverlay
-          ]}>
-            {/* Badge de tipo de archivo */}
-            {fileType === 'pdf' && (
-              <View style={styles.badge}>
-                <Ionicons name="document-text" size={14} color="#fff" />
-                <Text style={styles.badgeText}>PDF</Text>
-              </View>
-            )}
+          <View style={[styles.overlay, circular && styles.circularOverlay]} />
 
-            {/* Icono de zoom/expand */}
-            <View style={styles.expandIcon}>
-              <Ionicons name="expand" size={20} color="#fff" />
+          {/* Badge de tipo de archivo */}
+          {fileType === 'pdf' && (
+            <View style={styles.badge}>
+              <Ionicons name="document-text" size={12} color="#fff" />
+              <Text style={styles.badgeText}>PDF</Text>
             </View>
+          )}
+
+          {/* Icono de zoom/expand */}
+          <View style={styles.expandIcon}>
+            <Ionicons name="expand" size={18} color="#fff" />
           </View>
 
           {/* ========== INFORMACIÓN DEL ARCHIVO (DEBAJO DE LA VISTA PREVIA) ========== */}
@@ -133,9 +130,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               <Text style={styles.filename} numberOfLines={1}>
                 {filename}
               </Text>
-              <Text style={styles.filesize}>
-                {formatFileSize(sizeKB)}
-              </Text>
+              <Text style={styles.filesize}>{formatFileSize(sizeKB)}</Text>
             </View>
           )}
         </>
@@ -162,7 +157,7 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 3,
-      }
+      },
     }),
   },
   circularContainer: {
@@ -170,7 +165,6 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 12,
   },
-  
   // ========== IMAGEN ==========
   image: {
     width: '100%',
@@ -182,7 +176,6 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 12,
   },
-  
   // ========== PLACEHOLDER PARA PDF ==========
   pdfPlaceholder: {
     width: '100%',
@@ -202,7 +195,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginTop: 8,
   },
-  
   // ========== OVERLAY ==========
   overlay: {
     position: 'absolute',
@@ -216,7 +208,6 @@ const styles = StyleSheet.create({
   circularOverlay: {
     borderRadius: 12,
   },
-  
   // ========== BADGE DE TIPO DE ARCHIVO ==========
   badge: {
     position: 'absolute',
@@ -235,7 +226,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  
   // ========== ICONO DE EXPANDIR ==========
   expandIcon: {
     position: 'absolute',
@@ -248,7 +238,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   // ========== LOADING ==========
   loadingContainer: {
     width: '100%',
@@ -268,7 +257,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
   },
-  
   // ========== INFORMACIÓN DEL ARCHIVO ==========
   infoContainer: {
     padding: 8,
