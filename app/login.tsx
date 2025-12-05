@@ -129,9 +129,9 @@ export default function LoginScreen() {
 
   // Ofrecer configurar biometría después del login
   const offerBiometricSetup = async (
-    loggedUsername: string, 
-    loggedPassword: string, 
-    loggedFullName: string 
+    loggedUsername: string,
+    loggedPassword: string,
+    loggedFullName: string
   ) => {
     try {
       // Verificar si ya está habilitada
@@ -190,7 +190,7 @@ export default function LoginScreen() {
                 const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
                   loggedUsername,
                   loggedPassword,
-                  loggedFullName 
+                  loggedFullName
                 );
 
                 if (saved) {
@@ -268,7 +268,7 @@ export default function LoginScreen() {
           await offerBiometricSetup(
             username,
             password,
-            result.user!.fullName 
+            result.user!.fullName
           );
         }, 800);
 
@@ -339,7 +339,7 @@ export default function LoginScreen() {
         <Head>
           <title>Iniciar Sesión - Sistema Escolar</title>
         </Head>
-        <View style={{...styles.container, paddingTop: insets.top, paddingBottom: insets.bottom }}>
+        <View style={{ ...styles.container, paddingTop: insets.top, paddingBottom: insets.bottom }}>
           {/* Elementos decorativos modernos */}
           <View style={styles.decorativeCircle1} />
           <View style={styles.decorativeCircle2} />
@@ -403,7 +403,7 @@ export default function LoginScreen() {
 
                   {/* 🆕 Mostrar botón biométrico si está disponible y habilitado */}
                   {biometricAvailable && biometricEnabled && biometricUsername && (
-                    <Animated.View style={{ transform: [{ scale: biometricButtonScale }]}}>
+                    <Animated.View style={{ transform: [{ scale: biometricButtonScale }] }}>
                       <TouchableOpacity
                         style={styles.biometricButton}
                         onPress={handleBiometricLogin}
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginTop: 30,
   },
   logoContainer: {
     marginBottom: 16,
@@ -704,6 +704,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 30
   },
   securityBadge: {
     flexDirection: 'row',

@@ -18,7 +18,7 @@ export default function TeacherDashboard() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    
+
     try {
       if (__DEV__) {
         console.log('🔄 Refrescando dashboard...');
@@ -56,7 +56,7 @@ export default function TeacherDashboard() {
       }
 
       setIsOfflineMode(false);
-      
+
       if (__DEV__) {
         console.log('✅ Dashboard actualizado');
       }
@@ -84,7 +84,7 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={[{ flex: 1 }]}>
       <>
         <Head>
           <title>Panel del Profesor</title>
@@ -161,34 +161,34 @@ export default function TeacherDashboard() {
                     description="Ver clases programadas"
                     accentColor="#10b981"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => router.push('/teacher/biometric-devices' as any)}
                   />
-                  
+
                   <TeacherCard
                     icon="people-outline"
                     title="Mis Estudiantes"
                     description="Lista de estudiantes"
                     accentColor="#3b82f6"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <TeacherCard
                     icon="clipboard-outline"
                     title="Asistencia"
                     description="Registro de asistencias"
                     accentColor="#8b5cf6"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <TeacherCard
                     icon="stats-chart-outline"
                     title="Calificaciones"
                     description="Cargar notas"
                     accentColor="#f59e0b"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
                 </View>
               </View>
@@ -206,34 +206,34 @@ export default function TeacherDashboard() {
                     description="Planes de clase"
                     accentColor="#06b6d4"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <TeacherCard
                     icon="document-text-outline"
                     title="Evaluaciones"
                     description="Exámenes y pruebas"
                     accentColor="#ec4899"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <TeacherCard
                     icon="folder-open-outline"
                     title="Recursos"
                     description="Material de apoyo"
                     accentColor="#6366f1"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <TeacherCard
                     icon="chatbubbles-outline"
                     title="Comunicados"
                     description="Mensajes y avisos"
                     accentColor="#ef4444"
                     disabled={isOfflineMode}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
                 </View>
               </View>
@@ -257,9 +257,9 @@ export default function TeacherDashboard() {
                   <InfoRow label="Rol" value="Docente" icon="book" />
                   <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
                   {__DEV__ && (
-                    <InfoRow 
-                      label="Entorno" 
-                      value="Desarrollo" 
+                    <InfoRow
+                      label="Entorno"
+                      value="Desarrollo"
                       icon="code-slash"
                       highlight
                     />
@@ -267,8 +267,8 @@ export default function TeacherDashboard() {
                 </View>
               </View>
 
-              <TouchableOpacity 
-                style={styles.logoutButton} 
+              <TouchableOpacity
+                style={styles.logoutButton}
                 onPress={handleLogout}
                 activeOpacity={0.8}
               >
@@ -301,13 +301,13 @@ interface TeacherCardProps {
   onPress: () => void;
 }
 
-const TeacherCard: React.FC<TeacherCardProps> = ({ 
-  icon, 
-  title, 
-  description, 
+const TeacherCard: React.FC<TeacherCardProps> = ({
+  icon,
+  title,
+  description,
   accentColor,
-  disabled, 
-  onPress 
+  disabled,
+  onPress
 }) => {
   const handlePress = () => {
     if (disabled) {
@@ -321,12 +321,12 @@ const TeacherCard: React.FC<TeacherCardProps> = ({
   };
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
         styles.card,
         { borderLeftColor: disabled ? Colors.gray[300] : accentColor },
         disabled && styles.cardDisabled
-      ]} 
+      ]}
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
@@ -334,17 +334,17 @@ const TeacherCard: React.FC<TeacherCardProps> = ({
         styles.cardIconContainer,
         { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }
       ]}>
-        <Ionicons 
-          name={icon} 
-          size={28} 
-          color={disabled ? Colors.textSecondary : accentColor} 
+        <Ionicons
+          name={icon}
+          size={28}
+          color={disabled ? Colors.textSecondary : accentColor}
         />
       </View>
       <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>
         {title}
       </Text>
       <Text style={styles.cardDescription}>{description}</Text>
-      
+
       {disabled && (
         <View style={styles.disabledIndicator}>
           <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
@@ -365,10 +365,10 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
   return (
     <View style={styles.infoRow}>
       <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
-        <Ionicons 
-          name={icon} 
-          size={18} 
-          color={highlight ? Colors.warning : Colors.secondary} 
+        <Ionicons
+          name={icon}
+          size={18}
+          color={highlight ? Colors.warning : Colors.secondary}
         />
       </View>
       <View style={styles.infoTextContainer}>

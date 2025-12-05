@@ -1,17 +1,18 @@
 /**
  * Hook para operaciones de autenticación (login, logout, updateUser)
- * 🆕 ACTUALIZADO CON BIOMETRÍA
+ * 🆕 ACTUALIZADO CON BIOMETRÍA Y VALIDACIÓN DE DISPOSITIVOS
  */
 
 import { useCallback } from 'react';
 import { showAlert } from '../../components/showAlert';
 import * as authService from '../../services-odoo/authService';
+import * as biometricOdooService from '../../services-odoo/biometricService';
 import * as biometricService from '../../services/biometricService';
+import { getDeviceInfo } from '../../services/biometricService/deviceInfo';
 import { UserSession } from '../../types/auth';
 import { ERROR_MESSAGES } from './constants';
 
 export interface AuthOperationsHook {
-  // ✅ CAMBIAR ESTA LÍNEA
   login: (username: string, password: string) => Promise<{ success: boolean; user?: UserSession }>;
   loginWithBiometrics: () => Promise<boolean>;
   logout: () => Promise<void>;
@@ -40,7 +41,6 @@ export const useAuthOperations = ({
 }: UseAuthOperationsProps): AuthOperationsHook => {
   /**
    * Login tradicional con Odoo
-   * ✅ MODIFICADO: Retorna { success, user }
    */
   const login = useCallback(
     async (username: string, password: string): Promise<{ success: boolean; user?: UserSession }> => {
@@ -51,76 +51,82 @@ export const useAuthOperations = ({
           console.log('🔐 Intentando login tradicional:', username);
         }
 
-        // Verificar servidor
         const serverHealth = await authService.checkServerHealth();
-
         if (!serverHealth.ok) {
           showAlert('Servidor no disponible', ERROR_MESSAGES.SERVER_UNAVAILABLE);
-          return { success: false }; // ✅ Cambiar aquí
+          return { success: false };
         }
 
-        // Intentar login
         const result = await authService.login(username, password);
 
-        // Caso especial: usuario sin rol
         if (!result.success && result.message === 'NO_ROLE_DEFINED') {
           if (__DEV__) {
-            console.log('❌ Usuario sin rol definido - Mostrando alerta y limpiando datos');
+            console.log('❌ Usuario sin rol definido');
           }
-
           await authService.logout();
           setUser(null);
-
           showAlert('Usuario sin rol', ERROR_MESSAGES.NO_ROLE, [
-            {
-              text: 'Aceptar',
-              onPress: () => {},
-            },
+            { text: 'Aceptar', onPress: () => { } },
           ]);
-
-          return { success: false }; // ✅ Cambiar aquí
+          return { success: false };
         }
 
-        // Login exitoso
         if (result.success && result.user) {
           if (__DEV__) {
             console.log('✅ Login exitoso:', {
               username: result.user.username,
               role: result.user.role,
-              fullName: result.user.fullName, // ✅ Debug
+              fullName: result.user.fullName,
               uid: result.user.odooData.uid,
             });
           }
 
-          // Verificar sesión
           const validSession = await authService.verifySession();
-
           if (!validSession) {
             if (__DEV__) {
-              console.log('❌ La sesión no pudo ser verificada después del login');
+              console.log('❌ La sesión no pudo ser verificada');
             }
-
             showAlert('Error de sesión', ERROR_MESSAGES.SESSION_ERROR);
             await authService.logout();
-            return { success: false }; // ✅ Cambiar aquí
+            return { success: false };
           }
 
           setUser(validSession);
           setSessionExpiredHandled(false);
-          return { success: true, user: validSession }; // ✅ Cambiar aquí
+
+          // 🆕 Registrar login tradicional en historial con info del dispositivo
+          try {
+            const deviceInfo = await getDeviceInfo();
+            await biometricOdooService.logTraditionalLogin(
+              validSession.token,
+              {
+                device_name: deviceInfo.deviceName || 'Dispositivo',
+                platform: deviceInfo.platform || 'unknown',
+                device_id: deviceInfo.deviceId // 🆕 ID único para identificar dispositivo
+              }
+            );
+            if (__DEV__) {
+              console.log('✅ Login tradicional registrado en historial');
+            }
+          } catch (logError) {
+            if (__DEV__) {
+              console.warn('⚠️ Error registrando login tradicional:', logError);
+            }
+          }
+
+          return { success: true, user: validSession };
         } else {
           if (__DEV__) {
             console.log('❌ Login fallido:', result.message);
           }
-          return { success: false }; // ✅ Cambiar aquí
+          return { success: false };
         }
       } catch (error: any) {
         if (__DEV__) {
           console.log('❌ Error inesperado en login:', error);
         }
-
         showAlert('Error', ERROR_MESSAGES.UNEXPECTED_ERROR);
-        return { success: false }; // ✅ Cambiar aquí
+        return { success: false };
       } finally {
         setLoading(false);
       }
@@ -129,9 +135,13 @@ export const useAuthOperations = ({
   );
 
   /**
-   * 🆕 Login con biometría
+   * 🆕 Login con biometría - CORREGIDO para evitar error "No hay sesión activa"
    */
   const loginWithBiometrics = useCallback(async (): Promise<boolean> => {
+    const startTime = Date.now();
+    let odooDeviceId: number | null = null;
+    let currentDeviceInfo: { deviceId: string } | null = null;
+
     try {
       setLoading(true);
 
@@ -139,7 +149,16 @@ export const useAuthOperations = ({
         console.log('🔐 Intentando login biométrico...');
       }
 
-      // 1. Autenticar con biometría (esto ya incluye el prompt y obtiene username + password)
+      // 1. Obtener información del dispositivo local (SIN llamar a Odoo aún)
+      try {
+        currentDeviceInfo = await getDeviceInfo();
+      } catch (deviceError) {
+        if (__DEV__) {
+          console.warn('⚠️ No se pudo obtener info del dispositivo:', deviceError);
+        }
+      }
+
+      // 2. Autenticar con biometría local
       const bioResult = await biometricService.authenticateWithBiometrics({
         promptMessage: 'Inicia sesión con biometría',
       });
@@ -149,7 +168,6 @@ export const useAuthOperations = ({
           console.log('❌ Autenticación biométrica fallida:', bioResult.error);
         }
 
-        // Solo mostrar error si no es cancelación del usuario
         if (bioResult.errorCode !== biometricService.BiometricErrorCode.USER_CANCELED) {
           showAlert('Error Biométrico', bioResult.error || 'No se pudo autenticar');
         }
@@ -158,23 +176,22 @@ export const useAuthOperations = ({
       }
 
       const username = bioResult.username!;
-      const password = bioResult.password!; // 🆕 Ahora tenemos la contraseña
+      const password = bioResult.password!;
 
       if (__DEV__) {
-        console.log('✅ Autenticación biométrica exitosa para:', username);
+        console.log('✅ Autenticación biométrica local exitosa para:', username);
       }
 
-      // 2. Verificar servidor
+      // 3. Verificar servidor
       const serverHealth = await authService.checkServerHealth();
-
       if (!serverHealth.ok) {
         showAlert('Servidor no disponible', ERROR_MESSAGES.SERVER_UNAVAILABLE);
         return false;
       }
 
-      // 3. 🆕 Hacer login automático con las credenciales recuperadas
+      // 4. Login automático con Odoo (AQUÍ se crea la sesión)
       if (__DEV__) {
-        console.log('🔐 Realizando login automático con credenciales biométricas...');
+        console.log('🔐 Realizando login automático en Odoo...');
       }
 
       const loginResult = await authService.login(username, password);
@@ -184,15 +201,14 @@ export const useAuthOperations = ({
           console.log('❌ Login automático fallido:', loginResult.message);
         }
 
-        // Si las credenciales no funcionan, limpiar biometría
-        if (loginResult.message?.includes('incorrectos') || 
-            loginResult.message?.includes('denied')) {
+        if (loginResult.message?.includes('incorrectos') ||
+          loginResult.message?.includes('denied')) {
           await biometricService.clearBiometricCredentials();
-          
+
           showAlert(
             'Credenciales Inválidas',
             'Las credenciales guardadas ya no son válidas. Por favor, inicia sesión nuevamente.',
-            [{ text: 'Aceptar', onPress: () => {} }]
+            [{ text: 'Aceptar', onPress: () => { } }]
           );
         } else {
           showAlert('Error', loginResult.message || 'Error al iniciar sesión');
@@ -201,14 +217,12 @@ export const useAuthOperations = ({
         return false;
       }
 
-      // 4. Verificar sesión
+      // 5. Verificar sesión
       const validSession = await authService.verifySession();
-
       if (!validSession) {
         if (__DEV__) {
           console.log('❌ La sesión no pudo ser verificada después del login biométrico');
         }
-
         await authService.logout();
         showAlert('Error de sesión', ERROR_MESSAGES.SESSION_ERROR);
         return false;
@@ -221,10 +235,81 @@ export const useAuthOperations = ({
         });
       }
 
+      // 6. Actualizar último uso local
       await biometricService.updateLastUsed();
 
-      if (__DEV__) {
-        console.log('📅 Timestamp de último uso actualizado');
+      // 7. 🆕 Validar que el dispositivo siga activo en Odoo (DESPUÉS del login)
+      if (currentDeviceInfo?.deviceId) {
+        try {
+          const validationResult = await biometricOdooService.validateDevice(currentDeviceInfo.deviceId);
+
+          if (!validationResult.valid) {
+            const status = (validationResult as any).status || 'revocado';
+
+            if (__DEV__) {
+              console.log(`❌ Dispositivo ${status}:`, validationResult.message);
+            }
+
+            // Si el dispositivo está deshabilitado (no revocado), no limpiar credenciales
+            if (status === 'deshabilitado') {
+              await authService.logout();
+              setUser(null);
+
+              showAlert(
+                'Dispositivo Deshabilitado',
+                'Este dispositivo ha sido deshabilitado temporalmente. Contacta al administrador o espera a que sea habilitado nuevamente.',
+                [{ text: 'Aceptar', onPress: () => { } }]
+              );
+            } else {
+              // Dispositivo revocado - limpiar todo
+              await biometricService.clearBiometricCredentials();
+              await authService.logout();
+              setUser(null);
+
+              showAlert(
+                'Dispositivo Revocado',
+                'Este dispositivo ya no está autorizado para usar biometría. Por favor, inicia sesión con usuario y contraseña.',
+                [{ text: 'Aceptar', onPress: () => { } }]
+              );
+            }
+
+            return false;
+          }
+
+          odooDeviceId = validationResult.deviceOdooId;
+
+          if (__DEV__) {
+            console.log('✅ Dispositivo validado en Odoo:', validationResult.deviceOdooId);
+          }
+        } catch (validationError) {
+          if (__DEV__) {
+            console.warn('⚠️ No se pudo validar dispositivo (ignorado):', validationError);
+          }
+        }
+      }
+
+      // 8. Registrar autenticación exitosa en Odoo
+      if (odooDeviceId) {
+        try {
+          await biometricOdooService.logAuthentication(
+            biometricOdooService.createAuthLogPayload(
+              odooDeviceId,
+              true,
+              {
+                sessionId: validSession.token,
+                durationMs: Date.now() - startTime,
+              }
+            )
+          );
+
+          if (__DEV__) {
+            console.log('✅ Log de autenticación registrado en Odoo');
+          }
+        } catch (logError) {
+          if (__DEV__) {
+            console.warn('⚠️ Error registrando log en Odoo (ignorado):', logError);
+          }
+        }
       }
 
       setUser(validSession);
@@ -258,9 +343,7 @@ export const useAuthOperations = ({
         console.log('🔐 Habilitando biometría para:', user.username);
       }
 
-      // Verificar disponibilidad
       const availability = await biometricService.checkBiometricAvailability();
-
       if (!availability.isAvailable) {
         const message = !availability.hasHardware
           ? 'Tu dispositivo no soporta autenticación biométrica'
@@ -270,7 +353,6 @@ export const useAuthOperations = ({
         return false;
       }
 
-      // Realizar autenticación de prueba
       const bioResult = await biometricService.authenticateWithBiometrics({
         promptMessage: 'Confirma tu identidad para habilitar biometría',
       });
@@ -282,11 +364,10 @@ export const useAuthOperations = ({
         return false;
       }
 
-      // ✅ CORREGIR AQUÍ: Agregar fullName
       const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
-        user.username, 
+        user.username,
         user.password,
-        user.fullName // ✅ Agregar este parámetro
+        user.fullName
       );
 
       if (saved) {
@@ -376,7 +457,20 @@ export const useAuthOperations = ({
         console.log('🔓 Cerrando sesión...');
       }
 
-      // Destruir sesión en Odoo
+      // 🆕 Marcar sesión como finalizada en Odoo (solo para este dispositivo)
+      try {
+        const deviceInfo = await getDeviceInfo();
+        await biometricOdooService.endSession(undefined, deviceInfo.deviceId);
+
+        if (__DEV__) {
+          console.log('✅ Sesión marcada como finalizada en Odoo para dispositivo:', deviceInfo.deviceName);
+        }
+      } catch (sessionError) {
+        if (__DEV__) {
+          console.warn('⚠️ Error finalizando sesión en Odoo:', sessionError);
+        }
+      }
+
       await authService.logout();
 
       if (__DEV__) {
@@ -390,7 +484,6 @@ export const useAuthOperations = ({
         console.log('⚠️ Error durante logout:', error);
       }
 
-      // Asegurar limpieza local
       setUser(null);
       setSessionExpiredHandled(false);
     } finally {

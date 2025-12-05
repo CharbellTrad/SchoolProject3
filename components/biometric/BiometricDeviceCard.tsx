@@ -3,16 +3,21 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, LayoutAnimation, Platform, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native';
 import Colors from '../../constants/Colors';
-import { BiometricDevice, formatPlatform, getPlatformIcon } from '../../services/biometricService';
-import { formatEnrolledDate, formatLastUsed, getBiometricIcon, getDeviceStatusColor, getDeviceStatusText, getShortDeviceId, } from '../../utils/biometricHelpers';
+import type { BiometricDeviceBackend } from '../../services-odoo/biometricService';
+import { getBiometricIcon } from '../../utils/biometricHelpers';
+
+// Habilitar animaciones de layout en Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface BiometricDeviceCardProps {
-  device: BiometricDevice;
-  onRevoke?: (device: BiometricDevice) => void;
-  onViewDetails?: (device: BiometricDevice) => void;
+  device: BiometricDeviceBackend;
+  onRevoke?: (device: BiometricDeviceBackend) => void;
+  onViewDetails?: (device: BiometricDeviceBackend) => void;
   isLoading?: boolean;
 }
 
@@ -22,217 +27,380 @@ export const BiometricDeviceCard: React.FC<BiometricDeviceCardProps> = ({
   onViewDetails,
   isLoading = false,
 }) => {
-  const statusColor = getDeviceStatusColor(device);
-  const statusText = getDeviceStatusText(device);
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(!expanded);
+  };
+
+  const getStatusColor = (): string => {
+    if (device.state === 'revoked') return Colors.error;
+    if (device.hasActiveSession) return Colors.success;
+    if (device.isStale) return Colors.warning;
+    return Colors.textSecondary;
+  };
+
+  const getStatusText = (): string => {
+    if (device.state === 'revoked') return 'Revocado';
+    if (device.hasActiveSession) return 'Sesión activa';
+    if (device.isStale) return 'Inactivo (>30 días)';
+    return 'Inactivo';
+  };
+
+  const getPlatformIcon = (): string => {
+    switch (device.platform) {
+      case 'ios': return 'logo-apple';
+      case 'android': return 'logo-android';
+      default: return 'desktop-outline';
+    }
+  };
+
+  const formatLastUsed = (): string => {
+    if (!device.lastUsedAt) return 'Nunca usado';
+    try {
+      const date = new Date(device.lastUsedAt);
+      return date.toLocaleDateString('es-VE', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      });
+    } catch { return 'Desconocido'; }
+  };
+
+  const statusColor = getStatusColor();
+  const statusText = getStatusText();
+  const isCurrent = device.isCurrentDevice;
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onViewDetails?.(device)}
-      activeOpacity={0.7}
-      disabled={isLoading}
-    >
-      {/* Header con icono de plataforma */}
-      <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: statusColor + '15' }]}>
-          <Ionicons
-            name={getPlatformIcon(device.platform) as any}
-            size={28}
-            color={statusColor}
-          />
-        </View>
-
-        <View style={styles.headerInfo}>
-          <Text style={styles.deviceName} numberOfLines={1}>
-            {device.deviceName}
-          </Text>
-          <View style={styles.statusRow}>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {statusText}
-            </Text>
-          </View>
-        </View>
-
-        {device.isCurrentDevice && (
-          <View style={styles.currentBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-          </View>
-        )}
-      </View>
-
-      {/* Información del dispositivo */}
-      <View style={styles.infoSection}>
-        <InfoRow
-          icon="phone-portrait-outline"
-          label="Modelo"
-          value={`${device.brand} ${device.modelName}`}
-        />
-        <InfoRow
-          icon={ device.platform === 'ios' ? 'logo-apple' : 'logo-android' }
-          label="Sistema"
-          value={`${formatPlatform(device.platform)} ${device.osVersion}`}
-        />
-        <InfoRow
-          icon={getBiometricIcon(device.biometricType)}
-          label="Biometría"
-          value={device.biometricType}
-        />
-        <InfoRow
-          icon="calendar-outline"
-          label="Registrado"
-          value={formatEnrolledDate(device.enrolledAt)}
-        />
-        <InfoRow
-          icon="time-outline"
-          label="Último uso"
-          value={formatLastUsed(device.lastUsedAt)}
-        />
-        <InfoRow
-          icon="key-outline"
-          label="ID Dispositivo"
-          value={getShortDeviceId(device.deviceId)}
-        />
-      </View>
-
-      {/* Acciones */}
-      {onRevoke && (
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.revokeButton}
-            onPress={() => onRevoke(device)}
-            disabled={isLoading}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={18} color={Colors.error} />
-            <Text style={styles.revokeButtonText}>Eliminar Biometría</Text>
-          </TouchableOpacity>
+    <View style={[
+      styles.card,
+      isCurrent && styles.currentCard,
+      device.state === 'revoked' && styles.revokedCard
+    ]}>
+      {/* Indicador de Dispositivo Actual */}
+      {isCurrent && (
+        <View style={styles.currentBadgeTop}>
+          <Text style={styles.currentBadgeText}>Este Dispositivo</Text>
         </View>
       )}
-    </TouchableOpacity>
-  );
-};
 
-interface InfoRowProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-}
+      {/* Header Principal */}
+      <TouchableOpacity
+        style={styles.mainContent}
+        onPress={toggleExpand}
+        activeOpacity={0.8}
+      >
+        <View style={styles.headerRow}>
+          <View style={[styles.iconBox, { backgroundColor: statusColor + '15' }]}>
+            <Ionicons name={getPlatformIcon() as any} size={28} color={statusColor} />
+            {device.hasActiveSession && (
+              <View style={[styles.onlineDot, { backgroundColor: Colors.success }]} />
+            )}
+          </View>
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
-  return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoLeft}>
-        <Ionicons name={icon} size={16} color={Colors.textSecondary} />
-        <Text style={styles.infoLabel}>{label}</Text>
-      </View>
-      <Text style={styles.infoValue} numberOfLines={1}>
-        {value}
-      </Text>
+          <View style={styles.titleColumn}>
+            <Text style={styles.deviceName} numberOfLines={1}>{device.deviceName}</Text>
+            <View style={styles.statusRow}>
+              <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
+              <Text style={styles.separator}>•</Text>
+              <Text style={styles.lastUsedText}>{formatLastUsed()}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity onPress={toggleExpand} style={styles.chevronButton}>
+            <Ionicons
+              name={expanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={Colors.textTertiary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Info Grid (Siempre visible - Resumido) */}
+        {!expanded && (
+          <View style={styles.miniGrid}>
+            <View style={styles.miniItem}>
+              <Ionicons name={getBiometricIcon(device.biometricType)} size={14} color={Colors.textSecondary} />
+              <Text style={styles.miniText}>{device.biometricType}</Text>
+            </View>
+            <View style={styles.miniItem}>
+              <Ionicons name="phone-portrait-outline" size={14} color={Colors.textSecondary} />
+              <Text style={styles.miniText}>{device.modelName}</Text>
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Detalles Expandidos */}
+      {expanded && (
+        <View style={styles.expandedContent}>
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Detalles del Dispositivo</Text>
+          <View style={styles.grid}>
+            <InfoItem label="Modelo" value={device.modelName} icon="hardware-chip-outline" />
+            <InfoItem label="Marca" value={device.brand} icon="pricetag-outline" />
+            <InfoItem label="SO" value={`${device.platform.toUpperCase()} ${device.osVersion}`} icon="layers-outline" />
+            <InfoItem label="Biometría" value={device.biometricType} icon="finger-print-outline" />
+            <InfoItem label="Inscrito" value={new Date(device.enrolledAt).toLocaleDateString()} icon="calendar-outline" />
+            <InfoItem label="Auths" value={device.authCount.toString()} icon="shield-checkmark-outline" />
+          </View>
+
+          {(device.device_info_json || device.notes) && (
+            <View style={styles.techDetails}>
+              <Text style={styles.sectionTitle}>Información Técnica</Text>
+              {device.notes && (
+                <TouchableOpacity
+                  style={styles.noteBox}
+                  onPress={() => Alert.alert('Notas', device.notes)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="document-text-outline" size={16} color={Colors.textSecondary} />
+                  <Text style={styles.noteText}>{device.notes}</Text>
+                </TouchableOpacity>
+              )}
+              {device.device_info_json && (
+                <TouchableOpacity
+                  onPress={() => Alert.alert('Información Técnica', device.device_info_json)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.jsonText} numberOfLines={3}>
+                    {device.device_info_json}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {/* Acciones */}
+          {onRevoke && device.state !== 'revoked' && (
+            <TouchableOpacity
+              style={styles.revokeButton}
+              onPress={() => onRevoke(device)}
+              disabled={isLoading}
+            >
+              <Ionicons name="trash-outline" size={18} color={Colors.error} />
+              <Text style={styles.revokeText}>Revocar Acceso</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 };
 
+const InfoItem: React.FC<{ label: string; value: string; icon: any }> = ({ label, value, icon }) => (
+  <TouchableOpacity
+    style={styles.infoItem}
+    onPress={() => Alert.alert(label, value)}
+    activeOpacity={0.7}
+  >
+    <View style={styles.imgIcon}>
+      <Ionicons name={icon} size={16} color={Colors.textSecondary} />
+    </View>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+    </View>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 20,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    overflow: 'hidden',
   },
-  header: {
+  currentCard: {
+    borderColor: Colors.primary + '40',
+    backgroundColor: '#f8f9ff',
+  },
+  revokedCard: {
+    opacity: 0.8,
+    backgroundColor: '#f9fafb',
+  },
+  currentBadgeTop: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    borderBottomRightRadius: 12,
+  },
+  currentBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  mainContent: {
+    padding: 16,
+  },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    gap: 14,
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
+  iconBox: {
+    width: 52,
+    height: 52,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    position: 'relative',
   },
-  headerInfo: {
+  onlineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
+    position: 'absolute',
+    top: -2,
+    right: -2,
+  },
+  titleColumn: {
     flex: 1,
+    gap: 4,
   },
   deviceName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 4,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    flexWrap: 'wrap',
   },
   statusText: {
     fontSize: 13,
     fontWeight: '600',
   },
-  currentBadge: {
-    marginLeft: 8,
+  separator: {
+    marginHorizontal: 6,
+    color: Colors.textTertiary,
+    fontSize: 10,
   },
-  infoSection: {
-    gap: 12,
+  lastUsedText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
-  infoRow: {
+  chevronButton: {
+    padding: 8,
+  },
+  miniGrid: { // Resumen colapsado
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 12,
+    gap: 16,
   },
-  infoLeft: {
+  miniItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flex: 1,
+    gap: 6,
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
-  infoLabel: {
-    fontSize: 14,
+  miniText: {
+    fontSize: 12,
     color: Colors.textSecondary,
     fontWeight: '500',
   },
+  expandedContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  infoItem: {
+    width: '48%', // Aprox 2 columnas
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  imgIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoLabel: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
   infoValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textPrimary,
     fontWeight: '600',
-    flex: 1,
-    textAlign: 'right',
   },
-  actions: {
+  techDetails: {
     marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 12,
+  },
+  noteBox: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  noteText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  jsonText: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   revokeButton: {
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fef2f2',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: '#fee2e2',
+    padding: 14,
     borderRadius: 12,
     gap: 8,
-    borderWidth: 1,
-    borderColor: '#fecaca',
   },
-  revokeButtonText: {
+  revokeText: {
     color: Colors.error,
-    fontSize: 14,
     fontWeight: '700',
+    fontSize: 14,
   },
 });
