@@ -17,7 +17,7 @@ export default function StudentDashboard() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    
+
     try {
       if (__DEV__) {
         console.log('🔄 Refrescando dashboard...');
@@ -55,7 +55,7 @@ export default function StudentDashboard() {
       }
 
       setIsOfflineMode(false);
-      
+
       if (__DEV__) {
         console.log('✅ Dashboard actualizado');
       }
@@ -96,16 +96,17 @@ export default function StudentDashboard() {
         >
           <View style={styles.headerContent}>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.greeting}>Hola Estudiante 🎓</Text>
-              <Text style={styles.userName}>{user.fullName}</Text>
+              <Text style={styles.schoolName}>U.E.N.B. Ciudad Jardín</Text>
+              <Text style={styles.greeting}>Hola, {user.fullName || 'Estudiante'} 🎓</Text>
+              <Text style={styles.userName}>Panel Estudiantil</Text>
               <View style={styles.roleContainer}>
                 <View style={styles.roleBadge}>
-                  <Ionicons name="school" size={12} color="#6366f1" />
+                  <Ionicons name="school" size={12} color="#fff" />
                   <Text style={styles.roleText}>Estudiante</Text>
                 </View>
                 {__DEV__ && (
                   <View style={styles.devBadge}>
-                    <Ionicons name="code-working" size={10} color="#f59e0b" />
+                    <Ionicons name="code-working" size={10} color="#fff" />
                     <Text style={styles.devBadgeText}>DEV</Text>
                   </View>
                 )}
@@ -146,6 +147,8 @@ export default function StudentDashboard() {
               </View>
             )}
 
+
+
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="book-outline" size={24} color="#6366f1" />
@@ -159,34 +162,34 @@ export default function StudentDashboard() {
                   description="Ver clases del día"
                   accentColor="#6366f1"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="stats-chart-outline"
                   title="Calificaciones"
                   description="Ver mis notas"
                   accentColor="#3b82f6"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="checkmark-done-outline"
                   title="Asistencia"
                   description="Mi registro"
                   accentColor="#10b981"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="clipboard-outline"
                   title="Tareas"
                   description="Trabajos pendientes"
                   accentColor="#f59e0b"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
               </View>
             </View>
@@ -204,34 +207,34 @@ export default function StudentDashboard() {
                   description="Material de estudio"
                   accentColor="#8b5cf6"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="document-outline"
                   title="Evaluaciones"
                   description="Próximos exámenes"
                   accentColor="#ec4899"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="chatbubbles-outline"
                   title="Comunicados"
                   description="Avisos importantes"
                   accentColor="#ef4444"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
-                
+
                 <StudentCard
                   icon="trophy-outline"
                   title="Logros"
                   description="Mis reconocimientos"
                   accentColor="#f59e0b"
                   disabled={isOfflineMode}
-                  onPress={() => {}}
+                  onPress={() => { }}
                 />
               </View>
             </View>
@@ -239,12 +242,14 @@ export default function StudentDashboard() {
             <View style={styles.infoCard}>
               <View style={styles.infoHeader}>
                 <View style={styles.infoHeaderLeft}>
-                  <Ionicons name="person-circle-outline" size={24} color="#6366f1" />
-                  <Text style={styles.infoTitle}>Mi Información</Text>
+                  <View style={styles.infoIconWrapper}>
+                    <Ionicons name="person" size={20} color="#6366f1" />
+                  </View>
+                  <Text style={styles.infoTitle}>Mi Perfil</Text>
                 </View>
                 {refreshing && (
                   <View style={styles.refreshingBadge}>
-                    <Text style={styles.refreshingText}>Actualizando</Text>
+                    <Text style={styles.refreshingText}>Actualizando...</Text>
                   </View>
                 )}
               </View>
@@ -253,11 +258,11 @@ export default function StudentDashboard() {
                 <InfoRow label="Usuario" value={user.username} icon="at" />
                 <InfoRow label="Email" value={user.email} icon="mail" />
                 <InfoRow label="Rol" value="Estudiante" icon="school" />
-                <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
+                <InfoRow label="Sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
                 {__DEV__ && (
-                  <InfoRow 
-                    label="Entorno" 
-                    value="Desarrollo" 
+                  <InfoRow
+                    label="Entorno"
+                    value="Desarrollo"
                     icon="code-slash"
                     highlight
                   />
@@ -265,8 +270,8 @@ export default function StudentDashboard() {
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={styles.logoutButton} 
+            <TouchableOpacity
+              style={styles.logoutButton}
               onPress={handleLogout}
               activeOpacity={0.8}
             >
@@ -298,13 +303,13 @@ interface StudentCardProps {
   onPress: () => void;
 }
 
-const StudentCard: React.FC<StudentCardProps> = ({ 
-  icon, 
-  title, 
-  description, 
+const StudentCard: React.FC<StudentCardProps> = ({
+  icon,
+  title,
+  description,
   accentColor,
-  disabled, 
-  onPress 
+  disabled,
+  onPress
 }) => {
   const handlePress = () => {
     if (disabled) {
@@ -318,30 +323,36 @@ const StudentCard: React.FC<StudentCardProps> = ({
   };
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
         styles.card,
-        { borderLeftColor: disabled ? Colors.gray[300] : accentColor },
+        { borderColor: 'rgba(241, 245, 249, 1.0)' },
         disabled && styles.cardDisabled
-      ]} 
+      ]}
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
-      <View style={[
-        styles.cardIconContainer,
-        { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }
-      ]}>
-        <Ionicons 
-          name={icon} 
-          size={28} 
-          color={disabled ? Colors.textSecondary : accentColor} 
+      {/* Backdrop Icon for Visual Interest */}
+      <Ionicons name={icon} size={90} color={accentColor} style={styles.cardBackdropIcon} />
+
+      <View style={[styles.cardIconContainer]}>
+        <Ionicons
+          name={icon}
+          size={30}
+          color={disabled ? Colors.textSecondary : accentColor}
         />
       </View>
-      <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>
-        {title}
-      </Text>
-      <Text style={styles.cardDescription}>{description}</Text>
-      
+      <View>
+        <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>
+          {title}
+        </Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>{description}</Text>
+      </View>
+
+      {!disabled && (
+        <Ionicons name="arrow-forward" size={16} color={accentColor} style={styles.arrowIcon} />
+      )}
+
       {disabled && (
         <View style={styles.disabledIndicator}>
           <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
@@ -362,10 +373,10 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight }) => {
   return (
     <View style={styles.infoRow}>
       <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
-        <Ionicons 
-          name={icon} 
-          size={18} 
-          color={highlight ? Colors.warning : '#6366f1'} 
+        <Ionicons
+          name={icon}
+          size={18}
+          color={highlight ? Colors.warning : '#6366f1'}
         />
       </View>
       <View style={styles.infoTextContainer}>
@@ -385,39 +396,42 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'android' ? 60 : 70,
-    paddingBottom: 32,
+    paddingBottom: 50,
     paddingHorizontal: 24,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      }
-    }),
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    marginBottom: -40,
+    zIndex: 1,
+    overflow: 'hidden',
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   headerTextContainer: {
     flex: 1,
   },
-  greeting: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontWeight: '500',
-    marginBottom: 6,
+  schoolName: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  userName: {
-    fontSize: 26,
+  greeting: {
+    fontSize: 30,
     fontWeight: '800',
     color: '#fff',
     marginBottom: 8,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+  },
+  userName: {
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '500',
+    marginBottom: 12,
   },
   roleContainer: {
     flexDirection: 'row',
@@ -427,60 +441,58 @@ const styles = StyleSheet.create({
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
     gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   roleText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#6366f1',
-    letterSpacing: 0.2,
+    color: '#fff',
   },
   devBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    borderColor: 'rgba(245, 158, 11, 0.5)',
     gap: 4,
   },
   devBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#f59e0b',
-    letterSpacing: 0.5,
+    color: '#fff',
   },
   avatarContainer: {
     marginLeft: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 0,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      }
-    }),
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   content: {
     flex: 1,
   },
   dashboardContent: {
     padding: 20,
+    paddingTop: 0,
   },
   offlineBanner: {
     flexDirection: 'row',
@@ -491,13 +503,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 24,
     gap: 10,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 0,
+    marginTop: 50,
   },
   offlineText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
     flex: 1,
-    letterSpacing: 0.2,
   },
   section: {
     marginBottom: 28,
@@ -507,61 +524,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     gap: 10,
+    paddingLeft: 4,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   cardsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -6,
+    marginHorizontal: -8,
   },
   card: {
-    width: '48%',
-    margin: '1%',
+    width: '46%',
+    margin: '2%',
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      }
-    }),
+    borderRadius: 24,
+    padding: 16,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    aspectRatio: 1.0,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(203, 213, 225, 0.6)',
   },
   cardDisabled: {
     opacity: 0.6,
     backgroundColor: '#f9fafb',
+    elevation: 0,
+  },
+  cardBackdropIcon: {
+    position: 'absolute',
+    right: -12,
+    bottom: -12,
+    opacity: 0.1,
+    transform: [{ rotate: '-15deg' }],
   },
   cardIconContainer: {
-    width: 56,
-    height: 56,
+    width: 58,
+    height: 58,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    backgroundColor: '#f8fafc',
+    marginBottom: 8,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-    letterSpacing: -0.2,
+    color: '#1e293b',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   cardTitleDisabled: {
     color: Colors.textSecondary,
   },
   cardDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '600',
+    lineHeight: 16,
+    marginTop: 'auto',
+  },
+  arrowIcon: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    opacity: 0.4,
   },
   disabledIndicator: {
     position: 'absolute',
@@ -570,41 +606,34 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 20,
-    marginTop: 4,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-      }
-    }),
+    marginTop: 0,
+    marginBottom: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 0,
   },
   infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   infoHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   refreshingBadge: {
-    backgroundColor: '#6366f1' + '15',
+    backgroundColor: '#6366f1' + '10',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -615,56 +644,64 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   infoContent: {
-    gap: 4,
+    marginTop: 20,
+    gap: 0,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 4,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
   infoIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#6366f1' + '15',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
   },
   infoIconWrapperHighlight: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fffbeb',
   },
   infoTextContainer: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontWeight: '500',
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginBottom: 2,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.1,
   },
   infoValueHighlight: {
     color: Colors.warning,
   },
   logoutButton: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.error,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      }
-    }),
+    marginBottom: 50,
+    shadowColor: Colors.error,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 0,
   },
   logoutGradient: {
     flexDirection: 'row',
@@ -677,6 +714,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
 });

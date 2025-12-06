@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ActivityIndicator, GestureResponderEvent, Platform, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableOpacityProps, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, GestureResponderEvent, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableOpacityProps, View, ViewStyle } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
@@ -37,7 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getButtonStyle = (): ViewStyle[] => {
     const baseStyle: ViewStyle[] = [styles.button];
-    
+
     switch (variant) {
       case 'primary':
         baseStyle.push(styles.buttonPrimary);
@@ -52,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.buttonDanger);
         break;
     }
-    
+
     switch (size) {
       case 'small':
         baseStyle.push(styles.buttonSmall);
@@ -64,16 +64,16 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.buttonLarge);
         break;
     }
-    
+
     if (fullWidth) baseStyle.push(styles.fullWidth);
     if (disabled || loading) baseStyle.push(styles.buttonDisabled);
-    
+
     return baseStyle;
   };
 
   const getTextStyle = (): TextStyle[] => {
     const baseStyle: TextStyle[] = [styles.text];
-    
+
     switch (variant) {
       case 'outline':
         baseStyle.push(styles.textOutline);
@@ -81,7 +81,7 @@ export const Button: React.FC<ButtonProps> = ({
       default:
         baseStyle.push(styles.textDefault);
     }
-    
+
     switch (size) {
       case 'small':
         baseStyle.push(styles.textSmall);
@@ -93,11 +93,11 @@ export const Button: React.FC<ButtonProps> = ({
         baseStyle.push(styles.textLarge);
         break;
     }
-    
+
     if (disabled || loading) {
       baseStyle.push(styles.textDisabled);
     }
-    
+
     return baseStyle;
   };
 
@@ -119,13 +119,13 @@ export const Button: React.FC<ButtonProps> = ({
       style={[...getButtonStyle(), style]}
       disabled={disabled || loading}
       onPress={handlePress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator 
-          size="small" 
-          color={variant === 'outline' ? Colors.primary : Colors.white} 
+        <ActivityIndicator
+          size="small"
+          color={variant === 'outline' ? Colors.primary : Colors.white}
         />
       ) : (
         <View style={styles.content}>
@@ -157,17 +157,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      }
-    }),
+    // No elevation by default for flat style
   },
   buttonPrimary: {
     backgroundColor: Colors.primary,
+    // Soft shadow for primary button if desired, or keep flat
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2, // Soft colored shadow
+    shadowRadius: 8,
+    elevation: 0, // No Android elevation
   },
   buttonSecondary: {
     backgroundColor: Colors.secondary,
@@ -176,11 +175,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: Colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowOpacity: 0,
-      }
-    }),
   },
   buttonDanger: {
     backgroundColor: Colors.error,
@@ -202,12 +196,8 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: Colors.gray[300],
-    opacity: 0.7,
-    ...Platform.select({
-      ios: {
-        shadowOpacity: 0,
-      }
-    }),
+    opacity: 0.5,
+    shadowOpacity: 0,
   },
   fullWidth: {
     width: '100%',
@@ -237,7 +227,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   textDisabled: {
-    opacity: 0.6,
+    opacity: 0.8, // Better visibility on disabled text
   },
   iconLeft: {
     marginRight: 8,

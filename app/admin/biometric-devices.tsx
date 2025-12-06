@@ -413,7 +413,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 10,
-    elevation: 2,
   },
   summaryItem: {
     flexDirection: 'row',

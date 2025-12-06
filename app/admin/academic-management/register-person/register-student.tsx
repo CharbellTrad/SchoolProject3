@@ -30,7 +30,7 @@ export default function RegisterStudentTabsScreen() {
   const { images, setImage, getImage, clearImage } = useImagePicker();
   const [isLoading, setIsLoading] = useState(false);
   const insets = useSafeAreaInsets();
-  
+
   const {
     studentData,
     sizesData,
@@ -82,8 +82,8 @@ export default function RegisterStudentTabsScreen() {
 
   const handleAddParent = () => {
     const requiredFields = [
-      'name', 'vat', 'nationality', 'born_date', 'sex', 
-      'email', 'phone', 'emergency_phone_number', 
+      'name', 'vat', 'nationality', 'born_date', 'sex',
+      'email', 'phone', 'emergency_phone_number',
       'live_with_student', 'active_job', 'job_place', 'job'
     ];
 
@@ -103,7 +103,7 @@ export default function RegisterStudentTabsScreen() {
     };
 
     addOrUpdateParent(parentWithImages);
-    
+
     clearImage('parent_photo');
     clearImage('parent_ci_document');
     clearImage('parent_signature');
@@ -111,7 +111,7 @@ export default function RegisterStudentTabsScreen() {
 
   const handleEditParent = (index: number, parent: any) => {
     startEditingParent(index, parent);
-    
+
     if (parent.image_1920) {
       setImage('parent_photo', parent.image_1920, 'parent_photo.jpg');
     }
@@ -156,7 +156,7 @@ export default function RegisterStudentTabsScreen() {
     ];
 
     const requiredBirthFields = [
-      'suffer_illness_treatment', 'authorize_primary_atention', 
+      'suffer_illness_treatment', 'authorize_primary_atention',
       'pregnat_finished', 'gestation_time', 'peso_al_nacer', 'born_complication'
     ];
 
@@ -174,20 +174,20 @@ export default function RegisterStudentTabsScreen() {
 
     try {
       const savedParentIds: number[] = [];
-      
+
       for (const parent of parents) {
         if (parent.id) {
           savedParentIds.push(parent.id);
           continue;
         }
-        
+
         const parentImages: Record<string, string> = {};
         if (parent.image_1920) parentImages.image_1920 = parent.image_1920;
         if (parent.ci_document) parentImages.ci_document = parent.ci_document;
         if (parent.parent_singnature) parentImages.parent_singnature = parent.parent_singnature;
-        
+
         const compressedParentImages = await compressMultipleImages(parentImages);
-        
+
         const parentResult = await saveParent({
           name: parent.name!,
           vat: parent.vat!,
@@ -265,7 +265,7 @@ export default function RegisterStudentTabsScreen() {
       }
     } catch (error: any) {
       setIsLoading(false);
-      
+
       if (__DEV__) {
         console.error('❌ Error al guardar:', error);
       }
@@ -359,20 +359,20 @@ export default function RegisterStudentTabsScreen() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" translucent />   
+      <StatusBar style="light" translucent />
       <>
         <Head>
           <title>Registrar Estudiante</title>
         </Head>
         <View style={styles.container}>
-          <LinearGradient 
-            colors={[Colors.primary, Colors.primaryDark]} 
+          <LinearGradient
+            colors={[Colors.primary, Colors.primaryDark]}
             style={styles.header}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
@@ -383,8 +383,8 @@ export default function RegisterStudentTabsScreen() {
           </LinearGradient>
 
           <View style={styles.tabsContainer}>
-            <ScrollView 
-              horizontal 
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabsScrollContent}
             >
@@ -392,7 +392,7 @@ export default function RegisterStudentTabsScreen() {
                 <TouchableOpacity
                   key={tab.id}
                   style={[
-                    styles.tab, 
+                    styles.tab,
                     activeTab === tab.id && styles.activeTab
                   ]}
                   onPress={() => changeTab(tab.id)}
@@ -432,7 +432,7 @@ export default function RegisterStudentTabsScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
 
-          <View style={{...styles.floatingButtonContainer, paddingBottom: insets.bottom }}>
+          <View style={{ ...styles.floatingButtonContainer, paddingBottom: insets.bottom }}>
             <Button
               title={isLoading ? "Guardando..." : "Guardar Matrícula"}
               onPress={validateAndSubmit}

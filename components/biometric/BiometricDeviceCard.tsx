@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 3,
     borderWidth: 1,
     borderColor: 'transparent',
     overflow: 'hidden',

@@ -11,7 +11,6 @@ import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
 import * as authService from '../../services-odoo/authService';
 import { getSessionTimeRemaining } from '../../services-odoo/authService';
-import { formatTimeAgo } from '../../utils/formatHelpers';
 
 
 export default function AdminDashboard() {
@@ -22,7 +21,7 @@ export default function AdminDashboard() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    
+
     try {
       if (__DEV__) {
         console.log('🔄 Refrescando dashboard...');
@@ -67,7 +66,7 @@ export default function AdminDashboard() {
       const timeRemaining = getSessionTimeRemaining(validSession);
       setSessionTimeRemaining(timeRemaining);
       setIsOfflineMode(false);
-      
+
       if (__DEV__) {
         console.log('✅ Dashboard actualizado');
       }
@@ -90,13 +89,13 @@ export default function AdminDashboard() {
     if (user) {
       const timeRemaining = getSessionTimeRemaining(user);
       setSessionTimeRemaining(timeRemaining);
-      
+
       // Actualizar cada minuto
       const interval = setInterval(() => {
         const newTimeRemaining = getSessionTimeRemaining(user);
         setSessionTimeRemaining(newTimeRemaining);
       }, 60000); // 60 segundos
-      
+
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -106,11 +105,11 @@ export default function AdminDashboard() {
    */
   const getTimeRemainingColor = (timeString: string): string => {
     if (timeString.includes('Expirada')) return Colors.error;
-    
+
     // Extraer horas si existen
     const hoursMatch = timeString.match(/(\d+)h/);
     const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-    
+
     if (hours >= 3) return Colors.success; // Verde: 3h o más
     if (hours >= 1) return Colors.warning; // Amarillo: 1-3h
     return Colors.error; // Rojo: menos de 1h
@@ -143,16 +142,17 @@ export default function AdminDashboard() {
           >
             <View style={styles.headerContent}>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.greeting}>Hola de nuevo 👋</Text>
-                <Text style={styles.userName}>{user.fullName}</Text>
+                <Text style={styles.schoolName}>U.E.N.B. Ciudad Jardín</Text>
+                <Text style={styles.greeting}>Hola, {user.fullName || 'Admin'}</Text>
+                <Text style={styles.userName}>Panel Principal</Text>
                 <View style={styles.roleContainer}>
                   <View style={styles.roleBadge}>
-                    <Ionicons name="shield-checkmark" size={12} color={Colors.primary} />
+                    <Ionicons name="shield-checkmark" size={12} color="#fff" />
                     <Text style={styles.roleText}>Administrador</Text>
                   </View>
                   {__DEV__ && (
                     <View style={styles.devBadge}>
-                      <Ionicons name="code-working" size={10} color="#f59e0b" />
+                      <Ionicons name="code-working" size={10} color="#fff" />
                       <Text style={styles.devBadgeText}>DEV</Text>
                     </View>
                   )}
@@ -185,6 +185,8 @@ export default function AdminDashboard() {
             }
           >
             <View style={styles.dashboardContent}>
+
+
               {isOfflineMode && (
                 <View style={styles.offlineBanner}>
                   <Ionicons name="cloud-offline" size={20} color="#fff" />
@@ -206,30 +208,30 @@ export default function AdminDashboard() {
                   <DashboardCard
                     icon="person-add-outline"
                     title="Nueva Persona"
-                    description="Registrar estudiantes o personal"
+                    description="Registrar estudiantes"
                     accentColor="#3b82f6"
                     disabled={isOfflineMode}
                     onPress={() => router.push('/admin/academic-management/register-person/select-role' as any)}
                   />
-                  
+
                   <DashboardCard
                     icon="book-outline"
                     title="Sección/Materia"
-                    description="Gestionar secciones y materias"
+                    description="Gestionar secciones"
                     accentColor="#10b981"
                     disabled={true}
                     onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
                   />
-                  
+
                   <DashboardCard
                     icon="people-outline"
                     title="Directorio"
-                    description="Ver personas registradas"
+                    description="Ver registros"
                     accentColor="#8b5cf6"
                     disabled={isOfflineMode}
                     onPress={() => router.push('/admin/academic-management/lists-persons/select-role' as any)}
                   />
-                  
+
                   <DashboardCard
                     icon="library-outline"
                     title="Académico"
@@ -253,30 +255,30 @@ export default function AdminDashboard() {
                   <DashboardCard
                     icon="key-outline"
                     title="Usuarios"
-                    description="Administrar accesos"
+                    description="Accesos del sistema"
                     accentColor="#ef4444"
                     disabled={true}
                     onPress={() => router.push('/admin/prueba' as any)}
                   />
-                  
+
                   <DashboardCard
                     icon="stats-chart-outline"
                     title="Reportes"
-                    description="Estadísticas del sistema"
+                    description="Estadísticas"
                     accentColor="#06b6d4"
                     disabled={true}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <DashboardCard
                     icon="calendar-outline"
                     title="Año Escolar"
-                    description="Gestionar períodos"
+                    description="Períodos"
                     accentColor="#ec4899"
                     disabled={true}
-                    onPress={() => {}}
+                    onPress={() => { }}
                   />
-                  
+
                   <DashboardCard
                     icon="cog-outline"
                     title="Configuración"
@@ -292,37 +294,28 @@ export default function AdminDashboard() {
               <View style={styles.infoCard}>
                 <View style={styles.infoHeader}>
                   <View style={styles.infoHeaderLeft}>
-                    <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.infoTitle}>Mi Información</Text>
+                    <View style={styles.infoIconWrapper}>
+                      <Ionicons name="person" size={20} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.infoTitle}>Mi Perfil</Text>
                   </View>
                   {refreshing && (
                     <View style={styles.refreshingBadge}>
-                      <Text style={styles.refreshingText}>Actualizando</Text>
+                      <Text style={styles.refreshingText}>Actualizando...</Text>
                     </View>
                   )}
                 </View>
 
-
                 <View style={styles.infoContent}>
                   <InfoRow label="Usuario" value={user.username} icon="at" />
                   <InfoRow label="Email" value={user.email} icon="mail" />
-                  <InfoRow label="Rol" value="Administrador Principal" icon="shield-checkmark" />
-                  <InfoRow label="Última sesión" value={formatTimeAgo(user.createdAt)} icon="time" />
-                  <InfoRow label="Tiempo restante de la sesión" value={sessionTimeRemaining} icon="hourglass-outline" valueColor={getTimeRemainingColor(sessionTimeRemaining)} />
-                  {__DEV__ && (
-                    <InfoRow 
-                      label="Entorno" 
-                      value="Desarrollo" 
-                      icon="code-slash"
-                      highlight
-                    />
-                  )}
+                  <InfoRow label="Rol" value="Administrador" icon="shield-checkmark" />
+                  <InfoRow label="Sesión" value={sessionTimeRemaining} icon="time" valueColor={getTimeRemainingColor(sessionTimeRemaining)} />
                 </View>
               </View>
 
-
-              <TouchableOpacity 
-                style={styles.logoutButton} 
+              <TouchableOpacity
+                style={styles.logoutButton}
                 onPress={handleLogout}
                 activeOpacity={0.8}
               >
@@ -358,50 +351,40 @@ interface DashboardCardProps {
 }
 
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ 
-  icon, 
-  title, 
-  description, 
-  accentColor,
-  disabled, 
-  onPress 
-}) => {
+const DashboardCard: React.FC<DashboardCardProps> = ({ icon, title, description, onPress, disabled }) => {
   const handlePress = () => {
     if (disabled) {
-      showAlert(
-        'Error',
-        'Esta función esta deshabilitada o requiere conexión a internet.'
-      );
+      showAlert('Función no disponible', 'Esta función está deshabilitada temporalmente.');
       return;
     }
     onPress();
   };
 
-
   return (
-    <TouchableOpacity 
-      style={[ styles.card, disabled && styles.cardDisabled ]} 
+    <TouchableOpacity
+      style={[styles.card, disabled && styles.cardDisabled]}
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
-      <View style={[
-        styles.cardIconContainer,
-        { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }
-      ]}>
-        <Ionicons 
-          name={icon} 
-          size={28} 
-          color={disabled ? Colors.textSecondary : accentColor} 
-        />
+      {/* Backdrop Icon for Visual Interest */}
+      <Ionicons name={icon} size={100} color={Colors.primary} style={styles.cardBackdropIcon} />
+
+      <View style={styles.cardIconContainer}>
+        <Ionicons name={icon} size={30} color={disabled ? Colors.textSecondary : Colors.primary} />
       </View>
-      <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>
-        {title}
-      </Text>
-      <Text style={styles.cardDescription}>{description}</Text>
-      
+
+      <View>
+        <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>{description}</Text>
+      </View>
+
+      {!disabled && (
+        <Ionicons name="arrow-forward" size={16} color={Colors.primary} style={styles.arrowIcon} />
+      )}
+
       {disabled && (
         <View style={styles.disabledIndicator}>
-          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+          <Ionicons name="lock-closed" size={16} color={Colors.textSecondary} />
         </View>
       )}
     </TouchableOpacity>
@@ -422,10 +405,10 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight, valueC
   return (
     <View style={styles.infoRow}>
       <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
-        <Ionicons 
-          name={icon} 
-          size={18} 
-          color={highlight ? Colors.warning : Colors.primary} 
+        <Ionicons
+          name={icon}
+          size={18}
+          color={highlight ? Colors.warning : Colors.primary}
         />
       </View>
       <View style={styles.infoTextContainer}>
@@ -446,39 +429,42 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'android' ? 60 : 70,
-    paddingBottom: 32,
+    paddingBottom: 40,
     paddingHorizontal: 24,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      }
-    }),
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    marginBottom: -40, // Increased overlap
+    zIndex: 1,
+    overflow: 'hidden', // Ensure gradient is clipped if needed
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   headerTextContainer: {
     flex: 1,
   },
-  greeting: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontWeight: '500',
-    marginBottom: 6,
+  schoolName: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  userName: {
-    fontSize: 26,
+  greeting: {
+    fontSize: 30,
     fontWeight: '800',
     color: '#fff',
     marginBottom: 8,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+  },
+  userName: {
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '500',
+    marginBottom: 12,
   },
   roleContainer: {
     flexDirection: 'row',
@@ -488,60 +474,58 @@ const styles = StyleSheet.create({
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
     gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   roleText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: Colors.primary,
-    letterSpacing: 0.2,
+    color: '#fff',
   },
   devBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    borderColor: 'rgba(245, 158, 11, 0.5)',
     gap: 4,
   },
   devBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#f59e0b',
-    letterSpacing: 0.5,
+    color: '#fff',
   },
   avatarContainer: {
     marginLeft: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 0,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      }
-    }),
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   content: {
     flex: 1,
   },
   dashboardContent: {
     padding: 20,
+    paddingTop: 60, // Reset since we handle overlap
   },
   offlineBanner: {
     flexDirection: 'row',
@@ -552,119 +536,49 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 24,
     gap: 10,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 0,
+    //marginTop: 50,
   },
   offlineText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
     flex: 1,
-    letterSpacing: 0.2,
-  },
-  section: {
-    marginBottom: 28,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-  },
-  card: {
-    width: '48%',
-    margin: '1%',
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      }
-    }),
-  },
-  cardDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#f9fafb',
-  },
-  cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-    letterSpacing: -0.2,
-  },
-  cardTitleDisabled: {
-    color: Colors.textSecondary,
-  },
-  cardDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    fontWeight: '500',
-  },
-  disabledIndicator: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
   },
   infoCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 20,
-    marginTop: 4,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-      }
-    }),
+    marginTop: 0,
+    marginBottom: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 0,
   },
   infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   infoHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   refreshingBadge: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.primary + '10',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -675,69 +589,165 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   infoContent: {
-    gap: 4,
+    marginTop: 20,
+    gap: 0,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 4,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
   infoIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.primary + '15',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
   },
   infoIconWrapperHighlight: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fffbeb',
   },
   infoTextContainer: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontWeight: '500',
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginBottom: 2,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.1,
   },
   infoValueHighlight: {
     color: Colors.warning,
   },
-  logoutButton: {
-    borderRadius: 16,
+  section: {
+    marginBottom: 28,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 10,
+    paddingLeft: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -8,
+  },
+  card: {
+    width: '46%',
+    margin: '2%',
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 16,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    aspectRatio: 1.0,
+    justifyContent: 'space-between',
     overflow: 'hidden',
-    marginBottom: 50,
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.error,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      }
-    }),
+    position: 'relative',
+    borderWidth: 1.5,
+    borderColor: 'rgba(203, 213, 225, 0.6)', // Added subtle border for better definition
+  },
+  cardDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f9fafb',
+    elevation: 0,
+  },
+  cardBackdropIcon: {
+    position: 'absolute',
+    right: -12,
+    bottom: -12,
+    opacity: 0.1, // Increased opacity slightly
+    transform: [{ rotate: '-15deg' }],
+  },
+  cardIconContainer: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1e293b',
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  cardTitleDisabled: {
+    color: Colors.textSecondary,
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '600',
+    lineHeight: 16,
+    marginTop: 'auto',
+  },
+  arrowIcon: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    opacity: 0.3,
+  },
+  disabledIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+  },
+  logoutButton: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 60,
+    marginHorizontal: 4,
+    shadowColor: Colors.error,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
   },
   logoutGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
+    paddingVertical: 20,
+    gap: 12,
   },
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
 });

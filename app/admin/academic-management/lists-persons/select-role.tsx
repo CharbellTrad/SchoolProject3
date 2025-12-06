@@ -13,7 +13,7 @@ import Colors from '../../../../constants/Colors';
 export default function SelectRoleScreen() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" translucent />   
+      <StatusBar style="light" translucent />
       <>
         <Head>
           <title>Directorio de Personas</title>
@@ -25,8 +25,8 @@ export default function SelectRoleScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
@@ -37,8 +37,8 @@ export default function SelectRoleScreen() {
           </LinearGradient>
 
 
-          <ScrollView 
-            style={styles.content} 
+          <ScrollView
+            style={styles.content}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
@@ -58,7 +58,7 @@ export default function SelectRoleScreen() {
                 icon="school-outline"
                 title="Estudiantes"
                 description="Lista de estudiantes registrados"
-                accentColor="#3b82f6"
+                accentColor={Colors.primary}
                 disabled={false}
                 onPress={() => router.push('/admin/academic-management/lists-persons/students-list' as any)}
               />
@@ -68,7 +68,7 @@ export default function SelectRoleScreen() {
                 icon="book-outline"
                 title="Docentes"
                 description="Lista de profesores del plantel"
-                accentColor="#10b981"
+                accentColor={Colors.primary}
                 disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/teachers-list' as any)}
               />
@@ -78,25 +78,25 @@ export default function SelectRoleScreen() {
                 icon="shield-checkmark-outline"
                 title="Administrativos"
                 description="Personal administrativo"
-                accentColor="#f59e0b"
+                accentColor={Colors.primary}
                 disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/administrators-list' as any)}
               />
-              
+
               <RoleCard
                 icon="construct-outline"
                 title="Obreros"
                 description="Personal de mantenimiento"
-                accentColor="#6366f1"
+                accentColor={Colors.primary}
                 disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/workman-list' as any)}
               />
-              
+
               <RoleCard
                 icon="restaurant-outline"
                 title="Comedor"
                 description="Personal del comedor escolar"
-                accentColor="#8b5cf6"
+                accentColor={Colors.primary}
                 disabled={true}
                 onPress={() => router.push('/admin/academic-management/lists-persons/dining-list' as any)}
               />
@@ -108,7 +108,7 @@ export default function SelectRoleScreen() {
                 <Ionicons name="information-circle" size={20} color={Colors.primary} />
               </View>
               <Text style={styles.infoText}>
-                <Text style={styles.infoTextBold}>Nota:</Text> Estas listas muestran personas registradas. 
+                <Text style={styles.infoTextBold}>Nota:</Text> Estas listas muestran personas registradas.
                 Para usuarios con acceso al sistema, usa "Gestionar Usuarios"
               </Text>
             </View>
@@ -136,33 +136,34 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentCol
 
   const handlePress = () => {
     if (disabled) {
-      showAlert(
-        'Error',
-        'Esta función esta deshabilitada o requiere conexión a internet.'
-      );
+      showAlert('Función no disponible', 'Esta función está deshabilitada temporalmente.');
       return;
     }
     onPress();
   };
 
   return (
-    <TouchableOpacity 
-      style={[ styles.roleCard, disabled && styles.cardDisabled ]} 
+    <TouchableOpacity
+      style={[styles.roleCard, disabled && styles.cardDisabled]}
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
-      <View style={[styles.roleIconContainer, { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }]}>
-        <Ionicons name={icon} size={32} color={disabled ? Colors.textSecondary : accentColor}  />
+      {/* Backdrop Icon */}
+      <Ionicons name={icon} size={100} color={accentColor} style={styles.cardBackdropIcon} />
+
+      <View style={styles.roleIconContainer}>
+        <Ionicons name={icon} size={26} color={disabled ? Colors.textSecondary : accentColor} />
       </View>
       <View style={styles.roleContent}>
         <Text style={[styles.roleTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
-        <Text style={styles.roleDescription}>{description}</Text>
+        <Text style={styles.roleDescription} numberOfLines={2}>{description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+
+      <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} style={{ opacity: 0.5 }} />
 
       {disabled && (
         <View style={styles.disabledIndicator}>
-          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+          <Ionicons name="lock-closed" size={20} color={Colors.textSecondary} />
         </View>
       )}
 
@@ -184,8 +185,8 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? 60 : 70,
     paddingBottom: 24,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -257,30 +258,34 @@ const styles = StyleSheet.create({
   },
   rolesContainer: {
     paddingHorizontal: 20,
+    paddingTop: 10,
   },
   roleCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      }
-    }),
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1.5,
+    borderColor: 'rgba(203, 213, 225, 0.6)',
   },
   roleIconContainer: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 56,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    backgroundColor: '#f8fafc',
   },
   roleContent: {
     flex: 1,
@@ -290,13 +295,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 4,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   roleDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
     fontWeight: '500',
+    marginRight: 20,
+  },
+  cardBackdropIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    opacity: 0.08,
+    transform: [{ rotate: '-15deg' }],
   },
   infoBox: {
     flexDirection: 'row',
@@ -327,6 +340,7 @@ const styles = StyleSheet.create({
   cardDisabled: {
     opacity: 0.6,
     backgroundColor: '#f9fafb',
+    elevation: 0,
   },
   cardTitleDisabled: {
     color: Colors.textSecondary,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Platform, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
 interface InputProps extends TextInputProps {
@@ -34,7 +34,7 @@ export const Input: React.FC<InputProps> = (props) => {
       {label ? (
         <Text style={styles.label}>{label}</Text>
       ) : null}
-      
+
       <View style={[
         styles.container,
         isFocused && styles.containerFocused,
@@ -49,7 +49,7 @@ export const Input: React.FC<InputProps> = (props) => {
             />
           </View>
         )}
-        
+
         <TextInput
           {...restProps}
           value={value}
@@ -57,10 +57,10 @@ export const Input: React.FC<InputProps> = (props) => {
           placeholderTextColor={Colors.textTertiary}
           selectionColor={Colors.primary}
         />
-        
+
         {showClearButton && value ? (
-          <TouchableOpacity 
-            style={styles.iconWrapper} 
+          <TouchableOpacity
+            style={styles.iconWrapper}
             onPress={onClear}
             activeOpacity={0.6}
           >
@@ -81,7 +81,7 @@ export const Input: React.FC<InputProps> = (props) => {
           </TouchableOpacity>
         ) : null}
       </View>
-      
+
       {error ? (
         <View style={styles.errorWrapper}>
           <Ionicons name="alert-circle" size={14} color={Colors.error} />
@@ -114,27 +114,23 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     minHeight: 56,
     paddingHorizontal: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-      }
-    }),
+    // Soft shadow for depth without elevation
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03, // Very soft
+    shadowRadius: 10,
+    elevation: 0,
   },
   containerFocused: {
     borderColor: Colors.primary,
     borderWidth: 2,
     backgroundColor: '#ffffff',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      }
-    }),
+    // Glow effect
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 0,
   },
   containerError: {
     borderColor: Colors.error,

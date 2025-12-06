@@ -61,9 +61,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     if (uri.startsWith('data:application/pdf')) {
       return uri;
     }
-    
+
     if (uri.startsWith('data:')) return uri;
-    
+
     // 3. Si el URI es base64 sin header, agregarlo
     const base64Clean = cleanBase64(uri);
     // Intentar como imagen (algunos PDFs base64 se pueden renderizar así)
@@ -154,10 +154,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
+      }
     }),
   },
   circularContainer: {

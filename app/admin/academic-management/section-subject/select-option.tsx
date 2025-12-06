@@ -13,7 +13,7 @@ import Colors from '../../../../constants/Colors';
 export default function SelectOptionScreen() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" translucent />   
+      <StatusBar style="light" translucent />
       <>
         <Head>
           <title>Directorio Académico</title>
@@ -25,8 +25,8 @@ export default function SelectOptionScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
@@ -37,8 +37,8 @@ export default function SelectOptionScreen() {
           </LinearGradient>
 
 
-          <ScrollView 
-            style={styles.content} 
+          <ScrollView
+            style={styles.content}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
@@ -54,21 +54,20 @@ export default function SelectOptionScreen() {
 
 
             <View style={styles.optionsContainer}>
-              <RoleCard
+              <OptionCard
                 icon="school-outline"
                 title="Secciones"
                 description="Lista de secciones configuradas"
-                accentColor="#3b82f6"
+                accentColor={Colors.primary}
                 disabled={false}
                 onPress={() => router.push('/admin/academic-management/section-subject/sections-list' as any)}
               />
 
-
-              <RoleCard
+              <OptionCard
                 icon="book-outline"
                 title="Materias"
                 description="Lista de materias configuradas"
-                accentColor="#10b981"
+                accentColor={Colors.primary}
                 disabled={false}
                 onPress={() => router.push('/admin/academic-management/section-subject/subjects-list' as any)}
               />
@@ -82,7 +81,7 @@ export default function SelectOptionScreen() {
 }
 
 
-interface RoleCardProps {
+interface OptionCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
@@ -91,37 +90,39 @@ interface RoleCardProps {
   onPress: () => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, accentColor, disabled, onPress }) => {
+const OptionCard: React.FC<OptionCardProps> = ({ icon, title, description, accentColor, disabled, onPress }) => {
 
   const handlePress = () => {
     if (disabled) {
-      showAlert(
-        'Error',
-        'Esta función esta deshabilitada o requiere conexión a internet.'
-      );
+      showAlert('Función no disponible', 'Esta función está deshabilitada temporalmente.');
       return;
     }
     onPress();
   };
 
   return (
-    <TouchableOpacity 
-      style={[ styles.optionCard, disabled && styles.cardDisabled ]} 
+    <TouchableOpacity
+      style={[styles.optionCard, disabled && styles.cardDisabled]}
       onPress={handlePress}
       activeOpacity={disabled ? 1 : 0.7}
     >
-      <View style={[styles.optionIconContainer, { backgroundColor: disabled ? '#f3f4f6' : accentColor + '15' }]}>
-        <Ionicons name={icon} size={32} color={disabled ? Colors.textSecondary : accentColor}  />
+      {/* Backdrop Icon */}
+      <Ionicons name={icon} size={100} color={accentColor} style={styles.cardBackdropIcon} />
+
+      <View style={styles.optionIconContainer}>
+        <Ionicons name={icon} size={28} color={disabled ? Colors.textSecondary : accentColor} />
       </View>
+
       <View style={styles.optionContent}>
         <Text style={[styles.optionTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
-        <Text style={styles.optionDescription}>{description}</Text>
+        <Text style={styles.optionDescription} numberOfLines={2}>{description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+
+      <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} style={{ opacity: 0.5 }} />
 
       {disabled && (
         <View style={styles.disabledIndicator}>
-          <Ionicons name="cloud-offline-outline" size={16} color={Colors.textSecondary} />
+          <Ionicons name="lock-closed" size={20} color={Colors.textSecondary} />
         </View>
       )}
 
@@ -143,8 +144,8 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? 60 : 70,
     paddingBottom: 24,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -216,50 +217,63 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     paddingHorizontal: 20,
+    paddingTop: 10,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      }
-    }),
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1.5,
+    borderColor: 'rgba(203, 213, 225, 0.6)',
   },
   optionIconContainer: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 56,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    backgroundColor: '#f8fafc',
   },
   optionContent: {
     flex: 1,
+    marginRight: 8,
   },
   optionTitle: {
     fontSize: 17,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 4,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   optionDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
     fontWeight: '500',
+  },
+  cardBackdropIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    opacity: 0.08,
+    transform: [{ rotate: '-15deg' }],
   },
   cardDisabled: {
     opacity: 0.6,
     backgroundColor: '#f9fafb',
+    elevation: 0,
   },
   cardTitleDisabled: {
     color: Colors.textSecondary,
