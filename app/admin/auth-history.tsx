@@ -25,13 +25,14 @@ import { Pagination } from '../../components/list';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
+import * as authService from '../../services-odoo/authService';
 import * as biometricOdooService from '../../services-odoo/biometricService';
 type BiometricAuthLog = biometricOdooService.BiometricAuthLog;
 
 const ITEMS_PER_PAGE = 15;
 
 export default function AuthHistoryScreen() {
-    const { user } = useAuth();
+    const { user, handleSessionExpired } = useAuth();    
     const [authLogs, setAuthLogs] = useState<BiometricAuthLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -83,6 +84,29 @@ export default function AuthHistoryScreen() {
      * Refresca la lista
      */
     const onRefresh = useCallback(async () => {
+        const serverHealth = await authService.checkServerHealth();
+
+        if (!serverHealth.ok) {
+        if (__DEV__) {
+            console.log('🔴 Servidor no disponible durante refresh');
+        }
+        showAlert(
+            'Sin conexión',
+            'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+        );
+        return;
+        }
+
+        const validSession = await authService.verifySession();
+
+
+        if (!validSession) {
+            if (__DEV__) {
+            console.log('❌ Sesión no válida durante refresh');
+            }
+            handleSessionExpired();
+            return;
+        }
         setRefreshing(true);
         await loadAuthHistory(1);
         setRefreshing(false);
@@ -214,6 +238,7 @@ export default function AuthHistoryScreen() {
                                             key={log.id}
                                             log={log}
                                             isLast={index === authLogs.length - 1}
+                                            onSessionEnded={() => loadAuthHistory(currentPage)}
                                         />
                                     ))}
                                 </View>
@@ -245,18 +270,60 @@ export default function AuthHistoryScreen() {
 interface AuthLogCardProps {
     log: BiometricAuthLog;
     isLast: boolean;
+    onSessionEnded?: () => void;
 }
 
-const AuthLogCard: React.FC<AuthLogCardProps> = ({ log, isLast }) => {
+const AuthLogCard: React.FC<AuthLogCardProps> = ({ log, isLast, onSessionEnded }) => {
     const [expanded, setExpanded] = useState(false);
+    const [endingSession, setEndingSession] = useState(false);
 
     const toggleExpand = () => {
-        // LayoutAnimation no siempre funciona bien en listados largos en Android sin configuración extra,
-        // pero lo intentamos para suavidad.
         if (Platform.OS === 'ios') {
             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         }
         setExpanded(!expanded);
+    };
+
+    const handleEndSession = async () => {
+        const sessionId = log.session_id;
+        
+        if (!sessionId) {
+            showAlert('Error', 'No se puede finalizar la sesión: ID de sesión no disponible');
+            return;
+        }
+
+        const deviceName = log.device_name_direct || log.device_name || 'Desconocido';
+
+        Alert.alert(
+            'Finalizar Sesión',
+            `¿Estás seguro de que deseas finalizar esta sesión activa?\n\nDispositivo: ${deviceName}`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Finalizar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setEndingSession(true);
+                        try {
+                            const { destroySession } = await import('../../services-odoo/biometricService');
+                            const result = await destroySession(sessionId);
+
+                            if (result.success) {
+                                showAlert('Sesión Finalizada', result.message || 'La sesión se cerró exitosamente');
+                                onSessionEnded?.();
+                            } else {
+                                showAlert('Error', result.error || 'No se pudo finalizar la sesión');
+                            }
+                        } catch (error: any) {
+                            console.error('❌ Error finalizando sesión:', error);
+                            showAlert('Error', 'No se pudo finalizar la sesión');
+                        } finally {
+                            setEndingSession(false);
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     const getAuthTypeLabel = (type: string): string => {
@@ -386,6 +453,25 @@ const AuthLogCard: React.FC<AuthLogCardProps> = ({ log, isLast }) => {
                                 Sesión finalizada: {new Date(log.session_ended_at).toLocaleString()}
                             </Text>
                         )}
+
+                        {/* Botón de Finalizar Sesión - ABAJO */}
+                        {log.session_active && log.success && !log.session_ended_at && (
+                            <TouchableOpacity
+                                style={styles.endSessionButton}
+                                onPress={handleEndSession}
+                                disabled={endingSession}
+                                activeOpacity={0.7}
+                            >
+                                {endingSession ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="log-out-outline" size={18} color="#fff" />
+                                        <Text style={styles.endSessionButtonText}>Finalizar Sesión</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        )}
                     </View>
                 )}
             </TouchableOpacity>
@@ -489,11 +575,11 @@ const styles = StyleSheet.create({
     },
     logsSection: {
         position: 'relative',
-        paddingLeft: 10, // Espacio para la línea temporal
+        paddingLeft: 10,
     },
-    timelineLine: { // Línea vertical continua
+    timelineLine: {
         position: 'absolute',
-        left: 24, // Alineado con el centro de los nodos
+        left: 24,
         top: 0,
         bottom: 0,
         width: 2,
@@ -506,14 +592,14 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     timelineNode: {
-        width: 28, // Ampliado y centrado
+        width: 28,
         height: 28,
         borderRadius: 14,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
-        marginTop: 12, // Alinear con el header de la tarjeta
+        marginTop: 12,
         zIndex: 1,
         backgroundColor: '#fff',
     },
@@ -676,6 +762,27 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontStyle: 'italic',
         textAlign: 'right',
+    },
+    endSessionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: '#ef4444',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        marginTop: 12,
+        shadowColor: '#ef4444',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    endSessionButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '700',
     },
     loadingContainer: {
         padding: 40,

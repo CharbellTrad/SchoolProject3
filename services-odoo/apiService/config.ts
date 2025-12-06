@@ -2,10 +2,10 @@
  * Configuración de conexión con Odoo
  */
 export const ODOO_CONFIG = {
-  host: 'http://185.111.156.32',
-  // host: 'https://cautious-journey-q754p45xw65ghx956-8069.app.github.dev',
-  database: 'test',
-  // database: 'odoo',
+  // host: 'http://185.111.156.32',
+  host: 'https://cautious-journey-q754p45xw65ghx956-8069.app.github.dev',
+  // database: 'test',
+  database: 'odoo',
 };
 
 export const SESSION_KEY = '@odoo_session_id';

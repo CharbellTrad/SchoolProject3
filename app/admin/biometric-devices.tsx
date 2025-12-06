@@ -24,12 +24,13 @@ import { BiometricDeviceCard } from '../../components/biometric/BiometricDeviceC
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
+import * as authService from '../../services-odoo/authService';
 import type { BiometricDeviceBackend } from '../../services-odoo/biometricService';
 import * as biometricOdooService from '../../services-odoo/biometricService';
 import { getDeviceInfo } from '../../services/biometricService/deviceInfo';
 
 export default function BiometricDevicesScreen() {
-  const { user } = useAuth();
+  const { user, handleSessionExpired } = useAuth();
   const [devices, setDevices] = useState<BiometricDeviceBackend[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -115,6 +116,29 @@ export default function BiometricDevicesScreen() {
    * Refresca la lista de dispositivos
    */
   const onRefresh = useCallback(async () => {
+    const serverHealth = await authService.checkServerHealth();
+
+    if (!serverHealth.ok) {
+      if (__DEV__) {
+        console.log('🔴 Servidor no disponible durante refresh');
+      }
+      showAlert(
+        'Sin conexión',
+        'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+      );
+      return;
+    }
+    
+    const validSession = await authService.verifySession();
+
+
+    if (!validSession) {
+        if (__DEV__) {
+        console.log('❌ Sesión no válida durante refresh');
+        }
+        handleSessionExpired();
+        return;
+    }
     setRefreshing(true);
     await loadDevices();
     setRefreshing(false);

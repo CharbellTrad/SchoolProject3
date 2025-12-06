@@ -1,11 +1,11 @@
 import { ODOO_CONFIG } from './config';
 import { isSessionExpiredError } from './errorHandler';
 import {
-    clearSessionId,
-    extractSessionId,
-    getStoredSessionId,
-    handleSessionExpired,
-    saveSessionId,
+  clearSessionId,
+  extractSessionId,
+  getStoredSessionId,
+  handleSessionExpired,
+  saveSessionId,
 } from './sessionManager';
 import { AuthResult, OdooResponse, OdooResult } from './types';
 

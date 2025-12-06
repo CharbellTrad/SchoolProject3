@@ -19,6 +19,9 @@ export type {
 // Exportar tipo de respuesta paginada
 export type { AuthHistoryPaginatedResponse } from './biometricAuth';
 
+// Gestión de sesiones
+export { destroySession } from './sessionManagement';
+
 // Exportar funciones de dispositivos
 export {
     activateDevice,

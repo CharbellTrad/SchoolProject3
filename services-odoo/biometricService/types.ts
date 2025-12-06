@@ -22,7 +22,7 @@ export interface BiometricDeviceBackend {
   state: 'active' | 'inactive' | 'revoked';
   isEnabled: boolean;
   isCurrentDevice: boolean;
-  enrolledAt: string;
+  enrolledAt?: string;
   lastUsedAt?: string;
   authCount: number;
   isRecentlyUsed: boolean;

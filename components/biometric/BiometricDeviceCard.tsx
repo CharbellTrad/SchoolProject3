@@ -65,6 +65,23 @@ export const BiometricDeviceCard: React.FC<BiometricDeviceCardProps> = ({
       });
     } catch { return 'Desconocido'; }
   };
+  
+  const formatEnrolledDate = (): string => {
+    if (!device.enrolledAt) return 'Desconocido';
+    try {
+      const date = new Date(device.enrolledAt);
+      return date.toLocaleString('es-VE', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch {
+      return 'Desconocido';
+    }
+  };
 
   const statusColor = getStatusColor();
   const statusText = getStatusText();
@@ -141,7 +158,7 @@ export const BiometricDeviceCard: React.FC<BiometricDeviceCardProps> = ({
             <InfoItem label="Marca" value={device.brand} icon="pricetag-outline" />
             <InfoItem label="SO" value={`${device.platform.toUpperCase()} ${device.osVersion}`} icon="layers-outline" />
             <InfoItem label="Biometría" value={device.biometricType} icon="finger-print-outline" />
-            <InfoItem label="Inscrito" value={new Date(device.enrolledAt).toLocaleDateString()} icon="calendar-outline" />
+            <InfoItem label="Inscrito" value={formatEnrolledDate()} icon="calendar-outline" />
             <InfoItem label="Auths" value={device.authCount.toString()} icon="shield-checkmark-outline" />
           </View>
 

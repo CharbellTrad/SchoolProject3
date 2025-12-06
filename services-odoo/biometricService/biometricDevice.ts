@@ -64,6 +64,31 @@ export const registerDevice = async (
   }
 };
 
+
+/**
+ * Convierte fecha de Odoo (UTC sin Z) a formato ISO correcto
+ */
+const parseOdooDate = (odooDate: string | null | undefined): string | undefined => {
+  if (!odooDate) return undefined;
+  
+  try {
+    // Odoo envía fechas en UTC pero sin el sufijo 'Z'
+    // Formato: "2025-12-06T06:08:20"
+    // Necesitamos agregarlo para que JS lo interprete como UTC
+    
+    if (odooDate.includes('Z') || odooDate.includes('+')) {
+      // Ya tiene zona horaria
+      return odooDate;
+    }
+    
+    // Agregar 'Z' para indicar que es UTC
+    return odooDate + 'Z';
+  } catch {
+    return odooDate;
+  }
+};
+
+
 /**
  * Obtiene todos los dispositivos del usuario actual
  * @param currentDeviceId - ID del dispositivo actual para marcarlo
@@ -96,15 +121,22 @@ export const getUserDevices = async (
     }
 
     const devices: BiometricDeviceBackend[] = result.data || [];
+    
+    // Mapear las fechas para agregar 'Z' y convertir a UTC correctamente
+    const devicesWithFixedDates = devices.map(device => ({
+      ...device,
+      enrolledAt: parseOdooDate(device.enrolledAt),
+      lastUsedAt: parseOdooDate(device.lastUsedAt),
+    }));
 
     if (__DEV__) {
-      console.log(`✅ [Odoo] ${devices.length} dispositivo(s) obtenido(s)`);
+      console.log(`✅ [Odoo] ${devicesWithFixedDates.length} dispositivo(s) obtenido(s)`);
     }
 
     return {
       success: true,
-      data: devices,
-      count: devices.length,
+      data: devicesWithFixedDates,
+      count: devicesWithFixedDates.length,
     };
   } catch (error: any) {
     if (__DEV__) {
@@ -116,6 +148,7 @@ export const getUserDevices = async (
     };
   }
 };
+
 
 /**
  * Valida que un dispositivo esté activo y habilitado en Odoo
