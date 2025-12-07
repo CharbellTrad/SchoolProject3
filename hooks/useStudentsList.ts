@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { showAlert } from '../components/showAlert';
-import { useAuth } from '../contexts/AuthContext';
 import * as authService from '../services-odoo/authService';
 import { CacheKeys, cacheManager } from '../services-odoo/cache';
 import { Student, canDeleteStudent, deleteStudent, loadAllStudentsSummary } from '../services-odoo/personService';
@@ -11,8 +10,6 @@ export const useStudentsList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-
-  const { handleSessionExpired } = useAuth();
 
   // ✅ Búsqueda local optimizada
   const filteredStudents = useMemo(() => {
@@ -71,7 +68,7 @@ export const useStudentsList = () => {
             'No se puede conectar con el servidor y no hay datos guardados localmente. Por favor, verifica tu conexión a internet.'
           );
         }
-        
+
         // ✅ CRÍTICO: Detener el loading/refreshing ANTES de hacer return
         if (forceReload) {
           setRefreshing(false);
@@ -86,10 +83,11 @@ export const useStudentsList = () => {
 
       if (!validSession) {
         if (__DEV__) {
-          console.log('❌ Sesión inválida');
+          console.log('❌ Sesión inválida - El API ya manejó la expiración');
         }
-        handleSessionExpired();
-        
+        // ⚠️ NO llamar handleSessionExpired() aquí - el API ya lo hace automáticamente
+        // cuando detecta sesión expirada en requestHandler.ts
+
         // ✅ CRÍTICO: Detener el loading/refreshing antes de return
         if (forceReload) {
           setRefreshing(false);
@@ -141,7 +139,7 @@ export const useStudentsList = () => {
         setLoading(false);
       }
     }
-  }, [handleSessionExpired]);
+  }, []);
 
   /**
    * Elimina un estudiante con validación

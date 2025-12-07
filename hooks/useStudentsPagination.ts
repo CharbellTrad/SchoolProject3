@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { showAlert } from '../components/showAlert';
-import { useAuth } from '../contexts/AuthContext';
 import * as odooApi from '../services-odoo/apiService';
 import * as authService from '../services-odoo/authService';
 import {
@@ -24,8 +23,6 @@ export const useStudentsPagination = () => {
   const [searchMode, setSearchMode] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  const { handleSessionExpired } = useAuth();
-
   const totalPages = Math.ceil(totalStudents / ITEMS_PER_PAGE);
 
   // ⚡ Carga inicial: obtiene solo el total
@@ -37,15 +34,15 @@ export const useStudentsPagination = () => {
 
       if (!serverHealth.ok) {
         setIsOfflineMode(true);
-        
+
         // ✅ Intentar cargar página 1 desde caché
         const result = await loadStudentsPaginated(1, ITEMS_PER_PAGE, true);
-        
+
         if (result.students.length > 0) {
           setStudents(result.students);
           setTotalStudents(result.total);
           setCurrentPage(1);
-          
+
           if (__DEV__) {
             console.log(`📦 [OFFLINE] Cargado desde caché: ${result.students.length} estudiantes`);
           }
@@ -55,14 +52,17 @@ export const useStudentsPagination = () => {
             'No hay datos guardados. Conecta a internet para cargar estudiantes.'
           );
         }
-        
+
         setInitialLoading(false);
         return;
       }
 
       const validSession = await authService.verifySession();
       if (!validSession) {
-        handleSessionExpired();
+        if (__DEV__) {
+          console.log('❌ Sesión inválida - El API ya manejó la expiración');
+        }
+        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
         setInitialLoading(false);
         return;
       }
@@ -72,7 +72,7 @@ export const useStudentsPagination = () => {
       const domain = [['type_enrollment', '=', 'student']];
       const countResult = await odooApi.searchCount('res.partner', domain);
       const total = countResult.success ? (countResult.data || 0) : 0;
-      
+
       setTotalStudents(total);
 
       if (__DEV__) {
@@ -85,7 +85,7 @@ export const useStudentsPagination = () => {
       setIsOfflineMode(true);
       setInitialLoading(false);
     }
-  }, [handleSessionExpired]);
+  }, []);
 
   // 📄 Cargar página actual (modo paginación)
   const loadCurrentPage = useCallback(async (forceReload = false) => {
@@ -104,25 +104,28 @@ export const useStudentsPagination = () => {
 
       if (!serverHealth.ok) {
         setIsOfflineMode(true);
-        
+
         // ✅ MODO OFFLINE: Intentar cargar desde caché
         const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, true);
-        
+
         setStudents(result.students);
-        
+
         if (result.students.length === 0) {
           showAlert(
             'Sin conexión',
             `No hay datos guardados para la página ${currentPage}. Solo puedes ver páginas que hayas visitado anteriormente con conexión.`
           );
         }
-        
+
         return;
       }
 
       const validSession = await authService.verifySession();
       if (!validSession) {
-        handleSessionExpired();
+        if (__DEV__) {
+          console.log('❌ Sesión inválida - El API ya manejó la  expiración');
+        }
+        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
         return;
       }
 
@@ -131,7 +134,7 @@ export const useStudentsPagination = () => {
       // 🌐 MODO ONLINE: Cargar desde servidor (automáticamente guardará en caché)
       const result = await loadStudentsPaginated(currentPage, ITEMS_PER_PAGE, false);
       setStudents(result.students);
-      
+
       if (forceReload) {
         setTotalStudents(result.total);
       }
@@ -147,7 +150,7 @@ export const useStudentsPagination = () => {
       if (forceReload) setRefreshing(false);
       else setLoading(false);
     }
-  }, [currentPage, handleSessionExpired, initialLoading, totalStudents, searchMode]);
+  }, [currentPage, initialLoading, totalStudents, searchMode]);
 
   // 🔍 Búsqueda global (sin paginación) - SOLO ONLINE
   const performSearch = useCallback(async (query: string) => {
@@ -174,7 +177,10 @@ export const useStudentsPagination = () => {
 
       const validSession = await authService.verifySession();
       if (!validSession) {
-        handleSessionExpired();
+        if (__DEV__) {
+          console.log('❌ Sesión inválida - El API ya manejó la expiración');
+        }
+        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
         setLoading(false);
         return;
       }
@@ -193,7 +199,7 @@ export const useStudentsPagination = () => {
     } finally {
       setLoading(false);
     }
-  }, [handleSessionExpired]);
+  }, []);
 
   // ✅ Entrar en modo búsqueda
   const enterSearchMode = useCallback(() => {

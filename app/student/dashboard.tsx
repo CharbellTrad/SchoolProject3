@@ -11,7 +11,7 @@ import * as authService from '../../services-odoo/authService';
 import { formatTimeAgo } from '../../utils/formatHelpers';
 
 export default function StudentDashboard() {
-  const { user, logout, updateUser, handleSessionExpired } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
@@ -41,9 +41,9 @@ export default function StudentDashboard() {
 
       if (!validSession) {
         if (__DEV__) {
-          console.log('❌ Sesión no válida durante refresh');
+          console.log('❌ Sesión no válida - El API ya manejó la expiración');
         }
-        handleSessionExpired();
+        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
         return;
       }
 
@@ -71,11 +71,12 @@ export default function StudentDashboard() {
     } finally {
       setRefreshing(false);
     }
-  }, [handleSessionExpired, updateUser]);
+  }, [updateUser]);
 
   const handleLogout = async (): Promise<void> => {
     await logout();
-    router.replace('/login');
+    // ✅ REPLACE para limpiar stack - no queremos que vuelva atrás al dashboard
+    router.push('/login');
   };
 
   if (!user) {

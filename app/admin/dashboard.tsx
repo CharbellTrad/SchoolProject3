@@ -14,7 +14,7 @@ import { getSessionTimeRemaining } from '../../services-odoo/authService';
 
 
 export default function AdminDashboard() {
-  const { user, logout, updateUser, handleSessionExpired } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState<string>('');
@@ -49,9 +49,9 @@ export default function AdminDashboard() {
 
       if (!validSession) {
         if (__DEV__) {
-          console.log('❌ Sesión no válida durante refresh');
+          console.log('❌ Sesión no válida durante refresh - El API ya manejó la expiración');
         }
-        handleSessionExpired();
+        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
         return;
       }
 
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
     } finally {
       setRefreshing(false);
     }
-  }, [handleSessionExpired, updateUser]);
+  }, [updateUser]);
 
 
   useEffect(() => {
@@ -117,7 +117,8 @@ export default function AdminDashboard() {
 
   const handleLogout = async (): Promise<void> => {
     await logout();
-    router.replace('/login');
+    // ✅ REPLACE para limpiar stack - no queremos que vuelva atrás al dashboard
+    router.push('/login');
   };
 
 
