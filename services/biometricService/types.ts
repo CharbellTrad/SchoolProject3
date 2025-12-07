@@ -10,7 +10,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 export interface BiometricAvailability {
   isAvailable: boolean;
   biometricType: BiometricType | null;
-  allTypes?: LocalAuthentication.AuthenticationType[]; 
+  allTypes?: LocalAuthentication.AuthenticationType[];
   hasHardware: boolean;
   isEnrolled: boolean;
 }
@@ -32,6 +32,7 @@ export interface BiometricCredentials {
   username: string;
   password: string;
   fullName: string;
+  imageUrl?: string; // Foto del usuario (base64)
   isEnabled: boolean;
   enrolledAt: string;
   lastUsedAt?: string;

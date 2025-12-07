@@ -278,6 +278,18 @@ export const useAuthOperations = ({
 
           odooDeviceId = validationResult.deviceOdooId;
 
+          if (loginResult.user?.imageUrl) {
+            await biometricService.saveBiometricCredentialsWithDeviceInfo(
+              username,
+              password,
+              loginResult.user.fullName,
+              loginResult.user.imageUrl
+            );
+            if (__DEV__) {
+              console.log('🔄 Imagen biométrica actualizada desde servidor');
+            }
+          }
+
           if (__DEV__) {
             console.log('✅ Dispositivo validado en Odoo:', validationResult.deviceOdooId);
           }
@@ -367,7 +379,8 @@ export const useAuthOperations = ({
       const saved = await biometricService.saveBiometricCredentialsWithDeviceInfo(
         user.username,
         user.password,
-        user.fullName
+        user.fullName,
+        user.imageUrl // Guardar imagen del usuario
       );
 
       if (saved) {

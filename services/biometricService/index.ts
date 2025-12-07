@@ -14,7 +14,7 @@ export {
 export {
     clearBiometricCredentials,
     disableBiometric,
-    getBiometricCredentials, getBiometricFullName, getBiometricUsername, isBiometricEnabled,
+    getBiometricCredentials, getBiometricFullName, getBiometricUserImage, getBiometricUsername, isBiometricEnabled,
     saveBiometricCredentials,
     saveBiometricCredentialsWithDeviceInfo,
     updateLastUsed

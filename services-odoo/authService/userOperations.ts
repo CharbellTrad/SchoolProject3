@@ -38,6 +38,45 @@ export const getUserInfo = async (): Promise<OperationResult> => {
 };
 
 /**
+ * Obtiene la imagen de perfil del usuario desde Odoo
+ * @param partnerId - ID del partner (opcional, usa el de la sesión si no se provee)
+ * @returns URL base64 de la imagen o null si no existe
+ */
+export const getUserImage = async (partnerId?: number): Promise<string | null> => {
+  try {
+    let targetPartnerId = partnerId;
+
+    if (!targetPartnerId) {
+      const session = await getSavedUserSession();
+      if (!session || !session.odooData) {
+        return null;
+      }
+      targetPartnerId = session.odooData.partnerId;
+    }
+
+    // Leer imagen del partner (image_1920 es la de mejor calidad)
+    const result = await odooApi.read(
+      'res.partner',
+      [targetPartnerId],
+      ['image_1920']
+    );
+
+    if (!result.success || !result.data || result.data.length === 0) {
+      return null;
+    }
+
+    const partnerData = result.data[0];
+    return partnerData.image_1920 || null;
+  } catch (error: any) {
+    if (__DEV__) {
+      console.warn('⚠️ Error al obtener imagen de usuario:', error.message);
+    }
+    return null;
+  }
+};
+
+
+/**
  * Cambia la contraseña del usuario actual
  * @param currentPassword - Contraseña actual
  * @param newPassword - Nueva contraseña
@@ -102,7 +141,7 @@ export const changePassword = async (
     if (__DEV__) {
       console.error('❌ Error cambiando contraseña:', error);
     }
-    
+
     return {
       success: false,
       message: error.message || 'Error al cambiar contraseña',
@@ -160,7 +199,7 @@ export const updateUserProfile = async (
     if (__DEV__) {
       console.error('❌ Error actualizando perfil:', error);
     }
-    
+
     return {
       success: false,
       message: error.message || 'Error al actualizar perfil',

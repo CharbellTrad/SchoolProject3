@@ -19,15 +19,15 @@ const validateCredentials = (username: string, password: string): string | null 
   if (!username.trim()) {
     return 'El nombre de usuario es requerido';
   }
-  
+
   if (!password.trim()) {
     return 'La contraseña es requerida';
   }
-  
+
   if (username.trim().length < 3) {
     return 'El nombre de usuario debe tener al menos 3 caracteres';
   }
-  
+
   return null;
 };
 
@@ -38,11 +38,11 @@ const validateCredentials = (username: string, password: string): string | null 
  * @param username - Username original
  * @returns Sesión de usuario
  */
-const processAuthResponse = (
+const processAuthResponse = async (
   authData: OdooAuthResponse,
   sid: string,
   username: string
-): UserSession => {
+): Promise<UserSession> => {
 
   if (__DEV__) {
     console.log('🔍 DEBUG - authData de Odoo:', {
@@ -53,6 +53,24 @@ const processAuthResponse = (
   }
   const userRole = mapOdooRoleToAppRole(authData.role || '');
 
+  // Intentar obtener la imagen del usuario
+  let userImage: string | undefined;
+  try {
+    const imageResult = await odooApi.read(
+      'res.partner',
+      [authData.partner_id],
+      ['image_1920']
+    );
+
+    if (imageResult.success && imageResult.data && imageResult.data.length > 0) {
+      userImage = imageResult.data[0].image_1920 || undefined;
+    }
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('⚠️ No se pudo obtener imagen durante login');
+    }
+  }
+
   return {
     id: authData.uid,
     username: authData.username || username,
@@ -62,6 +80,7 @@ const processAuthResponse = (
     fullName: authData.name || username,
     createdAt: new Date().toISOString(),
     active: true,
+    imageUrl: userImage,
     token: sid,
     loginTime: new Date().toISOString(),
     odooData: {
@@ -103,10 +122,10 @@ export const login = async (
 
     if (!authResult.success) {
       const errorMsg = odooApi.extractOdooErrorMessage(authResult.error);
-      
+
       // Mensajes de error amigables
-      if (errorMsg.toLowerCase().includes('access denied') || 
-          errorMsg.toLowerCase().includes('acceso denegado')) {
+      if (errorMsg.toLowerCase().includes('access denied') ||
+        errorMsg.toLowerCase().includes('acceso denegado')) {
         return {
           success: false,
           message: 'Usuario o contraseña incorrectos',
@@ -149,23 +168,23 @@ export const login = async (
     }
 
     // 5. Crear sesión de usuario
-    const userSession = processAuthResponse(authData, sid, username);
+    const userSession = await processAuthResponse(authData, sid, username);
     await saveUserSession(userSession);
 
     // 6. Verificar que la sesión se guardó correctamente
     if (__DEV__) {
       console.log('🔍 Verificando sesión recién creada...');
     }
-    
+
     const validSession = await verifySession();
 
     if (!validSession) {
       if (__DEV__) {
         console.error('❌ La sesión no pudo ser verificada después del login');
       }
-      
+
       await odooApi.destroySession();
-      
+
       return {
         success: false,
         message: 'No se pudo establecer la sesión correctamente',
@@ -207,7 +226,7 @@ export const logout = async (): Promise<void> => {
 
     // Destruir sesión en Odoo
     await odooApi.destroySession();
-    
+
     // Limpiar sesión local
     await clearUserSession();
 
@@ -218,7 +237,7 @@ export const logout = async (): Promise<void> => {
     if (__DEV__) {
       console.error('⚠️ Error durante logout:', error);
     }
-    
+
     // Asegurar limpieza local incluso si falla Odoo
     await clearUserSession();
   }

@@ -11,10 +11,10 @@ export type UserRole = 'admin' | 'teacher' | 'student' | 'employee';
 /**
  * Roles originales de Odoo
  */
-export type OdooEmployeeType = 
-  | 'administrativo' 
-  | 'docente' 
-  | 'obrero' 
+export type OdooEmployeeType =
+  | 'administrativo'
+  | 'docente'
+  | 'obrero'
   | 'cenar';
 
 /**
@@ -40,6 +40,7 @@ export interface User {
   fullName: string;
   createdAt: string;
   active?: boolean;
+  imageUrl?: string; // Foto de perfil del usuario (image_1920 de res.partner)
   odooData?: OdooUserData;
 }
 

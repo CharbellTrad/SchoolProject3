@@ -5,6 +5,7 @@ import Head from 'expo-router/head';
 import React, { useCallback, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { UserAvatar } from '../../components/common/UserAvatar';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -52,6 +53,7 @@ export default function TeacherDashboard() {
         await updateUser({
           fullName: validSession.fullName,
           email: validSession.email,
+          imageUrl: validSession.imageUrl, // Actualizar imagen
         });
       }
 
@@ -116,12 +118,13 @@ export default function TeacherDashboard() {
                 </View>
               </View>
               <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
-                <LinearGradient
-                  colors={['#ffffff', '#ecfdf5']}
-                  style={styles.avatar}
-                >
-                  <Ionicons name="person" size={28} color={Colors.secondary} />
-                </LinearGradient>
+                <UserAvatar
+                  imageUrl={user.imageUrl}
+                  size={100}
+                  iconColor={Colors.secondary}
+                  gradientColors={['#ffffff', '#ffffff']}
+                  borderRadius={12}
+                />
               </TouchableOpacity>
             </View>
           </LinearGradient>
@@ -473,6 +476,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 0,
+    alignSelf: 'center', // Centrar verticalmente
   },
   avatar: {
     width: 60,
