@@ -159,7 +159,7 @@ function RootLayoutNav() {
       const dashboardRoute = ROLE_DASHBOARDS[user.role]
       if (isDev) console.log(`✅ Login exitoso, navegando a ${dashboardRoute}`)
       // ✅ PUSH para mantener stack saludable (permite navegación correcta de cards)
-      router.push(dashboardRoute as any)
+      router.replace(dashboardRoute as any)
       setTimeout(() => { navigationInProgress.current = false }, 100)
     }
     // Usuario autenticado en ruta raíz → ir a dashboard
@@ -167,7 +167,7 @@ function RootLayoutNav() {
       navigationInProgress.current = true
       const dashboardRoute = ROLE_DASHBOARDS[user.role]
       if (isDev) console.log(`📍 En raíz, redirigiendo a ${dashboardRoute}`)
-      router.push(dashboardRoute as any)
+      router.replace(dashboardRoute as any)
       setTimeout(() => { navigationInProgress.current = false }, 100)
     }
     // Usuario en dashboard incorrecto → corregir
@@ -179,7 +179,7 @@ function RootLayoutNav() {
         navigationInProgress.current = true
         const expectedDashboard = ROLE_DASHBOARDS[user.role]
         if (isDev) console.log(`⚠️ Dashboard incorrecto, redirigiendo a ${expectedDashboard}`)
-        router.push(expectedDashboard as any)
+        router.replace(expectedDashboard as any)
         setTimeout(() => { navigationInProgress.current = false }, 100)
       }
     }
