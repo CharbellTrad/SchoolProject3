@@ -3,10 +3,12 @@
 import { Component, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 export class CurrentSchoolYearAction extends Component {
     static template = "pma_public_school_ve.CurrentSchoolYearAction";
-    static props = {};
+    static props = {
+        ...standardActionServiceProps
+    };
 
     setup() {
         this.orm = useService("orm");

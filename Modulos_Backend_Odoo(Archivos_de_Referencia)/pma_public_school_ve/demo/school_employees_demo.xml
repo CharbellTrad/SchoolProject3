@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ============================================== -->
+        <!-- DEMO DATA: Personal Docente y Administrativo   -->
+        <!-- ============================================== -->
+        
+        <!-- ============================================== -->
+        <!-- 1. DEPARTAMENTOS                               -->
+        <!-- ============================================== -->
+        <record id="dept_direccion" model="hr.department">
+            <field name="name">Dirección</field>
+        </record>
+        <record id="dept_academico" model="hr.department">
+            <field name="name">Departamento Académico</field>
+            <field name="parent_id" ref="dept_direccion"/>
+        </record>
+        <record id="dept_ciencias" model="hr.department">
+            <field name="name">Departamento de Ciencias</field>
+            <field name="parent_id" ref="dept_academico"/>
+        </record>
+        <record id="dept_humanidades" model="hr.department">
+            <field name="name">Departamento de Humanidades</field>
+            <field name="parent_id" ref="dept_academico"/>
+        </record>
+        <record id="dept_tecnico" model="hr.department">
+            <field name="name">Departamento Técnico</field>
+            <field name="parent_id" ref="dept_academico"/>
+        </record>
+        <record id="dept_administrativo" model="hr.department">
+            <field name="name">Departamento Administrativo</field>
+            <field name="parent_id" ref="dept_direccion"/>
+        </record>
+        <record id="dept_obrero" model="hr.department">
+            <field name="name">Personal Obrero</field>
+            <field name="parent_id" ref="dept_direccion"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. EMPLEADOS (Docentes y Personal)             -->
+        <!-- ============================================== -->
+        
+        <!-- Director -->
+        <record id="employee_director" model="hr.employee">
+            <field name="name">María Elena Rodríguez</field>
+            <field name="school_employee_type">administrativo</field>
+            <field name="job_title">Directora</field>
+            <field name="department_id" ref="dept_direccion"/>
+            <field name="work_email">m.rodriguez@escuela.edu.ve</field>
+            <field name="work_phone">+58 212 555-0001</field>
+        </record>
+        
+        <!-- Subdirectora -->
+        <record id="employee_subdirector" model="hr.employee">
+            <field name="name">Carlos Alberto Mendoza</field>
+            <field name="school_employee_type">administrativo</field>
+            <field name="job_title">Subdirector Académico</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">c.mendoza@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Docentes de Ciencias -->
+        <record id="employee_prof_matematica" model="hr.employee">
+            <field name="name">José Luis Hernández</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="work_email">j.hernandez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_fisica" model="hr.employee">
+            <field name="name">Ana María Gutiérrez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Física</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="work_email">a.gutierrez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_quimica" model="hr.employee">
+            <field name="name">Roberto Andrés Pérez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Química</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="work_email">r.perez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_biologia" model="hr.employee">
+            <field name="name">Luisa Fernanda Morales</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Biología</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="work_email">l.morales@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Docentes de Humanidades -->
+        <record id="employee_prof_castellano" model="hr.employee">
+            <field name="name">Patricia del Valle García</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="work_email">p.garcia@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_historia" model="hr.employee">
+            <field name="name">Miguel Antonio Ramírez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Historia</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="work_email">m.ramirez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_ingles" model="hr.employee">
+            <field name="name">Jennifer Smith Torres</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Inglés</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="work_email">j.smith@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Docentes Técnicos -->
+        <record id="employee_prof_informatica" model="hr.employee">
+            <field name="name">Daniel Alejandro López</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="work_email">d.lopez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_electricidad" model="hr.employee">
+            <field name="name">Francisco José Contreras</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Electricidad</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="work_email">f.contreras@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Docentes de Primaria -->
+        <record id="employee_prof_primaria_1" model="hr.employee">
+            <field name="name">Carmen Rosa Díaz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de 1er Grado</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">c.diaz@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_primaria_2" model="hr.employee">
+            <field name="name">Gladys María Pérez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de 2do Grado</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">g.perez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_educacion_fisica" model="hr.employee">
+            <field name="name">Pedro Antonio Sánchez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Educación Física</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">p.sanchez@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Personal Administrativo -->
+        <record id="employee_secretaria" model="hr.employee">
+            <field name="name">Teresa del Carmen Suárez</field>
+            <field name="school_employee_type">administrativo</field>
+            <field name="job_title">Secretaria Ejecutiva</field>
+            <field name="department_id" ref="dept_administrativo"/>
+            <field name="work_email">t.suarez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_biblioteca" model="hr.employee">
+            <field name="name">Juana Mercedes Urbina</field>
+            <field name="school_employee_type">administrativo</field>
+            <field name="job_title">Bibliotecaria</field>
+            <field name="department_id" ref="dept_administrativo"/>
+            <field name="work_email">j.urbina@escuela.edu.ve</field>
+        </record>
+        
+        <!-- Personal Obrero -->
+        <record id="employee_mantenimiento" model="hr.employee">
+            <field name="name">Luis Eduardo Márquez</field>
+            <field name="school_employee_type">obrero</field>
+            <field name="job_title">Jefe de Mantenimiento</field>
+            <field name="department_id" ref="dept_obrero"/>
+        </record>
+        
+        <record id="employee_conserje" model="hr.employee">
+            <field name="name">José Ramón Blanco</field>
+            <field name="school_employee_type">obrero</field>
+            <field name="job_title">Conserje</field>
+            <field name="department_id" ref="dept_obrero"/>
+        </record>
+        
+    </data>
+</odoo>

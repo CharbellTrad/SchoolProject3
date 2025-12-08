@@ -33,6 +33,17 @@ class SchoolStudent(models.Model):
     inscription_date = fields.Date(string="Fecha de inscripción")
 
     uninscription_date = fields.Date(string="Fecha de Desinscripción")
+    
+    uninscription_reason = fields.Text(string="Motivo de Desinscripción", readonly=True, help="Razón por la cual se desinscribió al estudiante")
+    
+    uninscription_document_1 = fields.Binary(string="Documento 1", readonly=True, attachment=True)
+    uninscription_document_1_filename = fields.Char(string="Nombre Documento 1", readonly=True)
+    
+    uninscription_document_2 = fields.Binary(string="Documento 2", readonly=True, attachment=True)
+    uninscription_document_2_filename = fields.Char(string="Nombre Documento 2", readonly=True)
+    
+    uninscription_document_3 = fields.Binary(string="Documento 3", readonly=True, attachment=True)
+    uninscription_document_3_filename = fields.Char(string="Nombre Documento 3", readonly=True)
 
     height = fields.Float(string="Estatura (m)")
 
@@ -66,6 +77,65 @@ class SchoolStudent(models.Model):
                 ('secundary', 'Media general'), 
                 ('primary', 'Primaria'), 
                 ('pre', 'Preescolar')], related='section_id.type', store=True)
+    
+    mention_id = fields.Many2one(
+        comodel_name='school.mention',
+        string='Mención',
+        help='Mención técnica en la que está inscrito el estudiante (solo Media General)'
+    )
+    
+    mention_domain_ids = fields.Many2many(
+        comodel_name='school.mention',
+        string='Menciones Disponibles',
+        compute='_compute_mention_domain_ids',
+        store=False,
+        help='Menciones disponibles para este estudiante'
+    )
+    
+    @api.depends('section_id', 'section_id.type')
+    def _compute_mention_domain_ids(self):
+        """Solo estudiantes de Media General pueden tener menciones"""
+        for record in self:
+            if record.section_id and record.section_id.type == 'secundary':
+                mentions = self.env['school.mention'].search([('active', '=', True)])
+                record.mention_domain_ids = mentions.ids
+            else:
+                record.mention_domain_ids = []
+    
+    mention_state = fields.Selection(
+        string='Estado de Mención',
+        selection=[
+            ('draft', 'Por Inscribir'),
+            ('enrolled', 'Inscrito'),
+            ('withdrawn', 'Retirado')
+        ],
+        default='draft',
+        readonly=True,
+        help='Estado de la inscripción en la mención'
+    )
+    
+    mention_inscription_date = fields.Date(
+        string='Fecha de Inscripción en Mención',
+        readonly=True
+    )
+    
+    mention_parent_signature = fields.Binary(
+        string='Firma del Representante (Mención)',
+        readonly=True,
+        attachment=True,
+        help='Firma del representante autorizando inscripción en mención'
+    )
+    
+    mention_parent_signature_date = fields.Date(
+        string='Fecha de Firma (Mención)',
+        readonly=True
+    )
+    
+    mention_observations = fields.Text(
+        string='Observaciones de Mención',
+        readonly=True
+    )
+
 
     @api.depends('evaluation_score_ids.points_20', 'evaluation_score_ids.points_100', 
                  'evaluation_score_ids.state_score', 'evaluation_score_ids.subject_id',
@@ -334,6 +404,15 @@ class SchoolStudent(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        # Validar que el año escolar no esté finalizado
+        for vals in vals_list:
+            if 'year_id' in vals and vals.get('year_id'):
+                year = self.env['school.year'].browse(vals['year_id'])
+                if year.state == 'finished':
+                    raise exceptions.UserError(
+                        f"No se pueden crear matrículas en el año escolar '{year.name}' porque está finalizado."
+                    )
+        
         res = super().create(vals_list)
         for student in res:
             student.student_id._update_sizes_json()
@@ -376,13 +455,75 @@ class SchoolStudent(models.Model):
         self.state = 'done'
         self.inscription_date = fields.Datetime.now()
     
-    def validate_uninscription(self):
+    def action_open_uninscription_wizard(self):
+        """Abre el wizard de desinscripción"""
         self.ensure_one()
-        if not self.inscription_date or self.state != 'done':
-            raise exceptions.UserError("No se puede desinscribir a un estudiante no inscrito.")
-
-        self.state = 'cancel'
-        self.uninscription_date = fields.Datetime.now()
+        
+        if self.state != 'done':
+            raise exceptions.UserError("Solo se pueden desinscribir estudiantes que estén inscritos.")
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Desinscribir Estudiante',
+            'res_model': 'school.uninscription.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_student_id': self.id,
+            }
+        }
+    
+    def action_open_mention_inscription_wizard(self):
+        """Abre el wizard para inscribir en mención"""
+        self.ensure_one()
+        
+        # Validaciones
+        if self.state != 'done':
+            raise exceptions.UserError(
+                "El estudiante debe estar inscrito en el año escolar primero."
+            )
+        
+        if self.type != 'secundary':
+            raise exceptions.UserError(
+                "Solo los estudiantes de Media General pueden inscribirse en menciones."
+            )
+        
+        if not self.mention_id:
+            raise exceptions.UserError(
+                "Debe seleccionar una mención antes de inscribir al estudiante."
+            )
+        
+        if self.mention_state == 'enrolled':
+            raise exceptions.UserError(
+                "El estudiante ya está inscrito en esta mención."
+            )
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Inscribir en Mención',
+            'res_model': 'school.mention.inscription.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_student_id': self.id,
+                'default_mention_id': self.mention_id.id,
+                'default_parent_id': self.parent_id.id if self.parent_id else False,
+            }
+        }
+    
+    def action_withdraw_from_mention(self):
+        """Retira al estudiante de la mención"""
+        self.ensure_one()
+        
+        if self.mention_state != 'enrolled':
+            raise exceptions.UserError(
+                "Solo se pueden retirar estudiantes que estén inscritos en una mención."
+            )
+        
+        self.write({
+            'mention_state': 'withdrawn',
+            # Mantener mention_id para historial
+        })
 
 
     @api.constrains('student_id', 'year_id')
@@ -398,3 +539,23 @@ class SchoolStudent(models.Model):
             ], limit=1)
             if existing:
                 raise exceptions.ValidationError("No se puede crear la inscripción: el estudiante ya está inscrito en el año escolar seleccionado.")
+    
+    def unlink(self):
+        """Prevent deletion of enrolled students with evaluation scores or in finished years"""
+        for record in self:
+            # Check if year is finished
+            if record.year_id and record.year_id.state == 'finished':
+                raise exceptions.UserError(
+                    f"No se puede eliminar al estudiante '{record.student_id.name}' porque el año escolar "
+                    f"'{record.year_id.name}' está finalizado."
+                )
+            
+            # Check for evaluation scores
+            if record.evaluation_score_ids:
+                raise exceptions.UserError(
+                    f"No se puede eliminar al estudiante '{record.student_id.name}' de la sección '{record.section_id.name}' "
+                    f"porque tiene {len(record.evaluation_score_ids)} puntaje(s) de evaluación registrado(s). "
+                    f"Elimine primero todos los puntajes de evaluación."
+                )
+        
+        return super().unlink()

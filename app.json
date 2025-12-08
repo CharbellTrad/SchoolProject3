@@ -16,7 +16,8 @@
         "tinted": "./assets/images/icon-dark.png"
       },
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Usamos Face ID para permitirte iniciar sesión de forma rápida y segura en el sistema escolar."
+        "NSFaceIDUsageDescription": "Usamos Face ID para permitirte iniciar sesión de forma rápida y segura en el sistema escolar.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,9 +31,6 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT",
         "android.permission.RECORD_AUDIO",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"

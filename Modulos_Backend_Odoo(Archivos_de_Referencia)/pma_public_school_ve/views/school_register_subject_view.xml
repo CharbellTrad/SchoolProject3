@@ -31,6 +31,14 @@
                                 </list>
                             </field>
                         </group>
+                        <group string="Menciones relacionadas">
+                            <field name="mention_ids" nolabel="1" colspan="2">
+                                <list editable="top" create="0">
+                                    <field name="name" readonly="1"/>
+                                    <field name="code" readonly="1"/>
+                                </list>
+                            </field>
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -45,6 +53,7 @@
                 <field name="name"/>
                 <field name="professor_ids" widget="many2many_tags"/>
                 <field name="section_ids" widget="many2many_tags"/>
+                <field name="mention_ids" widget="many2many_tags"/>
             </list>
         </field>
     </record>

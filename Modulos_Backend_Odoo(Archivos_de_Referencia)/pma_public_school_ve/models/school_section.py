@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 
@@ -16,7 +17,7 @@ class SchoolSection(models.Model):
     @api.depends('section_id', 'year_id')
     def _compute_name(self):
         for record in self:
-            record.name = record.section_id.name + ' - ' + record.year_id.name
+            record.name = f"{record.section_id.name} - {record.year_id.name}" if record.section_id and record.year_id else ''
 
     year_id = fields.Many2one(comodel_name='school.year', string='Año Escolar', default=_default_year, required=True)
 
@@ -280,3 +281,37 @@ class SchoolSection(models.Model):
             }
             
             record.top_students_json = result
+    
+    def unlink(self):
+        """Prevent deletion of enrolled sections with related records or in finished years"""
+        for record in self:
+            # Check if year is finished
+            if record.year_id and record.year_id.state == 'finished':
+                raise UserError(
+                    f"No se puede eliminar la sección '{record.name}' porque el año escolar "
+                    f"'{record.year_id.name}' está finalizado."
+                )
+            
+            # Check for related students
+            if record.student_ids:
+                raise UserError(
+                    f"No se puede eliminar la sección inscrita '{record.name}' porque tiene {len(record.student_ids)} "
+                    f"estudiante(s) inscrito(s). Elimine primero los estudiantes."
+                )
+            
+            # Check for related subjects
+            if record.subject_ids:
+                raise UserError(
+                    f"No se puede eliminar la sección inscrita '{record.name}' porque tiene {len(record.subject_ids)} "
+                    f"materia(s) asignada(s). Elimine primero las materias asignadas."
+                )
+            
+            # Check for related evaluations
+            evaluations = self.env['school.evaluation'].search([('section_id', '=', record.id)])
+            if evaluations:
+                raise UserError(
+                    f"No se puede eliminar la sección inscrita '{record.name}' porque tiene {len(evaluations)} "
+                    f"evaluación(ones) registrada(s). Elimine primero las evaluaciones."
+                )
+        
+        return super().unlink()

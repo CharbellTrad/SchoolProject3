@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ============================================== -->
+        <!-- DEMO DATA: Flujo completo de una escuela       -->
+        <!-- ============================================== -->
+        
+        <!-- ============================================== -->
+        <!-- 1. LETRAS DE SECCIÓN                           -->
+        <!-- ============================================== -->
+        <record id="section_letter_a" model="school.section.letter">
+            <field name="name">A</field>
+        </record>
+        <record id="section_letter_b" model="school.section.letter">
+            <field name="name">B</field>
+        </record>
+        <record id="section_letter_c" model="school.section.letter">
+            <field name="name">C</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. SECCIONES BASE (Grados)                     -->
+        <!-- ============================================== -->
+        
+        <!-- Preescolar -->
+        <record id="register_section_preescolar_1" model="school.register.section">
+            <field name="name">1er Nivel</field>
+            <field name="type">pre</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_preescolar_2" model="school.register.section">
+            <field name="name">2do Nivel</field>
+            <field name="type">pre</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_preescolar_3" model="school.register.section">
+            <field name="name">3er Nivel</field>
+            <field name="type">pre</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        
+        <!-- Primaria -->
+        <record id="register_section_primaria_1" model="school.register.section">
+            <field name="name">1er Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_primaria_2" model="school.register.section">
+            <field name="name">2do Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_primaria_3" model="school.register.section">
+            <field name="name">3er Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_primaria_4" model="school.register.section">
+            <field name="name">4to Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_primaria_5" model="school.register.section">
+            <field name="name">5to Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_primaria_6" model="school.register.section">
+            <field name="name">6to Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        
+        <!-- Media General -->
+        <record id="register_section_media_1" model="school.register.section">
+            <field name="name">1er Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_media_2" model="school.register.section">
+            <field name="name">2do Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_media_3" model="school.register.section">
+            <field name="name">3er Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_b"/>
+        </record>
+        <record id="register_section_media_4" model="school.register.section">
+            <field name="name">4to Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        <record id="register_section_media_5" model="school.register.section">
+            <field name="name">5to Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_a"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 3. MATERIAS BASE                               -->
+        <!-- ============================================== -->
+        
+        <!-- Materias de Primaria -->
+        <record id="subject_matematica_primaria" model="school.register.subject">
+            <field name="name">Matemática</field>
+        </record>
+        <record id="subject_lengua_primaria" model="school.register.subject">
+            <field name="name">Lengua y Literatura</field>
+        </record>
+        <record id="subject_ciencias_naturales" model="school.register.subject">
+            <field name="name">Ciencias Naturales</field>
+        </record>
+        <record id="subject_ciencias_sociales" model="school.register.subject">
+            <field name="name">Ciencias Sociales</field>
+        </record>
+        <record id="subject_educacion_fisica_primaria" model="school.register.subject">
+            <field name="name">Educación Física</field>
+        </record>
+        
+        <!-- Materias de Media General -->
+        <record id="subject_matematica_media" model="school.register.subject">
+            <field name="name">Matemática (Media)</field>
+        </record>
+        <record id="subject_castellano" model="school.register.subject">
+            <field name="name">Castellano y Literatura</field>
+        </record>
+        <record id="subject_fisica" model="school.register.subject">
+            <field name="name">Física</field>
+        </record>
+        <record id="subject_quimica" model="school.register.subject">
+            <field name="name">Química</field>
+        </record>
+        <record id="subject_biologia" model="school.register.subject">
+            <field name="name">Biología</field>
+        </record>
+        <record id="subject_historia" model="school.register.subject">
+            <field name="name">Historia de Venezuela</field>
+        </record>
+        <record id="subject_geografia" model="school.register.subject">
+            <field name="name">Geografía</field>
+        </record>
+        <record id="subject_ingles" model="school.register.subject">
+            <field name="name">Inglés</field>
+        </record>
+        <record id="subject_informatica" model="school.register.subject">
+            <field name="name">Informática</field>
+        </record>
+        <record id="subject_educacion_fisica_media" model="school.register.subject">
+            <field name="name">Educación Física (Media)</field>
+        </record>
+        
+        <!-- Materias de Menciones Técnicas -->
+        <record id="subject_programacion" model="school.register.subject">
+            <field name="name">Programación</field>
+        </record>
+        <record id="subject_base_datos" model="school.register.subject">
+            <field name="name">Bases de Datos</field>
+        </record>
+        <record id="subject_redes" model="school.register.subject">
+            <field name="name">Redes de Computadoras</field>
+        </record>
+        <record id="subject_circuitos" model="school.register.subject">
+            <field name="name">Circuitos Eléctricos</field>
+        </record>
+        <record id="subject_instalaciones" model="school.register.subject">
+            <field name="name">Instalaciones Eléctricas</field>
+        </record>
+        <record id="subject_electronica" model="school.register.subject">
+            <field name="name">Electrónica Básica</field>
+        </record>
+        <record id="subject_contabilidad" model="school.register.subject">
+            <field name="name">Contabilidad</field>
+        </record>
+        <record id="subject_administracion" model="school.register.subject">
+            <field name="name">Administración</field>
+        </record>
+        <record id="subject_mercadeo" model="school.register.subject">
+            <field name="name">Mercadeo</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 4. MENCIONES TÉCNICAS                          -->
+        <!-- ============================================== -->
+        <record id="mention_informatica" model="school.mention">
+            <field name="name">Informática</field>
+            <field name="code">INF</field>
+            <field name="description">Mención en Informática y Tecnología de la Información. Prepara a los estudiantes para el desarrollo de software, manejo de bases de datos y redes.</field>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_programacion'), ref('subject_base_datos'), ref('subject_redes'), ref('subject_informatica')])]"/>
+        </record>
+        
+        <record id="mention_electricidad" model="school.mention">
+            <field name="name">Electricidad</field>
+            <field name="code">ELEC</field>
+            <field name="description">Mención en Electricidad Industrial. Forma técnicos capacitados para el diseño, instalación y mantenimiento de sistemas eléctricos.</field>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_circuitos'), ref('subject_instalaciones'), ref('subject_electronica')])]"/>
+        </record>
+        
+        <record id="mention_comercio" model="school.mention">
+            <field name="name">Comercio y Servicios Administrativos</field>
+            <field name="code">COM</field>
+            <field name="description">Mención en Comercio y Servicios Administrativos. Prepara profesionales para la gestión empresarial y comercial.</field>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_contabilidad'), ref('subject_administracion'), ref('subject_mercadeo')])]"/>
+        </record>
+        
+    </data>
+</odoo>

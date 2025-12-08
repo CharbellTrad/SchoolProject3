@@ -8,6 +8,43 @@ class SchoolYear(models.Model):
     name = fields.Char(string='Nombre', required=True)
 
     current = fields.Boolean(string='Año actual')
+    
+    state = fields.Selection(
+        string='Estado',
+        selection=[
+            ('draft', 'Borrador'),
+            ('active', 'En Curso'),
+            ('finished', 'Finalizado')
+        ],
+        default='draft',
+        readonly=True,
+        help='Estado del año escolar: Borrador (no iniciado), En Curso (activo), Finalizado (cerrado)'
+    )
+    
+    start_date_real = fields.Date(
+        string='Fecha de Inicio Real',
+        readonly=True,
+        help='Fecha en que se inició oficialmente el año escolar'
+    )
+    
+    end_date_real = fields.Date(
+        string='Fecha de Finalización Real',
+        readonly=True,
+        help='Fecha en que se finalizó oficialmente el año escolar'
+    )
+    
+    is_locked = fields.Boolean(
+        string='Bloqueado',
+        compute='_compute_is_locked',
+        store=False,
+        help='Indica si el año escolar está bloqueado (finalizado)'
+    )
+    
+    @api.depends('state')
+    def _compute_is_locked(self):
+        for record in self:
+            record.is_locked = record.state == 'finished'
+
 
     @api.model_create_multi
     def create(self, vals):
@@ -37,6 +74,91 @@ class SchoolYear(models.Model):
                 if self.env['school.evaluation'].search([('year_id', '=', self.id)]):
                     raise UserError("No se puede modificar el mecanismo de evaluación cuando ya se crearon evaluciones relacionadas a este año escolar.")
         return super().write(vals)
+    
+    def unlink(self):
+        """Prevent deletion of school years with related records"""
+        for record in self:
+            # Check for related sections
+            if record.section_ids:
+                raise UserError(
+                    f"No se puede eliminar el año escolar '{record.name}' porque tiene {len(record.section_ids)} "
+                    f"sección(es) inscrita(s). Elimine primero las secciones inscritas."
+                )
+            
+            # Check for related students
+            if record.student_ids:
+                raise UserError(
+                    f"No se puede eliminar el año escolar '{record.name}' porque tiene {len(record.student_ids)} "
+                    f"estudiante(s) inscrito(s). Elimine primero los estudiantes."
+                )
+            
+            # Check for related professors
+            professors = self.env['school.professor'].search([('year_id', '=', record.id)])
+            if professors:
+                raise UserError(
+                    f"No se puede eliminar el año escolar '{record.name}' porque tiene {len(professors)} "
+                    f"profesor(es) asignado(s). Elimine primero los profesores."
+                )
+            
+            # Check for related evaluations
+            evaluations = self.env['school.evaluation'].search([('year_id', '=', record.id)])
+            if evaluations:
+                raise UserError(
+                    f"No se puede eliminar el año escolar '{record.name}' porque tiene {len(evaluations)} "
+                    f"evaluación(ones) registrada(s). Elimine primero las evaluaciones."
+                )
+        
+        return super().unlink()
+    
+    def action_start_year(self):
+        """Inicia el año escolar"""
+        self.ensure_one()
+        
+        if self.state != 'draft':
+            raise UserError("Solo se pueden iniciar años escolares en estado borrador.")
+        
+        # Verificar que no haya otro año activo
+        active_years = self.search([('state', '=', 'active'), ('id', '!=', self.id)])
+        if active_years:
+            raise UserError(
+                f"Ya existe un año escolar activo: '{active_years[0].name}'. "
+                f"Finalice ese año antes de iniciar uno nuevo."
+            )
+        
+        self.write({
+            'state': 'active',
+            'current': True,
+            'start_date_real': fields.Date.today(),
+        })
+        
+        # Marcar otros años como no actuales
+        self.search([('id', '!=', self.id), ('current', '=', True)]).write({'current': False})
+        
+        return True
+    
+    def action_finish_year(self):
+        """Finaliza el año escolar y bloquea todos los registros"""
+        self.ensure_one()
+        
+        if self.state != 'active':
+            raise UserError("Solo se pueden finalizar años escolares que estén en curso.")
+        
+        self.write({
+            'state': 'finished',
+            'current': False,
+            'end_date_real': fields.Date.today(),
+        })
+        
+        return True
+    
+    def _check_year_not_finished(self):
+        """Método auxiliar para validar que el año no esté finalizado"""
+        if self.state == 'finished':
+            raise UserError(
+                f"El año escolar '{self.name}' está finalizado. "
+                f"No se pueden crear, modificar o eliminar registros."
+            )
+    
     total_students_count = fields.Integer(compute='_compute_dashboard_counts', store=False)
     approved_students_count = fields.Integer(compute='_compute_dashboard_counts', store=False)
     total_sections_count = fields.Integer(compute='_compute_dashboard_counts', store=False)

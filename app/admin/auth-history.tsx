@@ -32,7 +32,7 @@ type BiometricAuthLog = biometricOdooService.BiometricAuthLog;
 const ITEMS_PER_PAGE = 15;
 
 export default function AuthHistoryScreen() {
-    const { user, handleSessionExpired } = useAuth();    
+    const { user } = useAuth();
     const [authLogs, setAuthLogs] = useState<BiometricAuthLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -68,7 +68,6 @@ export default function AuthHistoryScreen() {
                 if (__DEV__) {
                     console.error('❌ Error cargando historial:', result.error);
                 }
-                showAlert('Error', 'No se pudo cargar el historial de autenticaciones');
             }
         } catch (error) {
             if (__DEV__) {
@@ -87,14 +86,14 @@ export default function AuthHistoryScreen() {
         const serverHealth = await authService.checkServerHealth();
 
         if (!serverHealth.ok) {
-        if (__DEV__) {
-            console.log('🔴 Servidor no disponible durante refresh');
-        }
-        showAlert(
-            'Sin conexión',
-            'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
-        );
-        return;
+            if (__DEV__) {
+                console.log('🔴 Servidor no disponible durante refresh');
+            }
+            showAlert(
+                'Sin conexión',
+                'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+            );
+            return;
         }
 
         const validSession = await authService.verifySession();
@@ -102,9 +101,8 @@ export default function AuthHistoryScreen() {
 
         if (!validSession) {
             if (__DEV__) {
-            console.log('❌ Sesión no válida durante refresh');
+                console.log('❌ Sesión no válida durante refresh');
             }
-            handleSessionExpired();
             return;
         }
         setRefreshing(true);
@@ -286,7 +284,7 @@ const AuthLogCard: React.FC<AuthLogCardProps> = ({ log, isLast, onSessionEnded }
 
     const handleEndSession = async () => {
         const sessionId = log.session_id;
-        
+
         if (!sessionId) {
             showAlert('Error', 'No se puede finalizar la sesión: ID de sesión no disponible');
             return;
@@ -312,7 +310,10 @@ const AuthLogCard: React.FC<AuthLogCardProps> = ({ log, isLast, onSessionEnded }
                                 showAlert('Sesión Finalizada', result.message || 'La sesión se cerró exitosamente');
                                 onSessionEnded?.();
                             } else {
-                                showAlert('Error', result.error || 'No se pudo finalizar la sesión');
+                                // No mostrar alerta si la sesión ya expiró
+                                if (!result.isSessionExpired) {
+                                    showAlert('Error', result.error || 'No se pudo finalizar la sesión');
+                                }
                             }
                         } catch (error: any) {
                             console.error('❌ Error finalizando sesión:', error);

@@ -80,8 +80,13 @@ class SchoolSchedule(models.Model):
         """Obtiene los profesores de la sección"""
         for record in self:
             if record.section_id:
-                # Obtener profesores de las materias de la sección
-                professors = record.section_id.subject_ids.mapped('professor_id')
+                professors = []
+                if record.section_id.type == 'secundary':
+                    # Obtener profesores de las materias de la sección
+                    professors = record.section_id.subject_ids.mapped('professor_id.id')
+                elif record.section_id.type in ['primary', 'pre']:
+                    professors = record.section_id.professor_ids.ids
+                
                 record.available_professor_ids = professors
             else:
                 record.available_professor_ids = False
@@ -197,15 +202,15 @@ class SchoolSchedule(models.Model):
                 )
             
             # Validar rangos según nivel educativo
-            duration = record.end_time - record.start_time
-            if record.education_level == 'pre' and duration > 3:
-                raise exceptions.ValidationError(
-                    "Para preescolar, los bloques no deben exceder 3 horas"
-                )
-            elif record.education_level in ['primary', 'secundary'] and duration > 2:
-                raise exceptions.ValidationError(
-                    "Los bloques de clase no deben exceder 2 horas"
-                )
+            # duration = record.end_time - record.start_time
+            # if record.education_level == 'pre' and duration > 3:
+            #     raise exceptions.ValidationError(
+            #         "Para preescolar, los bloques no deben exceder 3 horas"
+            #     )
+            # elif record.education_level in ['primary', 'secundary'] and duration > 2:
+            #     raise exceptions.ValidationError(
+            #         "Los bloques de clase no deben exceder 2 horas"
+            #     )
 
     @api.constrains('section_id', 'subject_id', 'professor_ids', 'education_level')
     def _check_required_fields(self):

@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 
@@ -43,3 +44,33 @@ class SchoolProfessor(models.Model):
     section_ids = fields.Many2many('school.section',  'school_section_professor_rel', 'professor_id', 'section_id', string='Secciones', domain="[('year_id', '=', year_id), ('type', '!=', 'secundary' )]")
 
     current = fields.Boolean(string='Actual', related='year_id.current', store=True)
+    
+    def unlink(self):
+        """Prevent deletion of professors with assigned subjects, evaluations, or sections"""
+        for record in self:
+            # Check for assigned subjects
+            assigned_subjects = self.env['school.subject'].search([('professor_id', '=', record.id)])
+            if assigned_subjects:
+                sections = ', '.join(assigned_subjects.mapped('section_id.name'))
+                raise UserError(
+                    f"No se puede eliminar el profesor '{record.name}' porque tiene materias asignadas en las secciones: {sections}. "
+                    f"Elimine primero las asignaciones de materias."
+                )
+            
+            # Check for created evaluations
+            evaluations = self.env['school.evaluation'].search([('professor_id', '=', record.id)])
+            if evaluations:
+                raise UserError(
+                    f"No se puede eliminar el profesor '{record.name}' porque tiene {len(evaluations)} "
+                    f"evaluación(ones) creada(s). Elimine primero las evaluaciones."
+                )
+            
+            # Check for assigned sections (many2many)
+            if record.section_ids:
+                section_names = ', '.join(record.section_ids.mapped('name'))
+                raise UserError(
+                    f"No se puede eliminar el profesor '{record.name}' porque está asignado a las secciones: {section_names}. "
+                    f"Elimine primero las asignaciones de secciones."
+                )
+        
+        return super().unlink()

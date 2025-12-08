@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ============================================== -->
+        <!-- DEMO DATA: Año Escolar y Secciones Activas     -->
+        <!-- ============================================== -->
+        
+        <!-- ============================================== -->
+        <!-- 1. AÑO ESCOLAR ACTUAL                          -->
+        <!-- ============================================== -->
+        <record id="school_year_2024_2025" model="school.year">
+            <field name="name">2024-2025</field>
+            <field name="start_date">2024-09-16</field>
+            <field name="end_date">2025-07-15</field>
+            <field name="current" eval="True"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. SECCIONES DEL AÑO ESCOLAR                   -->
+        <!-- ============================================== -->
+        
+        <!-- Secciones de Preescolar -->
+        <record id="section_preescolar_1_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_preescolar_1"/>
+            <!-- <field name="capacity">20</field> -->
+        </record>
+        
+        <record id="section_preescolar_2_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_preescolar_2"/>
+            <!-- <field name="capacity">20</field> -->
+        </record>
+        
+        <record id="section_preescolar_3_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_preescolar_3"/>
+            <!-- <field name="capacity">20</field> -->
+        </record>
+        
+        <!-- Secciones de Primaria -->
+        <record id="section_primaria_1_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_1"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <record id="section_primaria_2_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_2"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <record id="section_primaria_3_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_3"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <record id="section_primaria_4_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_4"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <record id="section_primaria_5_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_5"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <record id="section_primaria_6_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_6"/>
+            <!-- <field name="capacity">30</field> -->
+        </record>
+        
+        <!-- Secciones de Media General -->
+        <record id="section_media_1_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_1"/>
+            <!-- <field name="capacity">35</field> -->
+        </record>
+        
+        <record id="section_media_2_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_2"/>
+            <!-- <field name="capacity">35</field> -->
+        </record>
+        
+        <record id="section_media_3_b" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_3"/>
+            <!-- <field name="capacity">35</field> -->
+        </record>
+        
+        <record id="section_media_4_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_4"/>
+            <!-- <field name="capacity">35</field> -->
+        </record>
+        
+        <record id="section_media_5_a" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_5"/>
+            <!-- <field name="capacity">35</field> -->
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 3. PROFESORES ASIGNADOS                        -->
+        <!-- ============================================== -->
+        
+        <record id="professor_matematica_media" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_matematica"/>
+        </record>
+        
+        <record id="professor_fisica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_fisica"/>
+        </record>
+        
+        <record id="professor_quimica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_quimica"/>
+        </record>
+        
+        <record id="professor_biologia" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_biologia"/>
+        </record>
+        
+        <record id="professor_castellano" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_castellano"/>
+        </record>
+        
+        <record id="professor_historia" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_historia"/>
+        </record>
+        
+        <record id="professor_ingles" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_ingles"/>
+        </record>
+        
+        <record id="professor_informatica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_informatica"/>
+        </record>
+        
+        <record id="professor_electricidad" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_electricidad"/>
+        </record>
+        
+        <record id="professor_primaria_1" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_1"/>
+        </record>
+        
+        <record id="professor_primaria_2" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_2"/>
+        </record>
+        
+        <record id="professor_educacion_fisica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_educacion_fisica"/>
+        </record>
+        
+    </data>
+</odoo>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ============================================== -->
+        <!-- DEMO DATA: Representantes y Estudiantes        -->
+        <!-- ============================================== -->
+        
+        <!-- ============================================== -->
+        <!-- 1. REPRESENTANTES (res.partner)                -->
+        <!-- ============================================== -->
+        
+        <!-- Representante 1 -->
+        <record id="partner_representante_1" model="res.partner">
+            <field name="name">Juan Carlos Fernández</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 424 555-1001</field>
+            <field name="email">jc.fernandez@email.com</field>
+            <field name="street">Av. Principal, Urbanización El Paraíso, Casa #15</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">12345678</field>
+        </record>
+        
+        <!-- Representante 2 -->
+        <record id="partner_representante_2" model="res.partner">
+            <field name="name">María Gabriela Rondón</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 414 555-2002</field>
+            <field name="email">m.rondon@email.com</field>
+            <field name="street">Calle Los Cedros, Qta. Mi Sueño</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">14567890</field>
+        </record>
+        
+        <!-- Representante 3 -->
+        <record id="partner_representante_3" model="res.partner">
+            <field name="name">Pedro Rafael Martínez</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 412 555-3003</field>
+            <field name="email">p.martinez@email.com</field>
+            <field name="street">Av. Libertador, Edificio Libertad, Piso 3, Apto 3-A</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">9876543</field>
+        </record>
+        
+        <!-- Representante 4 -->
+        <record id="partner_representante_4" model="res.partner">
+            <field name="name">Isabel Cristina Vargas</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 416 555-4004</field>
+            <field name="email">i.vargas@email.com</field>
+            <field name="street">Calle El Bosque, Casa #22</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">11222333</field>
+        </record>
+        
+        <!-- Representante 5 -->
+        <record id="partner_representante_5" model="res.partner">
+            <field name="name">Roberto José Delgado</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 426 555-5005</field>
+            <field name="email">r.delgado@email.com</field>
+            <field name="street">Av. Universidad, Edificio Central, Piso 8</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">15678901</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. ESTUDIANTES (res.partner)                   -->
+        <!-- ============================================== -->
+        
+        <!-- Estudiantes de Primaria -->
+        <record id="partner_estudiante_1" model="res.partner">
+            <field name="name">Andrés Eduardo Fernández García</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">E</field>
+            <field name="vat">31234567</field>
+            <field name="sex">M</field>
+            <field name="born_date">2017-03-15</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_1"/>
+        </record>
+        
+        <record id="partner_estudiante_2" model="res.partner">
+            <field name="name">Valentina Andrea Rondón López</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">E</field>
+            <field name="vat">31345678</field>
+            <field name="sex">F</field>
+            <field name="born_date">2015-09-22</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_2"/>
+        </record>
+        
+        <!-- Estudiantes de Media General -->
+        <record id="partner_estudiante_3" model="res.partner">
+            <field name="name">Diego Alejandro Martínez Pérez</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">V</field>
+            <field name="vat">30456789</field>
+            <field name="sex">M</field>
+            <field name="born_date">2009-05-10</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_3"/>
+        </record>
+        
+        <record id="partner_estudiante_4" model="res.partner">
+            <field name="name">Carolina Isabel Vargas Mendoza</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">V</field>
+            <field name="vat">30567890</field>
+            <field name="sex">F</field>
+            <field name="born_date">2008-11-28</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_4"/>
+        </record>
+        
+        <record id="partner_estudiante_5" model="res.partner">
+            <field name="name">Luis Fernando Delgado Ramírez</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">V</field>
+            <field name="vat">30678901</field>
+            <field name="sex">M</field>
+            <field name="born_date">2007-07-05</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_5"/>
+        </record>
+        
+        <record id="partner_estudiante_6" model="res.partner">
+            <field name="name">María José Fernández García</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">V</field>
+            <field name="vat">30789012</field>
+            <field name="sex">F</field>
+            <field name="born_date">2008-02-14</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_1"/>
+        </record>
+        
+        <record id="partner_estudiante_7" model="res.partner">
+            <field name="name">Gabriel Andrés Rondón López</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">V</field>
+            <field name="vat">30890123</field>
+            <field name="sex">M</field>
+            <field name="born_date">2009-08-20</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_2"/>
+        </record>
+        
+        <!-- Estudiantes de Preescolar -->
+        <record id="partner_estudiante_8" model="res.partner">
+            <field name="name">Sofía Elena Martínez Pérez</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">E</field>
+            <field name="vat">32123456</field>
+            <field name="sex">F</field>
+            <field name="born_date">2019-04-12</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_3"/>
+        </record>
+        
+        <record id="partner_estudiante_9" model="res.partner">
+            <field name="name">Matías Antonio Vargas Mendoza</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">E</field>
+            <field name="vat">32234567</field>
+            <field name="sex">M</field>
+            <field name="born_date">2020-01-08</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_4"/>
+        </record>
+        
+        <record id="partner_estudiante_10" model="res.partner">
+            <field name="name">Lucía Victoria Delgado Ramírez</field>
+            <field name="type_enrollment">student</field>
+            <field name="nationality">E</field>
+            <field name="vat">32345678</field>
+            <field name="sex">F</field>
+            <field name="born_date">2019-12-03</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_5"/>
+        </record>
+        
+    </data>
+</odoo>

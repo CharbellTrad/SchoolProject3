@@ -2,333 +2,435 @@
 <templates xml:space="preserve">
 
     <t t-name="pma_public_school_ve.AttendanceRegister">
-        <div class="attendance-register-container p-3">
-            <!-- Header -->
-            <div class="attendance-header mb-4">
-                <h2 class="mb-3">
-                    <i class="fa fa-check-square"/> Registro de Asistencia
-                </h2>
-                
-                <!-- Date Selector -->
-                <div class="row mb-3">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control" 
-                               t-att-value="state.date"
-                               t-on-change="onDateChange"/>
-                    </div>
-                </div>
-                
-                <!-- Tabs -->
-                <ul class="nav nav-tabs mb-3">
-                    <li class="nav-item">
-                        <button class="nav-link" 
-                                t-att-class="{'active': state.activeTab === 'student'}"
-                                t-on-click="() => this.switchTab('student')">
-                            <i class="fa fa-graduation-cap"/> Estudiantes
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link"
-                                t-att-class="{'active': state.activeTab === 'employee'}"
-                                t-on-click="() => this.switchTab('employee')">
-                            <i class="fa fa-users"/> Personal
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link"
-                                t-att-class="{'active': state.activeTab === 'visitor'}"
-                                t-on-click="() => this.switchTab('visitor')">
-                            <i class="fa fa-user-plus"/> Visitantes
-                        </button>
-                    </li>
-                </ul>
-            </div>
+        <div class="o_action">
+            <Layout display="{ controlPanel: {} }">
+                <!-- Control Panel Buttons -->
+                <t t-set-slot="control-panel-always-buttons">
+                    <button t-on-click="saveStudentAttendances" 
+                            t-if="state.activeTab === 'student' and state.students.length > 0"
+                            class="btn btn-primary" title="Guardar Estudiantes">
+                        <i class="fa fa-save"/> Guardar
+                    </button>
+                    <button t-on-click="saveEmployeeAttendances" 
+                            t-if="state.activeTab === 'employee' and state.employees.length > 0"
+                            class="btn btn-primary" title="Guardar Personal">
+                        <i class="fa fa-save"/> Guardar
+                    </button>
+                    <button t-on-click="registerVisitor" 
+                            t-if="state.activeTab === 'visitor'"
+                            class="btn btn-primary" title="Registrar Visitante">
+                        <i class="fa fa-user-plus"/> Registrar
+                    </button>
+                </t>
 
-            <!-- Loading Spinner -->
-            <div t-if="state.loading" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-            </div>
-
-            <!-- TAB CONTENT: STUDENTS -->
-            <div t-if="!state.loading and state.activeTab === 'student'" class="tab-content-student">
-                <!-- Section and Schedule Selection -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Sección</label>
-                        <select class="form-select" t-on-change="onSectionChange">
-                            <option value="">Seleccionar sección...</option>
-                            <t t-foreach="state.sections" t-as="section" t-key="section.id">
-                                <option t-att-value="section.id"
-                                        t-att-selected="state.selectedSection and state.selectedSection.id === section.id">
-                                    <t t-esc="section.section_id[1]"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Horario</label>
-                        <select class="form-select" t-on-change="onScheduleChange"
-                                t-att-disabled="!state.selectedSection">
-                            <option value="">Seleccionar horario...</option>
-                            <t t-foreach="state.schedules" t-as="schedule" t-key="schedule.id">
-                                <option t-att-value="schedule.id"
-                                        t-att-selected="state.selectedSchedule and state.selectedSchedule.id === schedule.id">
-                                    <t t-esc="schedule.display_name"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Search Box -->
-                <div class="mb-3" t-if="state.students.length > 0">
-                    <input type="text" class="form-control" 
-                           placeholder="Buscar estudiante por nombre..."
-                           t-model="state.studentSearch"
-                           t-on-input="() => this.render()"/>
-                </div>
-
-                <!-- Students List -->
-                <div t-if="state.students.length > 0">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Estudiante</th>
-                                    <th style="width: 150px;">Estado</th>
-                                    <th style="width: 100px;">Hora Entrada</th>
-                                    <th style="width: 100px;">Hora Salida</th>
-                                    <th>Observaciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="filteredStudents" t-as="student" t-key="student.id">
-                                    <tr>
-                                        <td>
-                                            <strong><t t-esc="student.name"/></strong>
-                                        </td>
-                                        <td>
-                                            <select class="form-select form-select-sm"
-                                                    t-att-value="student.state"
-                                                    t-on-change="(ev) => this.updateStudentState(student.id, ev.target.value)">
-                                                <option value="absent">Ausente</option>
-                                                <option value="present">Presente</option>
-                                                <option value="late">Tardanza</option>
-                                                <option value="permission">Permiso</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="time" class="form-control form-control-sm"
-                                                   t-att-value="student.check_in_time"
-                                                   t-att-disabled="!isStudentTimeEditable(student)"
-                                                   t-on-input="(ev) => student.check_in_time = ev.target.value"/>
-                                        </td>
-                                        <td>
-                                            <input type="time" class="form-control form-control-sm"
-                                                   t-att-value="student.check_out_time"
-                                                   t-att-disabled="!isStudentTimeEditable(student)"
-                                                   t-on-input="(ev) => student.check_out_time = ev.target.value"/>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm"
-                                                   t-att-value="student.observations"
-                                                   t-on-input="(ev) => student.observations = ev.target.value"
-                                                   placeholder="Opcional..."/>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="text-end mt-3">
-                        <button class="btn btn-primary" t-on-click="saveStudentAttendances">
-                            <i class="fa fa-save"/> Guardar Asistencias
-                        </button>
-                    </div>
-                </div>
-                
-                <div t-else="" class="alert alert-info text-center">
-                    <i class="fa fa-info-circle"/> Seleccione una sección y un horario para cargar los estudiantes
-                </div>
-            </div>
-
-            <!-- TAB CONTENT: EMPLOYEES -->
-            <div t-if="!state.loading and state.activeTab === 'employee'" class="tab-content-employee">
-                <!-- Employee Type Filter and Search -->
-                <div class="row g-3 mb-3">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Tipo de Personal</label>
-                        <select class="form-select" t-on-change="onEmployeeTypeChange">
-                            <option value="">Todos los tipos...</option>
-                            <t t-foreach="state.employeeTypes" t-as="empType" t-key="empType.value">
-                                <option t-att-value="empType.value"
-                                        t-att-selected="state.selectedEmployeeType === empType.value">
-                                    <t t-esc="empType.label"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-8">
-                        <label class="form-label">Buscar</label>
-                        <input type="text" class="form-control" 
-                               placeholder="Buscar personal por nombre..."
-                               t-model="state.employeeSearch"
-                               t-on-input="() => this.render()"/>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Personal del Día</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th style="width: 140px;">Estado</th>
-                                        <th style="width: 100px;">Hora Entrada</th>
-                                        <th style="width: 100px;">Hora Salida</th>
-                                        <th style="width: 120px;">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <t t-foreach="filteredEmployees" t-as="employee" t-key="employee.id">
-                                        <tr>
-                                            <td>
-                                                <strong><t t-esc="employee.name"/></strong>
-                                                <t t-if="employee.school_employee_type">
-                                                    <br/><small class="text-muted">
-                                                        <t t-if="employee.school_employee_type === 'administrativo'">Administrativo</t>
-                                                        <t t-if="employee.school_employee_type === 'docente'">Docente</t>
-                                                        <t t-if="employee.school_employee_type === 'obrero'">Obrero</t>
-                                                        <t t-if="employee.school_employee_type === 'cenar'">Cenar</t>
-                                                    </small>
-                                                </t>
-                                            </td>
-                                            <td>
-                                                <select class="form-select form-select-sm"
-                                                        t-att-value="employee.state"
-                                                        t-on-change="(ev) => this.updateEmployeeState(employee.id, ev.target.value)">
-                                                    <option value="absent">Ausente</option>
-                                                    <option value="present">Presente</option>
-                                                    <option value="late">Tardanza</option>
-                                                    <option value="permission">Permiso</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="time" class="form-control form-control-sm"
-                                                       t-att-value="employee.check_in_time"
-                                                       t-att-disabled="!isEmployeeTimeEditable(employee)"
-                                                       t-on-input="(ev) => employee.check_in_time = ev.target.value"/>
-                                            </td>
-                                            <td>
-                                                <input type="time" class="form-control form-control-sm"
-                                                       t-att-value="employee.check_out_time"
-                                                       t-att-disabled="!isEmployeeTimeEditable(employee)"
-                                                       t-on-input="(ev) => employee.check_out_time = ev.target.value"/>
-                                            </td>
-                                            <td>
-                                                <button t-if="canShowCheckOutButton(employee)"
-                                                        class="btn btn-sm btn-success"
-                                                        t-on-click="() => this.markEmployeeCheckOut(employee.id)">
-                                                    <i class="fa fa-sign-out"/> Marcar Salida
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </t>
-                                </tbody>
-                            </table>
+                <!-- Layout Actions (Filters) -->
+                <t t-set-slot="layout-actions">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <!-- Date Selector -->
+                        <div class="input-group" style="width: auto;">
+                            <span class="input-group-text fw-bold">
+                                <i class="fa fa-calendar"/> Fecha
+                            </span>
+                            <input type="date" class="form-control" 
+                                   t-att-value="state.date"
+                                   t-on-change="onDateChange"/>
                         </div>
-                        
-                        <div class="text-end mt-3">
-                            <button class="btn btn-primary" t-on-click="saveEmployeeAttendances">
-                                <i class="fa fa-save"/> Guardar Asistencias
+                    </div>
+                </t>
+
+                <!-- Main Content -->
+                <div class="o_attendance_register p-3">
+                    <!-- Tabs Navigation -->
+                    <ul class="nav nav-tabs border-bottom mb-3">
+                        <li class="nav-item">
+                            <button t-att-class="'nav-link' + (state.activeTab === 'student' ? ' active' : '')"
+                                    t-on-click="() => this.switchTab('student')">
+                                <i class="fa fa-graduation-cap me-1"/> Estudiantes
                             </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </li>
+                        <li class="nav-item">
+                            <button t-att-class="'nav-link' + (state.activeTab === 'employee' ? ' active' : '')"
+                                    t-on-click="() => this.switchTab('employee')">
+                                <i class="fa fa-users me-1"/> Personal
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button t-att-class="'nav-link' + (state.activeTab === 'visitor' ? ' active' : '')"
+                                    t-on-click="() => this.switchTab('visitor')">
+                                <i class="fa fa-user-plus me-1"/> Visitantes
+                            </button>
+                        </li>
+                    </ul>
 
-            <!-- TAB CONTENT: VISITORS -->
-            <div t-if="!state.loading and state.activeTab === 'visitor'" class="tab-content-visitor">
-                <div class="row">
-                    <!-- Registration Form -->
-                    <div class="col-12 col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Registrar Nuevo Visitante</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Nombre Completo *</label>
-                                    <input type="text" class="form-control"
-                                           t-att-value="state.visitorName"
-                                           t-on-input="(ev) => state.visitorName = ev.target.value"
-                                           placeholder="Ej: Juan Pérez"/>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Cédula *</label>
-                                    <input type="text" class="form-control"
-                                           t-att-value="state.visitorIdNumber"
-                                           t-on-input="(ev) => state.visitorIdNumber = ev.target.value"
-                                           placeholder="Ej: V-12345678"/>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Destino</label>
-                                    <input type="text" class="form-control"
-                                           t-att-value="state.visitorDestination"
-                                           t-on-input="(ev) => state.visitorDestination = ev.target.value"
-                                           placeholder="Ej: Dirección, Aula 101..."/>
-                                </div>
-                                
-                                <button class="btn btn-primary w-100" t-on-click="registerVisitor">
-                                    <i class="fa fa-user-plus"/> Registrar Visitante
-                                </button>
-                            </div>
+                    <!-- Loading Spinner -->
+                    <div t-if="state.loading" class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
                         </div>
                     </div>
-                    
-                    <!-- Today's Visitors List -->
-                    <div class="col-12 col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Visitantes de Hoy</h5>
+
+                    <!-- =============== TAB: STUDENTS =============== -->
+                    <div t-if="!state.loading and state.activeTab === 'student'">
+                        <!-- Filters Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">Sección</span>
+                                    <select class="form-select" t-on-change="onSectionChange">
+                                        <option value="">Seleccionar...</option>
+                                        <t t-foreach="state.sections" t-as="section" t-key="section.id">
+                                            <option t-att-value="section.id"
+                                                    t-att-selected="state.selectedSection and state.selectedSection.id === section.id">
+                                                <t t-esc="section.section_id[1]"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <t t-if="state.todayVisitors.length === 0">
-                                    <div class="alert alert-light text-center">
-                                        <i class="fa fa-info-circle"/> No hay visitantes registrados para hoy
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">Horario</span>
+                                    <select class="form-select" t-on-change="onScheduleChange"
+                                            t-att-disabled="!state.selectedSection">
+                                        <option value="">Seleccionar...</option>
+                                        <t t-foreach="state.schedules" t-as="schedule" t-key="schedule.id">
+                                            <option t-att-value="schedule.id"
+                                                    t-att-selected="state.selectedSchedule and state.selectedSchedule.id === schedule.id">
+                                                <t t-esc="schedule.display_name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa fa-search"/></span>
+                                    <input type="text" class="form-control" 
+                                           placeholder="Buscar estudiante..."
+                                           t-model="state.studentSearch"
+                                           t-on-input="onStudentSearchInput"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Students Table -->
+                        <t t-if="state.students.length > 0">
+                            <div class="o_list_view">
+                                <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                                    <table class="o_list_table table table-sm table-hover mb-0 o_list_table_ungrouped">
+                                        <thead class="sticky-top bg-white">
+                                            <tr>
+                                                <th class="text-start">Estudiante</th>
+                                                <th style="width: 140px;">Estado</th>
+                                                <th style="width: 110px;">Entrada</th>
+                                                <th style="width: 110px;">Salida</th>
+                                                <th>Observaciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="paginatedStudents" t-as="student" t-key="student.id">
+                                                <tr class="o_data_row">
+                                                    <td class="o_data_cell">
+                                                        <strong><t t-esc="student.name"/></strong>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <select class="form-select form-select-sm"
+                                                                t-att-value="student.state"
+                                                                t-on-change="(ev) => this.updateStudentState(student.id, ev.target.value)">
+                                                            <option value="absent" t-att-selected="student.state === 'absent'">Ausente</option>
+                                                            <option value="present" t-att-selected="student.state === 'present'">Presente</option>
+                                                            <option value="late" t-att-selected="student.state === 'late'">Tardanza</option>
+                                                            <option value="permission" t-att-selected="student.state === 'permission'">Permiso</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <input type="time" class="form-control form-control-sm"
+                                                               t-att-value="student.check_in_time"
+                                                               t-att-disabled="!isStudentTimeEditable(student)"
+                                                               t-on-input="(ev) => student.check_in_time = ev.target.value"/>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <input type="time" class="form-control form-control-sm"
+                                                               t-att-value="student.check_out_time"
+                                                               t-att-disabled="!isStudentTimeEditable(student)"
+                                                               t-on-input="(ev) => student.check_out_time = ev.target.value"/>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <input type="text" class="form-control form-control-sm"
+                                                               t-att-value="student.observations"
+                                                               t-on-input="(ev) => student.observations = ev.target.value"
+                                                               placeholder="Observación..."/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div t-if="studentTotalPages > 1" class="d-flex justify-content-between align-items-center p-2 border-top bg-light">
+                                    <span class="text-muted small">
+                                        <t t-esc="studentPageInfo"/>
+                                    </span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" 
+                                                t-att-disabled="state.studentPage === 0"
+                                                t-on-click="prevStudentPage">
+                                            <i class="fa fa-chevron-left"/>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" 
+                                                t-att-disabled="state.studentPage >= studentTotalPages - 1"
+                                                t-on-click="nextStudentPage">
+                                            <i class="fa fa-chevron-right"/>
+                                        </button>
                                     </div>
-                                </t>
-                                <t t-else="">
-                                    <div class="list-group">
-                                        <t t-foreach="state.todayVisitors" t-as="visitor" t-key="visitor.id">
-                                            <div class="list-group-item">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h6 class="mb-1"><t t-esc="visitor.visitor_name"/></h6>
-                                                    <small><t t-esc="floatToTime(visitor.check_in_time)"/></small>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Empty State -->
+                        <t t-if="state.students.length === 0">
+                            <div class="o_view_nocontent">
+                                <div class="o_nocontent_help">
+                                    <p class="o_view_nocontent_smiling_face">
+                                        Seleccione sección y horario
+                                    </p>
+                                    <p class="text-muted">
+                                        Elija una sección y un horario para cargar la lista de estudiantes.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- =============== TAB: EMPLOYEES =============== -->
+                    <div t-if="!state.loading and state.activeTab === 'employee'">
+                        <!-- Filters Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">Tipo</span>
+                                    <select class="form-select" t-on-change="onEmployeeTypeChange">
+                                        <option value="">Todos...</option>
+                                        <t t-foreach="state.employeeTypes" t-as="empType" t-key="empType.value">
+                                            <option t-att-value="empType.value"
+                                                    t-att-selected="state.selectedEmployeeType === empType.value">
+                                                <t t-esc="empType.label"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa fa-search"/></span>
+                                    <input type="text" class="form-control" 
+                                           placeholder="Buscar personal..."
+                                           t-model="state.employeeSearch"
+                                           t-on-input="onEmployeeSearchInput"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employees Table -->
+                        <t t-if="state.employees.length > 0">
+                            <div class="o_list_view">
+                                <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                                    <table class="o_list_table table table-sm table-hover mb-0 o_list_table_ungrouped">
+                                        <thead class="sticky-top bg-white">
+                                            <tr>
+                                                <th class="text-start">Nombre</th>
+                                                <th style="width: 140px;">Estado</th>
+                                                <th style="width: 110px;">Entrada</th>
+                                                <th style="width: 110px;">Salida</th>
+                                                <th style="width: 130px;">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="paginatedEmployees" t-as="employee" t-key="employee.id">
+                                                <tr class="o_data_row">
+                                                    <td class="o_data_cell">
+                                                        <strong><t t-esc="employee.name"/></strong>
+                                                        <t t-if="employee.school_employee_type">
+                                                            <br/><small class="text-muted">
+                                                                <t t-if="employee.school_employee_type === 'administrativo'">Administrativo</t>
+                                                                <t t-if="employee.school_employee_type === 'docente'">Docente</t>
+                                                                <t t-if="employee.school_employee_type === 'obrero'">Obrero</t>
+                                                                <t t-if="employee.school_employee_type === 'cenar'">Cenar</t>
+                                                            </small>
+                                                        </t>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <select class="form-select form-select-sm"
+                                                                t-att-value="employee.state"
+                                                                t-on-change="(ev) => this.updateEmployeeState(employee.id, ev.target.value)">
+                                                            <option value="absent" t-att-selected="employee.state === 'absent'">Ausente</option>
+                                                            <option value="present" t-att-selected="employee.state === 'present'">Presente</option>
+                                                            <option value="late" t-att-selected="employee.state === 'late'">Tardanza</option>
+                                                            <option value="permission" t-att-selected="employee.state === 'permission'">Permiso</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <input type="time" class="form-control form-control-sm"
+                                                               t-att-value="employee.check_in_time"
+                                                               t-att-disabled="!isEmployeeTimeEditable(employee)"
+                                                               t-on-input="(ev) => employee.check_in_time = ev.target.value"/>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <input type="time" class="form-control form-control-sm"
+                                                               t-att-value="employee.check_out_time"
+                                                               t-att-disabled="!isEmployeeTimeEditable(employee)"
+                                                               t-on-input="(ev) => employee.check_out_time = ev.target.value"/>
+                                                    </td>
+                                                    <td class="o_data_cell">
+                                                        <button t-if="canShowCheckOutButton(employee)"
+                                                                class="btn btn-sm btn-success"
+                                                                t-on-click="() => this.markEmployeeCheckOut(employee.id)">
+                                                            <i class="fa fa-sign-out"/> Salida
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div t-if="employeeTotalPages > 1" class="d-flex justify-content-between align-items-center p-2 border-top bg-light">
+                                    <span class="text-muted small">
+                                        <t t-esc="employeePageInfo"/>
+                                    </span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" 
+                                                t-att-disabled="state.employeePage === 0"
+                                                t-on-click="prevEmployeePage">
+                                            <i class="fa fa-chevron-left"/>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" 
+                                                t-att-disabled="state.employeePage >= employeeTotalPages - 1"
+                                                t-on-click="nextEmployeePage">
+                                            <i class="fa fa-chevron-right"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Empty State -->
+                        <t t-if="state.employees.length === 0">
+                            <div class="o_view_nocontent">
+                                <div class="o_nocontent_help">
+                                    <p class="o_view_nocontent_smiling_face">
+                                        No hay personal disponible
+                                    </p>
+                                    <p class="text-muted">
+                                        No se encontraron empleados activos.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- =============== TAB: VISITORS =============== -->
+                    <div t-if="!state.loading and state.activeTab === 'visitor'">
+                        <div class="row">
+                            <!-- Registration Form -->
+                            <div class="col-md-5 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fa fa-user-plus me-2"/>Nuevo Visitante</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Nombre Completo *</label>
+                                            <input type="text" class="form-control"
+                                                   t-att-value="state.visitorName"
+                                                   t-on-input="(ev) => state.visitorName = ev.target.value"
+                                                   placeholder="Ej: Juan Pérez"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Cédula *</label>
+                                            <input type="text" class="form-control"
+                                                   t-att-value="state.visitorIdNumber"
+                                                   t-on-input="(ev) => state.visitorIdNumber = ev.target.value"
+                                                   placeholder="Ej: V-12345678"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Destino</label>
+                                            <input type="text" class="form-control"
+                                                   t-att-value="state.visitorDestination"
+                                                   t-on-input="(ev) => state.visitorDestination = ev.target.value"
+                                                   placeholder="Ej: Dirección, Aula 101..."/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Today's Visitors -->
+                            <div class="col-md-7">
+                                <div class="card shadow-sm">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0"><i class="fa fa-list me-2"/>Visitantes de Hoy</h6>
+                                        <span class="badge bg-secondary">
+                                            <t t-esc="state.todayVisitors.length"/>
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <t t-if="state.todayVisitors.length === 0">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fa fa-info-circle fa-2x mb-2 d-block"/>
+                                                No hay visitantes registrados hoy
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <div style="max-height: 350px; overflow-y: auto;">
+                                                <table class="table table-sm table-hover mb-0">
+                                                    <thead class="sticky-top bg-light">
+                                                        <tr>
+                                                            <th>Nombre</th>
+                                                            <th>Cédula</th>
+                                                            <th>Destino</th>
+                                                            <th>Hora</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="paginatedVisitors" t-as="visitor" t-key="visitor.id">
+                                                            <tr>
+                                                                <td><strong><t t-esc="visitor.visitor_name"/></strong></td>
+                                                                <td><t t-esc="visitor.visitor_id_number"/></td>
+                                                                <td><t t-esc="visitor.visitor_destination or '-'"/></td>
+                                                                <td><t t-esc="floatToTime(visitor.check_in_time)"/></td>
+                                                            </tr>
+                                                        </t>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <!-- Pagination -->
+                                            <div t-if="visitorTotalPages > 1" class="d-flex justify-content-between align-items-center p-2 border-top bg-light">
+                                                <span class="text-muted small">
+                                                    <t t-esc="visitorPageInfo"/>
+                                                </span>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-secondary" 
+                                                            t-att-disabled="state.visitorPage === 0"
+                                                            t-on-click="prevVisitorPage">
+                                                        <i class="fa fa-chevron-left"/>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" 
+                                                            t-att-disabled="state.visitorPage >= visitorTotalPages - 1"
+                                                            t-on-click="nextVisitorPage">
+                                                        <i class="fa fa-chevron-right"/>
+                                                    </button>
                                                 </div>
-                                                <p class="mb-1"><small><strong>Cédula:</strong> <t t-esc="visitor.visitor_id_number"/></small></p>
-                                                <p class="mb-0" t-if="visitor.visitor_destination">
-                                                    <small><strong>Destino:</strong> <t t-esc="visitor.visitor_destination"/></small>
-                                                </p>
                                             </div>
                                         </t>
                                     </div>
-                                </t>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </Layout>
         </div>
     </t>
 

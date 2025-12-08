@@ -59,6 +59,14 @@ export const logAuthentication = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error registrando log:', errorMsg);
@@ -66,6 +74,7 @@ export const logAuthentication = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -111,6 +120,14 @@ export const getAuthHistory = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error obteniendo historial:', errorMsg);
@@ -118,6 +135,7 @@ export const getAuthHistory = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -164,6 +182,14 @@ export const getDeviceStats = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error obteniendo estadísticas:', errorMsg);
@@ -171,6 +197,7 @@ export const getDeviceStats = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -260,6 +287,14 @@ export const logTraditionalLogin = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error registrando login tradicional:', errorMsg);
@@ -267,6 +302,7 @@ export const logTraditionalLogin = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -319,6 +355,14 @@ export const endSession = async (
 
     // 1. Verificar si la llamada HTTP falló
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error HTTP en endSession:', errorMsg);
@@ -326,6 +370,7 @@ export const endSession = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -388,6 +433,14 @@ export const getActiveSessions = async (): Promise<ApiResponse<BiometricAuthLog[
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error obteniendo sesiones:', errorMsg);
@@ -395,6 +448,7 @@ export const getActiveSessions = async (): Promise<ApiResponse<BiometricAuthLog[
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 

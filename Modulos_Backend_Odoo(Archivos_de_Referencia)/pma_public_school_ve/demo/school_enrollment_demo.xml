@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <!-- Sofía - 1er Nivel Preescolar -->
+        <record id="student_sofia_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_1_a"/>
+            <field name="student_id" ref="partner_estudiante_8"/>
+            <field name="parent_id" ref="partner_representante_3"/>
+            <field name="from_school">Institución Inicial Rayito de Sol</field>
+            <field name="observations">Primera vez en nuestra institución. Adaptación favorable.</field>
+            <field name="height">0.95</field>
+            <field name="weight">18.5</field>
+            <field name="size_shirt">xs</field>
+            <field name="size_pants">4</field>
+            <field name="size_shoes">25</field>
+        </record>
+        
+        <!-- Matías - 2do Nivel Preescolar -->
+        <record id="student_matias_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_2_a"/>
+            <field name="student_id" ref="partner_estudiante_9"/>
+            <field name="parent_id" ref="partner_representante_4"/>
+            <field name="from_school">Jardín de Infancia Los Angelitos</field>
+            <field name="height">1.02</field>
+            <field name="weight">20.0</field>
+            <field name="size_shirt">s</field>
+            <field name="size_pants">6</field>
+            <field name="size_shoes">27</field>
+        </record>
+        
+        <!-- Lucía - 3er Nivel Preescolar -->
+        <record id="student_lucia_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_3_a"/>
+            <field name="student_id" ref="partner_estudiante_10"/>
+            <field name="parent_id" ref="partner_representante_5"/>
+            <field name="from_school">Centro de Educación Inicial Arco Iris</field>
+            <field name="height">1.08</field>
+            <field name="weight">21.5</field>
+            <field name="size_shirt">s</field>
+            <field name="size_pants">6</field>
+            <field name="size_shoes">28</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. ESTUDIANTES DE PRIMARIA                     -->
+        <!-- ============================================== -->
+        
+        <!-- Andrés - 1er Grado -->
+        <record id="student_andres_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_1_a"/>
+            <field name="student_id" ref="partner_estudiante_1"/>
+            <field name="parent_id" ref="partner_representante_1"/>
+            <field name="from_school">Centro Educación Inicial Nuestra Escuela</field>
+            <field name="observations">Estudiante proveniente del preescolar de la misma institución.</field>
+            <field name="height">1.15</field>
+            <field name="weight">24.0</field>
+            <field name="size_shirt">m</field>
+            <field name="size_pants">8</field>
+            <field name="size_shoes">30</field>
+        </record>
+        
+        <!-- Valentina - 3er Grado -->
+        <record id="student_valentina_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_3_a"/>
+            <field name="student_id" ref="partner_estudiante_2"/>
+            <field name="parent_id" ref="partner_representante_2"/>
+            <field name="from_school">Academia Educativa Santa Rosa</field>
+            <field name="observations">Excelente rendimiento académico. Participa en actividades extracurriculares.</field>
+            <field name="height">1.32</field>
+            <field name="weight">30.0</field>
+            <field name="size_shirt">m</field>
+            <field name="size_pants">10</field>
+            <field name="size_shoes">33</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 3. ESTUDIANTES DE MEDIA GENERAL                -->
+        <!-- ============================================== -->
+        
+        <!-- Diego - 1er Año Media -->
+        <record id="student_diego_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="student_id" ref="partner_estudiante_3"/>
+            <field name="parent_id" ref="partner_representante_3"/>
+            <field name="from_school">Escuela Básica Simón Bolívar</field>
+            <field name="observations">Inicia bachillerato. Interesado en ciencias.</field>
+            <field name="height">1.55</field>
+            <field name="weight">48.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">14</field>
+            <field name="size_shoes">38</field>
+        </record>
+        
+        <!-- Gabriel - 1er Año Media -->
+        <record id="student_gabriel_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="student_id" ref="partner_estudiante_7"/>
+            <field name="parent_id" ref="partner_representante_2"/>
+            <field name="from_school">Unidad Educativa Nacional Miranda</field>
+            <field name="observations">Buen comportamiento. Participa en actividades deportivas.</field>
+            <field name="height">1.58</field>
+            <field name="weight">50.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">14</field>
+            <field name="size_shoes">39</field>
+        </record>
+        
+        <!-- Carolina - 3er Año Media -->
+        <record id="student_carolina_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="student_id" ref="partner_estudiante_4"/>
+            <field name="parent_id" ref="partner_representante_4"/>
+            <field name="observations">Estudiante destacada. Representa a la institución en olimpíadas de matemáticas.</field>
+            <field name="height">1.62</field>
+            <field name="weight">52.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">S</field>
+            <field name="size_shoes">37</field>
+            <field name="mention_id" ref="mention_informatica"/>
+        </record>
+        
+        <!-- Luis Fernando - 4to Año Media -->
+        <record id="student_luis_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="student_id" ref="partner_estudiante_5"/>
+            <field name="parent_id" ref="partner_representante_5"/>
+            <field name="observations">Interesado en electricidad y electrónica. Cursa mención técnica.</field>
+            <field name="height">1.72</field>
+            <field name="weight">62.0</field>
+            <field name="size_shirt">xl</field>
+            <field name="size_pants">32</field>
+            <field name="size_shoes">42</field>
+            <field name="mention_id" ref="mention_electricidad"/>
+        </record>
+        
+        <!-- María José - 5to Año Media -->
+        <record id="student_mariajose_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="student_id" ref="partner_estudiante_6"/>
+            <field name="parent_id" ref="partner_representante_1"/>
+            <field name="observations">Próxima a graduarse. Excelente promedio académico. Mención Comercio.</field>
+            <field name="height">1.65</field>
+            <field name="weight">55.0</field>
+            <field name="size_shirt">xl</field>
+            <field name="size_pants">28</field>
+            <field name="size_shoes">38</field>
+            <field name="mention_id" ref="mention_comercio"/>
+
+    </data>
+</odoo>

@@ -65,8 +65,23 @@
             <form string="Matrícula">
                 <header>
                     <button string="Inscribir" name="validate_inscription" confirm="Estás seguro de realizar esta operación? Los cambios son irreversibles" type="object" invisible="state != 'draft'" class="btn-success"/>
-                    <button string="Desinscribir" name="validate_uninscription" confirm="Estás seguro de realizar esta operación? Los cambios son irreversibles" type="object" invisible="state != 'done'" class="btn-danger"/>
+                    <button string="Desinscribir" name="action_open_uninscription_wizard" type="object" invisible="state != 'done'" class="btn-danger"/>
+                    <button string="Inscribir en Mención" 
+                            name="action_open_mention_inscription_wizard" 
+                            type="object" 
+                            invisible="type != 'secundary' or not mention_id or mention_state != 'draft' or state != 'done'" 
+                            class="btn-primary"/>
+                    <button string="Retirar de Mención" 
+                            name="action_withdraw_from_mention" 
+                            type="object"
+                            confirm="¿Está seguro de retirar al estudiante de la mención?"
+                            invisible="mention_state != 'enrolled'" 
+                            class="btn-warning"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+                    <field name="mention_state" 
+                           widget="statusbar" 
+                           statusbar_visible="draft,enrolled"
+                           invisible="type != 'secundary' or not mention_id"/>
                 </header>
                 <sheet>
                     <div class="mb8">
@@ -82,7 +97,7 @@
                         <label for="uninscription_date"  invisible="not uninscription_date"/>
                         <field name="uninscription_date" required="state == 'cancel'" nolabel="1" invisible="not uninscription_date" readonly="1"/>
                     </div>
-                    <group col="3">
+                    <group col="4">
                         <group colspan="1">
                             <field name="year_id" colspan="2" readonly="1"/>
                         </group>
@@ -91,6 +106,14 @@
                         </group>
                         <group colspan="1">
                             <field name="student_id" colspan="2" readonly="not section_id or state in ['done', 'cancel']"  options="{'no_create': 1}"/>
+                        </group>
+                        <group colspan="1" invisible="type != 'secundary'">
+                            <field name="mention_domain_ids" invisible="1"/>
+                            <field name="mention_id" 
+                                   colspan="2" 
+                                   readonly="state in ['done', 'cancel'] or mention_state == 'enrolled'"
+                                   domain="[('id', 'in', mention_domain_ids)]"
+                                   options="{'no_create': 1}"/>
                         </group>
                     </group>
                     <notebook>
@@ -132,6 +155,59 @@
                                 </group>
                             </group>
                         </page>
+                        <page name="uninscription_info" string="Información de Desinscripción" invisible="state != 'cancel'">
+                            <group>
+                                <group string="Motivo">
+                                    <field name="uninscription_reason" nolabel="1" readonly="1" colspan="2"/>
+                                </group>
+                            </group>
+                            <group string="Documentos Adjuntos">
+                                <group>
+                                    <label for="uninscription_document_1" string="Documento 1"/>
+                                    <div class="o_row">
+                                        <field name="uninscription_document_1" filename="uninscription_document_1_filename" readonly="1" nolabel="1"/>
+                                        <field name="uninscription_document_1_filename" invisible="1"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <label for="uninscription_document_2" string="Documento 2"/>
+                                    <div class="o_row">
+                                        <field name="uninscription_document_2" filename="uninscription_document_2_filename" readonly="1" nolabel="1"/>
+                                        <field name="uninscription_document_2_filename" invisible="1"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <label for="uninscription_document_3" string="Documento 3"/>
+                                    <div class="o_row">
+                                        <field name="uninscription_document_3" filename="uninscription_document_3_filename" readonly="1" nolabel="1"/>
+                                        <field name="uninscription_document_3_filename" invisible="1"/>
+                                    </div>
+                                </group>
+                                <group/>
+                            </group>
+                        </page>
+                        <page name="mention_info" 
+                              string="Información de Mención" 
+                              invisible="type != 'secundary' or not mention_id">
+                            <group>
+                                <group string="Datos de Inscripción">
+                                    <field name="mention_inscription_date" readonly="1"/>
+                                    <field name="mention_state" readonly="1"/>
+                                </group>
+                                <group string="Firma del Representante">
+                                    <field name="mention_parent_signature" 
+                                           widget="image" 
+                                           readonly="1"
+                                           options="{'size': [0, 90]}"/>
+                                    <field name="mention_parent_signature_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Observaciones">
+                                <field name="mention_observations" nolabel="1" readonly="1"/>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -158,6 +234,20 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('school_students_view_kanban')}), 
             (0, 0, {'view_mode': 'form', 'view_id': ref('school_student_view_form')})
         ]"/>
+    </record>
+
+    <record id="school_student_action" model="ir.actions.act_window">
+        <field name="name">Estudiantes del Año</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay estudiantes inscritos en este año escolar
+            </p>
+        </field>
     </record>
 
 </odoo>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="school_mention_view_form" model="ir.ui.view">
+        <field name="name">school.mention.view.form</field>
+        <field name="model">school.mention</field>
+        <field name="arch" type="xml">
+            <form string="Mención">
+                <header>
+                    <field name="active" widget="boolean_toggle" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="student_count" widget="statinfo" string="Estudiantes"/>
+                        </button>
+                    </div>
+                    <div class="mb8">
+                        <div class="d-flex gap-3">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h1 class="mb-0 w-md-75">
+                                    <field options="{'line_breaks': False}" widget="text" class="text-break d-block" name="name" default_focus="1" placeholder="e.g. Informática"/>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Descripción de la mención..."/>
+                    </group>
+                    <notebook>
+                        <page string="Materias" name="subjects">
+                            <field name="subject_ids" nolabel="1">
+                                <list editable="top" create="0">
+                                    <field name="name" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Estudiantes Inscritos" name="students">
+                            <field name="student_ids" nolabel="1">
+                                <list create="0" edit="0">
+                                    <field name="student_id"/>
+                                    <field name="section_id"/>
+                                    <field name="year_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="school_mention_view_tree" model="ir.ui.view">
+        <field name="name">school.mention.view.tree</field>
+        <field name="model">school.mention</field>
+        <field name="arch" type="xml">
+            <list string="Menciones">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="student_count"/>
+                <field name="subject_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- <record id="school_mention_view_search" model="ir.ui.view">
+        <field name="name">school.mention.view.search</field>
+        <field name="model">school.mention</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Menciones">
+                <field name="name"/>
+                <field name="code"/>
+                <separator/>
+                <filter string="Activas" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archivadas" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter name="group_active" string="Estado" context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+
+    <record id="school_mention_action" model="ir.actions.act_window">
+        <field name="name">Menciones</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">school.mention</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva mención
+            </p>
+            <p>
+                Las menciones son especializaciones técnicas para estudiantes de Media General.
+            </p>
+        </field>
+    </record>
+
+</odoo>

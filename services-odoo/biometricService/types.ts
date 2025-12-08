@@ -117,6 +117,7 @@ export interface ApiResponse<T = any> {
   error?: string;
   message?: string;
   count?: number;
+  isSessionExpired?: boolean; // Indica si el error es por sesión expirada
 }
 
 /**
@@ -126,4 +127,5 @@ export interface OperationResult {
   success: boolean;
   message?: string;
   error?: string;
+  isSessionExpired?: boolean; // Indica si el error es por sesión expirada
 }

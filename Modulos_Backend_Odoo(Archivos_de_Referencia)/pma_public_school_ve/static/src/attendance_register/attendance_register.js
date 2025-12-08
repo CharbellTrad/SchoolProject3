@@ -1,16 +1,21 @@
 /** @odoo-module **/
 
-import { Component, useState, onWillStart } from "@odoo/owl";
+import { Component, useState, onWillStart, onRendered } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { Layout } from "@web/search/layout";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 export class AttendanceRegister extends Component {
     static template = "pma_public_school_ve.AttendanceRegister";
-    static props = {};
+    static components = { Layout };
+    static props = { ...standardActionServiceProps };
 
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
+
+        this.ITEMS_PER_PAGE = 10;
 
         this.state = useState({
             activeTab: 'student',
@@ -23,6 +28,7 @@ export class AttendanceRegister extends Component {
             selectedSchedule: null,
             students: [],
             studentSearch: '',
+            studentPage: 0,
             date: this.getTodayString(),
 
             // Employee tab
@@ -35,16 +41,22 @@ export class AttendanceRegister extends Component {
             ],
             selectedEmployeeType: null,
             employeeSearch: '',
+            employeePage: 0,
 
             // Visitor tab
             visitorName: '',
             visitorIdNumber: '',
             visitorDestination: '',
             todayVisitors: [],
+            visitorPage: 0,
         });
 
         onWillStart(async () => {
             await this.loadInitialData();
+        });
+
+        onRendered(() => {
+            this.env.config.setDisplayName("Registro de Asistencia");
         });
     }
 
@@ -56,6 +68,110 @@ export class AttendanceRegister extends Component {
 
     switchTab(tabName) {
         this.state.activeTab = tabName;
+    }
+
+    // ========== PAGINATION ==========
+
+    get filteredStudents() {
+        let items = this.state.students;
+        if (this.state.studentSearch) {
+            const search = this.state.studentSearch.toLowerCase();
+            items = items.filter(s => s.name.toLowerCase().includes(search));
+        }
+        return items;
+    }
+
+    get paginatedStudents() {
+        const start = this.state.studentPage * this.ITEMS_PER_PAGE;
+        return this.filteredStudents.slice(start, start + this.ITEMS_PER_PAGE);
+    }
+
+    get studentTotalPages() {
+        return Math.ceil(this.filteredStudents.length / this.ITEMS_PER_PAGE);
+    }
+
+    get studentPageInfo() {
+        const total = this.filteredStudents.length;
+        const start = this.state.studentPage * this.ITEMS_PER_PAGE + 1;
+        const end = Math.min((this.state.studentPage + 1) * this.ITEMS_PER_PAGE, total);
+        return `${start}-${end} / ${total}`;
+    }
+
+    prevStudentPage() {
+        if (this.state.studentPage > 0) {
+            this.state.studentPage--;
+        }
+    }
+
+    nextStudentPage() {
+        if (this.state.studentPage < this.studentTotalPages - 1) {
+            this.state.studentPage++;
+        }
+    }
+
+    get filteredEmployees() {
+        let items = this.state.employees;
+        if (this.state.employeeSearch) {
+            const search = this.state.employeeSearch.toLowerCase();
+            items = items.filter(e => e.name.toLowerCase().includes(search));
+        }
+        return items;
+    }
+
+    get paginatedEmployees() {
+        const start = this.state.employeePage * this.ITEMS_PER_PAGE;
+        return this.filteredEmployees.slice(start, start + this.ITEMS_PER_PAGE);
+    }
+
+    get employeeTotalPages() {
+        return Math.ceil(this.filteredEmployees.length / this.ITEMS_PER_PAGE);
+    }
+
+    get employeePageInfo() {
+        const total = this.filteredEmployees.length;
+        const start = this.state.employeePage * this.ITEMS_PER_PAGE + 1;
+        const end = Math.min((this.state.employeePage + 1) * this.ITEMS_PER_PAGE, total);
+        return `${start}-${end} / ${total}`;
+    }
+
+    prevEmployeePage() {
+        if (this.state.employeePage > 0) {
+            this.state.employeePage--;
+        }
+    }
+
+    nextEmployeePage() {
+        if (this.state.employeePage < this.employeeTotalPages - 1) {
+            this.state.employeePage++;
+        }
+    }
+
+    get paginatedVisitors() {
+        const start = this.state.visitorPage * this.ITEMS_PER_PAGE;
+        return this.state.todayVisitors.slice(start, start + this.ITEMS_PER_PAGE);
+    }
+
+    get visitorTotalPages() {
+        return Math.ceil(this.state.todayVisitors.length / this.ITEMS_PER_PAGE);
+    }
+
+    get visitorPageInfo() {
+        const total = this.state.todayVisitors.length;
+        const start = this.state.visitorPage * this.ITEMS_PER_PAGE + 1;
+        const end = Math.min((this.state.visitorPage + 1) * this.ITEMS_PER_PAGE, total);
+        return `${start}-${end} / ${total}`;
+    }
+
+    prevVisitorPage() {
+        if (this.state.visitorPage > 0) {
+            this.state.visitorPage--;
+        }
+    }
+
+    nextVisitorPage() {
+        if (this.state.visitorPage < this.visitorTotalPages - 1) {
+            this.state.visitorPage++;
+        }
     }
 
     // ========== STUDENT TAB ==========
@@ -84,6 +200,7 @@ export class AttendanceRegister extends Component {
         this.state.selectedSchedule = null;
         this.state.students = [];
         this.state.schedules = [];
+        this.state.studentPage = 0;
 
         if (this.state.selectedSection) {
             await this.loadSchedules();
@@ -96,13 +213,7 @@ export class AttendanceRegister extends Component {
         try {
             const today = new Date(this.state.date);
             const jsDay = today.getDay();
-
-            let odooDayOfWeek;
-            if (jsDay === 0) {
-                odooDayOfWeek = '6';
-            } else {
-                odooDayOfWeek = (jsDay - 1).toString();
-            }
+            let odooDayOfWeek = jsDay === 0 ? '6' : jsDay.toString();
 
             const schedules = await this.orm.searchRead(
                 "school.schedule",
@@ -125,6 +236,7 @@ export class AttendanceRegister extends Component {
         const scheduleId = parseInt(ev.target.value);
         this.state.selectedSchedule = this.state.schedules.find(s => s.id === scheduleId);
         this.state.students = [];
+        this.state.studentPage = 0;
 
         if (this.state.selectedSchedule) {
             await this.loadStudents();
@@ -198,7 +310,6 @@ export class AttendanceRegister extends Component {
 
         student.state = state;
 
-        // Apply rules based on state
         if (state === 'present') {
             student.check_in_time = this.floatToTime(this.state.selectedSchedule.start_time);
             student.check_out_time = this.floatToTime(this.state.selectedSchedule.end_time);
@@ -206,14 +317,6 @@ export class AttendanceRegister extends Component {
             student.check_in_time = '';
             student.check_out_time = '';
         }
-    }
-
-    get filteredStudents() {
-        if (!this.state.studentSearch) return this.state.students;
-        const search = this.state.studentSearch.toLowerCase();
-        return this.state.students.filter(s =>
-            s.name.toLowerCase().includes(search)
-        );
     }
 
     isStudentTimeEditable(student) {
@@ -329,15 +432,8 @@ export class AttendanceRegister extends Component {
     async onEmployeeTypeChange(ev) {
         const typeValue = ev.target.value || null;
         this.state.selectedEmployeeType = typeValue;
+        this.state.employeePage = 0;
         await this.loadEmployees();
-    }
-
-    get filteredEmployees() {
-        if (!this.state.employeeSearch) return this.state.employees;
-        const search = this.state.employeeSearch.toLowerCase();
-        return this.state.employees.filter(e =>
-            e.name.toLowerCase().includes(search)
-        );
     }
 
     updateEmployeeState(employeeId, state) {
@@ -363,13 +459,8 @@ export class AttendanceRegister extends Component {
     }
 
     canShowCheckOutButton(employee) {
-        if (employee.state === 'present' || employee.state === 'late') {
-            return true;
-        }
-        if (employee.state === 'permission' && employee.check_in_time) {
-            return true;
-        }
-        return false;
+        return (employee.state === 'present' || employee.state === 'late') ||
+            (employee.state === 'permission' && employee.check_in_time);
     }
 
     isEmployeeTimeEditable(employee) {
@@ -394,7 +485,7 @@ export class AttendanceRegister extends Component {
 
                 if (e.attendance_id) {
                     toUpdate.push({ id: e.attendance_id, data });
-                } else if (e.state !== 'absent') {
+                } else {
                     toCreate.push(data);
                 }
             });
@@ -427,10 +518,11 @@ export class AttendanceRegister extends Component {
                     ["date", "=", this.state.date],
                     ["attendance_type", "=", "visitor"]
                 ],
-                ["visitor_name", "visitor_id_number", "visitor_destination", "check_in_time"],
+                ["id", "visitor_name", "visitor_id_number", "visitor_destination", "check_in_time"],
                 { order: "check_in_time desc" }
             );
             this.state.todayVisitors = visitors;
+            this.state.visitorPage = 0;
         } catch (error) {
             console.error("Error loading visitors:", error);
         }
@@ -490,9 +582,7 @@ export class AttendanceRegister extends Component {
 
     getCurrentTimeFloat() {
         const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        return hours + (minutes / 60);
+        return now.getHours() + (now.getMinutes() / 60);
     }
 
     floatToTime(floatTime) {
@@ -510,14 +600,21 @@ export class AttendanceRegister extends Component {
 
     async onDateChange(ev) {
         this.state.date = ev.target.value;
-        if (this.state.activeTab === 'student' && this.state.selectedSection) {
-            await this.loadSchedules();
-            await this.loadExistingAttendances();
-        } else if (this.state.activeTab === 'employee') {
-            await this.loadExistingEmployeeAttendances();
-        } else if (this.state.activeTab === 'visitor') {
-            await this.loadTodayVisitors();
-        }
+        this.state.studentPage = 0;
+        this.state.employeePage = 0;
+        this.state.visitorPage = 0;
+
+        await this.loadSchedules();
+        await this.loadEmployees();
+        await this.loadTodayVisitors();
+    }
+
+    onStudentSearchInput() {
+        this.state.studentPage = 0;
+    }
+
+    onEmployeeSearchInput() {
+        this.state.employeePage = 0;
     }
 }
 

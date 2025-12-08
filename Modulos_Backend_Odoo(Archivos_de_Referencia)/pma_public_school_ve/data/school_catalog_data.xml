@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Niveles Educativos -->
+        <record id="education_level_inicial" model="school.education.level">
+            <field name="name">Inicial</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="education_level_primaria" model="school.education.level">
+            <field name="name">Primaria</field>
+            <field name="sequence">20</field>
+        </record>
+        
+        <record id="education_level_media_general" model="school.education.level">
+            <field name="name">Media General</field>
+            <field name="sequence">30</field>
+        </record>
+        
+        <record id="education_level_media_tecnica" model="school.education.level">
+            <field name="name">Media Técnica</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <!-- Modalidades -->
+        <record id="modality_inicial" model="school.modality">
+            <field name="name">Inicial</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="modality_primaria" model="school.modality">
+            <field name="name">Primaria</field>
+            <field name="sequence">20</field>
+        </record>
+        
+        <record id="modality_media_general" model="school.modality">
+            <field name="name">Media General</field>
+            <field name="sequence">30</field>
+        </record>
+        
+        <record id="modality_media_tecnica" model="school.modality">
+            <field name="name">Media Técnica</field>
+            <field name="sequence">40</field>
+        </record>
+
+    </data>
+</odoo>

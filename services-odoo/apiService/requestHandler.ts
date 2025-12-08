@@ -1,9 +1,9 @@
 import { ODOO_CONFIG } from './config';
 import {
-    extractOdooErrorMessage,
-    isAccessDeniedError,
-    isExpectedError,
-    isSessionExpiredError,
+  extractOdooErrorMessage,
+  isAccessDeniedError,
+  isExpectedError,
+  isSessionExpiredError,
 } from './errorHandler';
 import { getStoredSessionId, handleSessionExpired } from './sessionManager';
 import { OdooResponse, OdooResult, RequestParams } from './types';
@@ -80,15 +80,9 @@ export const odooRequest = async <T = any>(
           console.log('🔒 Sesión expirada o inválida detectada');
         }
         await handleSessionExpired();
-
-        return {
-          success: false,
-          error: {
-            ...responseJson.error,
-            isSessionExpired: true,
-            message: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
-          },
-        };
+        // Lanzar excepción para detener el flujo y evitar alertas duplicadas
+        // handleSessionExpired() ya manejó la alerta y navegación
+        throw new Error('SESSION_EXPIRED_HANDLED');
       }
 
       const errorMsg = extractOdooErrorMessage(responseJson.error);
@@ -106,6 +100,13 @@ export const odooRequest = async <T = any>(
     return { success: true, data: responseJson.result };
   } catch (error: any) {
     const errorMsg = error.message || 'Error desconocido';
+
+    // Si es una sesión expirada que ya fue manejada, no hacer nada más
+    if (errorMsg === 'SESSION_EXPIRED_HANDLED') {
+      // handleSessionExpired() ya mostró la alerta y navegó al login
+      // Retornamos un error silencioso para que los servicios no muestren alertas adicionales
+      return { success: false, error: { message: '', isSessionExpired: true } };
+    }
 
     if (__DEV__ && !isExpectedError(errorMsg)) {
       console.log('❌ Error inesperado:', errorMsg);

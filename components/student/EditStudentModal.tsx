@@ -82,7 +82,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   }, []);
 
   // ========== EFECTOS ==========
-  
+
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
@@ -141,7 +141,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
       }).start(() => {
         setShowSkeleton(false);
         fadeAnim.setValue(0);
-        
+
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 400,
@@ -152,7 +152,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   }, [loadingFullDetails, fullStudent, showSkeleton, fadeAnim]);
 
   // ========== HOOKS PERSONALIZADOS ==========
-  
+
   const {
     formData,
     sizesData,
@@ -184,7 +184,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   );
 
   // ========== VALIDACIÓN ==========
-  
+
   const validateForm = (): boolean => {
     if (!formData) return false;
 
@@ -231,7 +231,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   // ========== GUARDAR CAMBIOS ==========
-  
+
   const handleSave = async () => {
     if (!formData) return;
 
@@ -314,7 +314,6 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
               if (result.success && result.parent) {
                 savedParentIds.push(result.parent.id);
               } else {
-                showAlert('Error al actualizar representante', result.message || 'No se pudo actualizar el representante');
                 setIsLoading(false);
                 return;
               }
@@ -435,7 +434,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   // ========== CALLBACKS ==========
-  
+
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
@@ -455,7 +454,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
   }, [onClose]);
 
   // ========== RENDERIZADO DE CONTENIDO ==========
-  
+
   const renderTabContent = () => {
     if (!formData) return null;
 
@@ -550,7 +549,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
         android_keyboardInputMode="adjustPan"
       >
         <View style={[styles.contentContainer, { paddingBottom: insets.bottom }]}>
-          
+
           {/* ========== HEADER ========== */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -603,7 +602,7 @@ export const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
           {/* ========== BODY CON CROSSFADE ========== */}
           <View style={styles.bodyContainer}>
-            
+
             {/* SKELETON: Mostrado durante carga */}
             {showSkeleton && needsSkeleton && (
               <Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>

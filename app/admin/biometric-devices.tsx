@@ -30,7 +30,7 @@ import * as biometricOdooService from '../../services-odoo/biometricService';
 import { getDeviceInfo } from '../../services/biometricService/deviceInfo';
 
 export default function BiometricDevicesScreen() {
-  const { user, handleSessionExpired } = useAuth();
+  const { user } = useAuth();
   const [devices, setDevices] = useState<BiometricDeviceBackend[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,10 +65,13 @@ export default function BiometricDevicesScreen() {
           console.error('❌ Error cargando dispositivos:', result.error);
         }
 
-        showAlert(
-          'Error',
-          'No se pudieron cargar los dispositivos biométricos del servidor'
-        );
+        // No mostrar alerta si la sesión ya expiró (handleSessionExpired() ya lo manejó)
+        if (!result.isSessionExpired) {
+          showAlert(
+            'Error',
+            'No se pudieron cargar los dispositivos biométricos del servidor'
+          );
+        }
 
         // Fallback: intentar cargar desde almacenamiento local
         try {
@@ -128,16 +131,15 @@ export default function BiometricDevicesScreen() {
       );
       return;
     }
-    
+
     const validSession = await authService.verifySession();
 
 
     if (!validSession) {
-        if (__DEV__) {
+      if (__DEV__) {
         console.log('❌ Sesión no válida durante refresh');
-        }
-        handleSessionExpired();
-        return;
+      }
+      return;
     }
     setRefreshing(true);
     await loadDevices();
@@ -186,7 +188,10 @@ export default function BiometricDevicesScreen() {
                     );
                     await loadDevices();
                   } else {
-                    showAlert('Error', result.error || 'No se pudo revocar el dispositivo en el servidor');
+                    // No mostrar alerta si la sesión ya expiró
+                    if (!result.isSessionExpired) {
+                      showAlert('Error', result.error || 'No se pudo revocar el dispositivo en el servidor');
+                    }
                   }
                 } else {
                   // Si no tiene ID de Odoo, solo mostrar confirmación local

@@ -9,8 +9,16 @@ access_school_evaluation_type,school_evaluation_type,model_school_evaluation_typ
 access_school_evaluation_score,school_evaluation_score,model_school_evaluation_score,base.group_user,1,1,1,1
 
 access_school_register_section,school_register_section,model_school_register_section,base.group_user,1,1,1,1
+access_school_section_letter,school_section_letter,model_school_section_letter,base.group_user,1,1,1,1
+access_school_mention,school_mention,model_school_mention,base.group_user,1,1,1,1
 access_school_register_subject,school_register_subject,model_school_register_subject,base.group_user,1,1,1,1
 
 access_school_attendance,school_attendance,model_school_attendance,base.group_user,1,1,1,1
 access_school_schedule,school_schedule,model_school_schedule,base.group_user,1,1,1,1
 access_school_time_slot,school_time_slot,model_school_time_slot,base.group_user,1,1,1,0
+
+access_school_education_level,school_education_level,model_school_education_level,base.group_user,1,1,1,1
+access_school_modality,school_modality,model_school_modality,base.group_user,1,1,1,1
+
+access_school_uninscription_wizard,school_uninscription_wizard,model_school_uninscription_wizard,base.group_user,1,1,1,1
+access_school_mention_inscription_wizard,school_mention_inscription_wizard,model_school_mention_inscription_wizard,base.group_user,1,1,1,1

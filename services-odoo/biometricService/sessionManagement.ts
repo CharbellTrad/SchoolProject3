@@ -26,6 +26,14 @@ export const destroySession = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ Error destruyendo sesión:', errorMsg);
@@ -33,6 +41,7 @@ export const destroySession = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 

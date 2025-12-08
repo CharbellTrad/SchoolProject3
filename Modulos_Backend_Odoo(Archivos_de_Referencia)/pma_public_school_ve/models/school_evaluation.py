@@ -101,6 +101,15 @@ class SchoolEvaluation(models.Model):
             rec.invisible_literal = invisible_literal
 
     def create(self, vals):
+        # Validar que el año escolar no esté finalizado
+        for val in vals if isinstance(vals, list) else [vals]:
+            if 'year_id' in val and val.get('year_id'):
+                year = self.env['school.year'].browse(val['year_id'])
+                if year.state == 'finished':
+                    raise exceptions.UserError(
+                        f"No se pueden crear evaluaciones en el año escolar '{year.name}' porque está finalizado."
+                    )
+        
         res = super().create(vals)
         for rec in res:
             rec.evaluation_score_ids.create([{
@@ -182,3 +191,21 @@ class SchoolEvaluation(models.Model):
 
             rec.score_average = average
 
+    def unlink(self):
+        """Prevent deletion of evaluations with evaluation scores or in finished years"""
+        for record in self:
+            # Check if year is finished
+            if record.year_id and record.year_id.state == 'finished':
+                raise exceptions.UserError(
+                    f"No se puede eliminar la evaluación '{record.name}' porque el año escolar "
+                    f"'{record.year_id.name}' está finalizado."
+                )
+            
+            # Check for evaluation scores
+            if record.evaluation_score_ids:
+                raise exceptions.UserError(
+                    f"No se puede eliminar la evaluación '{record.name}' porque tiene {len(record.evaluation_score_ids)} "
+                    f"puntaje(s) registrado(s). Elimine primero todos los puntajes de esta evaluación."
+                )
+        
+        return super().unlink()

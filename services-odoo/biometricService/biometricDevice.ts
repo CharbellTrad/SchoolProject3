@@ -35,6 +35,14 @@ export const registerDevice = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error registrando dispositivo:', errorMsg);
@@ -42,6 +50,7 @@ export const registerDevice = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -70,17 +79,17 @@ export const registerDevice = async (
  */
 const parseOdooDate = (odooDate: string | null | undefined): string | undefined => {
   if (!odooDate) return undefined;
-  
+
   try {
     // Odoo envía fechas en UTC pero sin el sufijo 'Z'
     // Formato: "2025-12-06T06:08:20"
     // Necesitamos agregarlo para que JS lo interprete como UTC
-    
+
     if (odooDate.includes('Z') || odooDate.includes('+')) {
       // Ya tiene zona horaria
       return odooDate;
     }
-    
+
     // Agregar 'Z' para indicar que es UTC
     return odooDate + 'Z';
   } catch {
@@ -110,6 +119,14 @@ export const getUserDevices = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error obteniendo dispositivos:', errorMsg);
@@ -117,11 +134,12 @@ export const getUserDevices = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
     const devices: BiometricDeviceBackend[] = result.data || [];
-    
+
     // Mapear las fechas para agregar 'Z' y convertir a UTC correctamente
     const devicesWithFixedDates = devices.map(device => ({
       ...device,
@@ -158,7 +176,7 @@ export const getUserDevices = async (
  */
 export const validateDevice = async (
   deviceId: string
-): Promise<{ valid: boolean; deviceOdooId: number | null; message: string }> => {
+): Promise<{ valid: boolean; deviceOdooId: number | null; message: string; isSessionExpired?: boolean }> => {
   try {
     if (__DEV__) {
       console.log('📡 [Odoo] Validando dispositivo:', deviceId);
@@ -172,6 +190,15 @@ export const validateDevice = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          valid: false,
+          deviceOdooId: null,
+          message: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error validando dispositivo:', errorMsg);
@@ -180,6 +207,7 @@ export const validateDevice = async (
         valid: false,
         deviceOdooId: null,
         message: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -293,6 +321,14 @@ export const revokeDevice = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error revocando dispositivo:', errorMsg);
@@ -300,6 +336,7 @@ export const revokeDevice = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 
@@ -343,6 +380,14 @@ export const activateDevice = async (
     );
 
     if (!result.success) {
+      // Si es sesión expirada, no loguear (handleSessionExpired() ya lo manejó)
+      if (result.error?.isSessionExpired) {
+        return {
+          success: false,
+          error: 'Sesión expirada',
+          isSessionExpired: true,
+        };
+      }
       const errorMsg = odooApi.extractOdooErrorMessage(result.error);
       if (__DEV__) {
         console.error('❌ [Odoo] Error activando dispositivo:', errorMsg);
@@ -350,6 +395,7 @@ export const activateDevice = async (
       return {
         success: false,
         error: errorMsg,
+        isSessionExpired: result.error?.isSessionExpired,
       };
     }
 

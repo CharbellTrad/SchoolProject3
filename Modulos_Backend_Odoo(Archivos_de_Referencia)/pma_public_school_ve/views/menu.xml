@@ -41,9 +41,13 @@
     <!-- Personas y Entidades -->
     <menuitem id="people_root_menu" name="Directorio" parent="school_menu_root" sequence="50"/>
         <menuitem id="school_register_partner_menu" name="Estudiantes" action="school_register_res_partner_action" parent="people_root_menu" sequence="10"/>
-        <menuitem id="school_register_employee_menu" name="Personal" action="school_register_hr_emplayee_action" parent="people_root_menu" sequence="20"/>
+        <menuitem id="school_config_menu_employee_menu" name="Personal" parent="people_root_menu" sequence="20"/>
+            <menuitem id="school_register_employee_submenu" name="Personal" action="school_register_hr_employee_action" parent="school_config_menu_employee_menu" sequence="10"/>
+            <menuitem id="school_department_menu" name="Departamentos" action="hr.hr_department_tree_action" parent="school_config_menu_employee_menu" sequence="20"/>
+        
         <menuitem id="school_config_menu_categ" name="Configuración" parent="people_root_menu" sequence="100"/>
             <menuitem id="school_register_section_menu" name="Grados/Secciones Base" action="school_register_section_action" parent="school_config_menu_categ" sequence="10"/>
             <menuitem id="school_register_subject_menu" name="Catálogo de Materias" action="school_register_subject_action" parent="school_config_menu_categ" sequence="20"/>
+            <menuitem id="school_mention_menu" name="Menciones Técnicas" action="school_mention_action" parent="school_config_menu_categ" sequence="25"/>
 
 </odoo>

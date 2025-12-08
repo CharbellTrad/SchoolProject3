@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 import logging
 
 
@@ -42,3 +43,24 @@ class SchoolSubject(models.Model):
         for record in self:
             professor_ids = self.env['school.professor'].search([('subject_ids', 'in', [record.subject_id.id]), ('year_id', '=', record.year_id.id)])
             record.available_professor_ids = professor_ids.ids if professor_ids else []
+    
+    def unlink(self):
+        """Prevent deletion of assigned subjects with evaluations or scores"""
+        for record in self:
+            # Check for related evaluations
+            evaluations = self.env['school.evaluation'].search([('subject_id', '=', record.id)])
+            if evaluations:
+                raise UserError(
+                    f"No se puede eliminar la materia asignada '{record.subject_id.name}' de la sección '{record.section_id.name}' "
+                    f"porque tiene {len(evaluations)} evaluación(ones) registrada(s). Elimine primero las evaluaciones."
+                )
+            
+            # Check for evaluation scores
+            scores = self.env['school.evaluation.score'].search([('subject_id', '=', record.id)])
+            if scores:
+                raise UserError(
+                    f"No se puede eliminar la materia asignada '{record.subject_id.name}' de la sección '{record.section_id.name}' "
+                    f"porque tiene {len(scores)} puntaje(s) de evaluación registrado(s). Elimine primero los puntajes."
+                )
+        
+        return super().unlink()

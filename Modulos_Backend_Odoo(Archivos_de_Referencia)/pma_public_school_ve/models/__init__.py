@@ -2,7 +2,9 @@ from . import (
                 hr_employee,
                 res_partner,
                 school_professor,
-                school_register_section, 
+                school_register_section,
+                school_section_letter,
+                school_mention,
                 school_register_subject,
                 school_section,
                 school_student,
@@ -14,4 +16,6 @@ from . import (
                 school_attendance,
                 school_schedule,
                 school_time_slot,
+                school_education_level,
+                school_modality,
             )
