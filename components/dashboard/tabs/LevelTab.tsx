@@ -1,19 +1,15 @@
 /**
- * LevelTab - Generic tab for Media General, Primaria, Preescolar
- * Matches Odoo structure exactly:
- * - Configuración de Evaluación
- * - Estadísticas (Total Estudiantes, Aprobados, Secciones Activas)
- * - Secciones de [Nivel] (lista con badges)
- * - Rendimiento de [Nivel] (performance graph)
- * - Top 3 Estudiantes por Sección (level_dashboard)
+ * LevelTab - enhanced visual design
+ * Features: Staggered animations, enhanced stats
  */
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData, SectionPreview } from '../../../services-odoo/dashboardService';
+import { slideUpFadeIn } from '../animations';
 import { RingGauge } from '../charts';
-import { Badge, Card, Empty, InfoNote, ListRow, RankBadge, Separator, StatCard } from '../ui';
+import { Card, Empty, InfoNote, ListRow, RankBadge, StatCard } from '../ui';
 
 interface Props {
     level: 'secundary' | 'primary' | 'pre';
@@ -23,7 +19,7 @@ interface Props {
 }
 
 export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) => {
-    // Get level-specific data
+    // Get level-specific data (same logic as before)
     const students = level === 'secundary' ? d?.studentsByLevel.secundaryCount
         : level === 'primary' ? d?.studentsByLevel.primaryCount
             : d?.studentsByLevel.preCount;
@@ -45,78 +41,96 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
             : d?.preDashboard;
 
     const approvalPct = students && students > 0 ? ((approved || 0) / students) * 100 : 0;
-    const showSubjects = level !== 'pre'; // Preescolar no tiene materias
+    const showSubjects = level !== 'pre';
+
+    // Animation for Stats Row
+    const statsAnim = useRef(new Animated.Value(0)).current;
+    const statsOpacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        slideUpFadeIn(statsAnim, statsOpacity, 300, 100).start();
+    }, []);
 
     return (
-        <>
+        <View style={styles.container}>
             {/* Configuración de Evaluación */}
-            <Separator title="Configuración de Evaluación" />
-            <Card>
+            <Card title="Configuración" delay={0}>
                 {evalConfig ? (
                     <View style={styles.configRow}>
-                        <Ionicons name="checkmark-circle" size={20} color={color} />
-                        <Text style={styles.configText}>{evalConfig.name}</Text>
+                        <View style={[styles.configIcon, { backgroundColor: color + '15' }]}>
+                            <Ionicons name="settings-outline" size={20} color={color} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.configText}>{evalConfig.name}</Text>
+                            <Text style={styles.configSub}>Sistema de evaluación activo</Text>
+                        </View>
+                        <Ionicons name="checkmark-circle" size={24} color={Colors.success} />
                     </View>
                 ) : (
                     <Text style={styles.configEmpty}>Sin configuración de evaluación</Text>
                 )}
             </Card>
 
-            {/* Estadísticas */}
-            <View style={styles.statsRow}>
-                <StatCard value={students ?? 0} label="Total Estudiantes" color={Colors.primary} />
+            {/* Estadísticas Row - Animated */}
+            <Animated.View style={[styles.statsRow, { transform: [{ translateY: statsAnim }], opacity: statsOpacity }]}>
+                <StatCard value={students ?? 0} label="Estudiantes" color={Colors.primary} />
                 <StatCard value={approved ?? 0} label="Aprobados" color={Colors.success} />
-                <StatCard value={sections ?? 0} label="Secciones Activas" color={color} />
+                <StatCard value={sections ?? 0} label="Secciones" color={color} />
+            </Animated.View>
+
+            {/* Rendimiento */}
+            <View style={styles.row}>
+                <View style={styles.halfCol}>
+                    <Card title="Rendimiento" delay={200} style={styles.fullHeight}>
+                        {perf ? (
+                            <View style={styles.perfSection}>
+                                <RingGauge percentage={approvalPct} color={color} label="Tasa" size={100} strokeWidth={12} />
+                                <View style={styles.perfStats}>
+                                    <View style={styles.perfItem}>
+                                        <Text style={[styles.perfValue, { color: Colors.success }]}>{perf.subjects_approved}</Text>
+                                        <Text style={styles.perfLabel}>Apr.</Text>
+                                    </View>
+                                    <View style={styles.perfItem}>
+                                        <Text style={[styles.perfValue, { color: Colors.error }]}>{perf.subjects_failed}</Text>
+                                        <Text style={styles.perfLabel}>Rep.</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : <Empty />}
+                    </Card>
+                </View>
+
+                {/* Secciones List */}
+                <View style={styles.halfCol}>
+                    <Card title={`Secciones (${sectionPreviews.length})`} delay={300} style={styles.fullHeight}>
+                        {sectionPreviews.length > 0 ? (
+                            <View style={styles.sectionsList}>
+                                {sectionPreviews.slice(0, 4).map((sec: SectionPreview, i) => (
+                                    <View key={i} style={styles.sectionRow}>
+                                        <View style={[styles.sectionDot, { backgroundColor: color }]} />
+                                        <Text style={styles.sectionName} numberOfLines={1}>{sec.sectionName}</Text>
+                                        <Text style={styles.sectionCount}>{sec.studentsCount}</Text>
+                                    </View>
+                                ))}
+                                {sectionPreviews.length > 4 && (
+                                    <Text style={styles.moreText}>+ {sectionPreviews.length - 4} más</Text>
+                                )}
+                            </View>
+                        ) : <Empty message="Sin secciones" />}
+                    </Card>
+                </View>
             </View>
 
-            {/* Secciones de [Nivel] */}
-            <Separator title={`Secciones de ${levelName}`} />
-            <Card>
-                {sectionPreviews.length > 0 ? (
-                    sectionPreviews.map((sec: SectionPreview, i) => (
-                        <ListRow key={i}>
-                            <Text style={styles.sectionName}>{sec.sectionName}</Text>
-                            <View style={styles.badgesRow}>
-                                <Badge value={sec.studentsCount} color={Colors.primary} icon="people" />
-                                {showSubjects && <Badge value={sec.subjectsCount} color={Colors.success} icon="book" />}
-                                <Badge value={sec.professorsCount} color={color} icon="person" />
-                            </View>
-                        </ListRow>
-                    ))
-                ) : <Empty message="Sin secciones registradas" />}
-            </Card>
-
-            {/* Rendimiento de [Nivel] */}
-            <Separator title={`Rendimiento de ${levelName}`} />
-            <Card>
-                {perf ? (
-                    <View style={styles.perfSection}>
-                        <RingGauge percentage={approvalPct} color={color} label="Aprobación" size={120} />
-                        <View style={styles.perfStats}>
-                            <View style={styles.perfItem}>
-                                <Text style={styles.perfValue}>{perf.total_subjects}</Text>
-                                <Text style={styles.perfLabel}>Materias</Text>
-                            </View>
-                            <View style={styles.perfItem}>
-                                <Text style={[styles.perfValue, { color: Colors.success }]}>{perf.subjects_approved}</Text>
-                                <Text style={styles.perfLabel}>Aprobadas</Text>
-                            </View>
-                            <View style={styles.perfItem}>
-                                <Text style={[styles.perfValue, { color: Colors.error }]}>{perf.subjects_failed}</Text>
-                                <Text style={styles.perfLabel}>Reprobadas</Text>
-                            </View>
-                        </View>
-                    </View>
-                ) : <Empty />}
-            </Card>
-
-            {/* Top 3 Estudiantes por Sección - using correct Odoo field names */}
-            <Separator title="Top 3 Estudiantes por Sección" />
-            <Card>
+            {/* Top 3 Estudiantes por Sección */}
+            <Card title="Top 3 Estudiantes por Sección" delay={400}>
                 {levelDashboard?.top_students_by_section?.length ? (
                     levelDashboard.top_students_by_section.map((sec, i) => (
                         <View key={i} style={styles.topSection}>
-                            <Text style={[styles.topSectionTitle, { color }]}>{sec.section_name}</Text>
+                            <View style={styles.topSectionHeader}>
+                                <View style={[styles.sectionBadge, { backgroundColor: color + '15' }]}>
+                                    <Text style={[styles.sectionBadgeText, { color }]}>{sec.section_name}</Text>
+                                </View>
+                            </View>
                             {sec.top_3.map((st, j) => (
                                 <ListRow key={j} borderBottom={j < sec.top_3.length - 1}>
                                     <RankBadge rank={j + 1} />
@@ -127,36 +141,49 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
                         </View>
                     ))
                 ) : sectionPreviews.length > 0 ? (
-                    <InfoNote message="Los datos de Top 3 por sección se calculan automáticamente cuando hay evaluaciones registradas." />
+                    <InfoNote message="Los datos de Top 3 se calculan automáticamente." />
                 ) : <Empty />}
             </Card>
-        </>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    container: { gap: 6 },
+    row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    halfCol: { flex: 1 },
+    fullHeight: { flex: 1, marginBottom: 0 },
+
     // Config
-    configRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    configText: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary },
+    configRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    configIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    configText: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary },
+    configSub: { fontSize: 12, color: Colors.textSecondary },
     configEmpty: { fontSize: 13, color: Colors.textTertiary, fontStyle: 'italic' },
 
     // Stats
-    statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+    statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
 
-    // Sections
-    sectionName: { flex: 1, fontSize: 13, fontWeight: '600', color: Colors.textPrimary },
-    badgesRow: { flexDirection: 'row', gap: 8 },
+    // Sections List
+    sectionsList: { gap: 10 },
+    sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    sectionDot: { width: 8, height: 8, borderRadius: 4 },
+    sectionName: { flex: 1, fontSize: 13, color: Colors.textPrimary, fontWeight: '500' },
+    sectionCount: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
+    moreText: { fontSize: 11, color: Colors.textTertiary, fontStyle: 'italic', marginLeft: 16 },
 
     // Performance
-    perfSection: { alignItems: 'center' },
-    perfStats: { flexDirection: 'row', gap: 24, marginTop: 16 },
+    perfSection: { alignItems: 'center', paddingVertical: 8 },
+    perfStats: { flexDirection: 'row', gap: 20, marginTop: 12 },
     perfItem: { alignItems: 'center' },
-    perfValue: { fontSize: 20, fontWeight: '800', color: Colors.textPrimary },
-    perfLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 4 },
+    perfValue: { fontSize: 16, fontWeight: '700' },
+    perfLabel: { fontSize: 10, color: Colors.textSecondary },
 
     // Top Section
-    topSection: { marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-    topSectionTitle: { fontSize: 14, fontWeight: '700', marginBottom: 8 },
+    topSection: { marginBottom: 20 },
+    topSectionHeader: { flexDirection: 'row', marginBottom: 10, alignItems: 'center' },
+    sectionBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    sectionBadgeText: { fontSize: 12, fontWeight: '700' },
     topStudentName: { flex: 1, fontSize: 13, color: Colors.textPrimary, marginLeft: 12 },
     topStudentAvg: { fontSize: 13, fontWeight: '700', color: Colors.success },
 });

@@ -1,6 +1,6 @@
 /**
- * RingGauge - Circular progress gauge with gradient
- * Perfect for showing percentages and approval rates
+ * RingGauge - Enhanced circular progress
+ * Features: Gradient, rounded caps, smooth animation
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -30,9 +30,22 @@ export const RingGauge: React.FC<RingGaugeProps> = ({
     const innerRadius = radius - strokeWidth;
     const remaining = 100 - percentage;
 
+    // Ensure accurate representation
+    const safePercentage = Math.min(Math.max(percentage, 0), 100);
+    const safeRemaining = 100 - safePercentage;
+
     const data = [
-        { value: percentage, color, gradientCenterColor: gradientColor || color },
-        { value: remaining, color: Colors.borderLight, gradientCenterColor: Colors.border },
+        {
+            value: safePercentage,
+            color,
+            gradientCenterColor: gradientColor || color,
+            focused: true, // Highlights the main section
+        },
+        {
+            value: safeRemaining,
+            color: Colors.backgroundTertiary,
+            gradientCenterColor: Colors.backgroundSecondary
+        },
     ];
 
     return (
@@ -44,12 +57,13 @@ export const RingGauge: React.FC<RingGaugeProps> = ({
                 radius={radius}
                 innerRadius={innerRadius}
                 innerCircleColor={'#fff'}
+                strokeWidth={0} // Remove jagged edges
                 centerLabelComponent={() => (
                     <View style={styles.center}>
-                        <Text style={[styles.value, { color }]}>
-                            {percentage.toFixed(0)}{showPercentSymbol ? '%' : ''}
+                        <Text style={[styles.value, { color, fontSize: size * 0.22 }]}>
+                            {safePercentage.toFixed(0)}{showPercentSymbol ? '%' : ''}
                         </Text>
-                        {label && <Text style={styles.label}>{label}</Text>}
+                        {label && <Text style={[styles.label, { fontSize: size * 0.09 }]}>{label}</Text>}
                     </View>
                 )}
             />
@@ -58,10 +72,10 @@ export const RingGauge: React.FC<RingGaugeProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: { alignItems: 'center', paddingVertical: 12 },
+    container: { alignItems: 'center', paddingVertical: 8 },
     center: { alignItems: 'center', justifyContent: 'center' },
-    value: { fontSize: 24, fontWeight: '800' },
-    label: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+    value: { fontWeight: '800' },
+    label: { color: Colors.textSecondary, marginTop: 2, fontWeight: '600' },
 });
 
 export default RingGauge;

@@ -1,6 +1,6 @@
 /**
- * DonutChart - Animated donut/ring chart with gradient
- * Uses react-native-gifted-charts for impressive visuals
+ * DonutChart - Enhanced circular chart
+ * Features: Animated entry, flexible legend
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -48,13 +48,17 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 radius={radius}
                 innerRadius={innerRadius}
                 innerCircleColor={'#fff'}
+                strokeWidth={2}
+                strokeColor={'#fff'}
                 centerLabelComponent={hasCenter ? () => (
                     <View style={styles.center}>
                         {centerValue !== undefined && (
-                            <Text style={[styles.centerValue, { color: centerColor }]}>{centerValue}</Text>
+                            <Text style={[styles.centerValue, { color: centerColor, fontSize: radius * 0.35 }]}>
+                                {centerValue}
+                            </Text>
                         )}
                         {centerLabel && (
-                            <Text style={styles.centerLabel}>{centerLabel}</Text>
+                            <Text style={[styles.centerLabel, { fontSize: radius * 0.15 }]}>{centerLabel}</Text>
                         )}
                     </View>
                 ) : undefined}
@@ -64,7 +68,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     {data.filter(d => d.label).map((item, i) => (
                         <View key={i} style={styles.legendItem}>
                             <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                            <Text style={styles.legendText}>{item.label}: {item.value}</Text>
+                            <Text style={styles.legendText}>{item.label}</Text>
                         </View>
                     ))}
                 </View>
@@ -74,14 +78,14 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: { alignItems: 'center', paddingVertical: 12 },
+    container: { alignItems: 'center', paddingVertical: 8 },
     center: { alignItems: 'center', justifyContent: 'center' },
-    centerValue: { fontSize: 26, fontWeight: '800' },
-    centerLabel: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-    legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginTop: 16 },
+    centerValue: { fontWeight: '800' },
+    centerLabel: { color: Colors.textSecondary, marginTop: 2, fontWeight: '600' },
+    legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 16 },
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    legendDot: { width: 10, height: 10, borderRadius: 5 },
-    legendText: { fontSize: 12, color: Colors.textSecondary },
+    legendDot: { width: 8, height: 8, borderRadius: 4 },
+    legendText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
 });
 
 export default DonutChart;

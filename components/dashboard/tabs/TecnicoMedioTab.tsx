@@ -1,19 +1,14 @@
 /**
- * TecnicoMedioTab - Tab 3: Técnico Medio
- * Matches Odoo structure exactly:
- * - Configuración de Evaluación
- * - Estadísticas (Total Estudiantes, Aprobados, Secciones Activas)
- * - Estudiantes con Mención Inscrita (student_id, section_id, mention_id, mention_state)
- * - Rendimiento de Técnico Medio
- * - Top 3 Estudiantes por Sección
+ * TecnicoMedioTab - enhanced visual design
  */
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData, StudentPreview } from '../../../services-odoo/dashboardService';
+import { slideUpFadeIn } from '../animations';
 import { RingGauge } from '../charts';
-import { Card, Empty, InfoNote, ListRow, RankBadge, Separator, StatCard, StudentAvatar } from '../ui';
+import { Card, Empty, InfoNote, ListRow, RankBadge, StatCard, StudentAvatar } from '../ui';
 
 interface Props {
     data: DashboardData | null;
@@ -24,17 +19,30 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
     const approved = d?.approvedByLevel.tecnicoCount ?? 0;
     const sections = d?.sectionsByLevel.secundaryCount ?? 0;
     const approvalPct = students > 0 ? (approved / students) * 100 : 0;
-    const levelDashboard = d?.secundaryTecnicoDashboard; // Use Técnico Medio specific dashboard
+    const levelDashboard = d?.secundaryTecnicoDashboard;
+
+    // Animation for Stats Row
+    const statsAnim = useRef(new Animated.Value(0)).current;
+    const statsOpacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        slideUpFadeIn(statsAnim, statsOpacity, 300, 100).start();
+    }, []);
 
     return (
-        <>
-            {/* Configuración de Evaluación */}
-            <Separator title="Configuración de Evaluación" />
-            <Card>
+        <View style={styles.container}>
+            {/* Configuración */}
+            <Card title="Configuración" delay={0}>
                 {d?.evaluationConfigs.secundary ? (
                     <View style={styles.configRow}>
-                        <Ionicons name="checkmark-circle" size={20} color={Colors.warning} />
-                        <Text style={styles.configText}>{d.evaluationConfigs.secundary.name}</Text>
+                        <View style={[styles.configIcon, { backgroundColor: Colors.warning + '15' }]}>
+                            <Ionicons name="construct-outline" size={20} color={Colors.warning} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.configText}>{d.evaluationConfigs.secundary.name}</Text>
+                            <Text style={styles.configSub}>Sistema de evaluación técnica</Text>
+                        </View>
+                        <Ionicons name="checkmark-circle" size={24} color={Colors.success} />
                     </View>
                 ) : (
                     <Text style={styles.configEmpty}>Sin configuración (usa Media General)</Text>
@@ -42,61 +50,62 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
             </Card>
 
             {/* Estadísticas */}
-            <View style={styles.statsRow}>
-                <StatCard value={students} label="Total Estudiantes" color={Colors.primary} />
+            <Animated.View style={[styles.statsRow, { transform: [{ translateY: statsAnim }], opacity: statsOpacity }]}>
+                <StatCard value={students} label="Estudiantes" color={Colors.primary} />
                 <StatCard value={approved} label="Aprobados" color={Colors.success} />
-                <StatCard value={sections} label="Secciones Activas" color={Colors.warning} />
-            </View>
+                <StatCard value={sections} label="Secciones" color={Colors.warning} />
+            </Animated.View>
 
-            {/* Estudiantes con Mención Inscrita */}
-            <Separator title="Estudiantes con Mención Inscrita" />
-            <Card>
-                {d?.tecnicoStudentPreviews?.length ? (
-                    d.tecnicoStudentPreviews.map((st: StudentPreview, i) => (
-                        <ListRow key={i}>
-                            <StudentAvatar name={st.studentName} color={Colors.warning} />
-                            <View style={styles.studentInfo}>
-                                <Text style={styles.studentName}>{st.studentName}</Text>
-                                <Text style={styles.studentMeta}>{st.sectionName}</Text>
-                            </View>
-                            <View style={styles.mentionCol}>
-                                <Text style={styles.mentionName}>{st.mentionName || 'Mención'}</Text>
-                                <View style={[styles.stateBadge, st.mentionState === 'enrolled' && styles.stateBadgeSuccess]}>
-                                    <Text style={[styles.stateText, st.mentionState === 'enrolled' && styles.stateTextSuccess]}>
-                                        {st.mentionState === 'enrolled' ? 'Inscrito' : 'Pendiente'}
-                                    </Text>
+            {/* Rendimiento */}
+            <View style={styles.row}>
+                <View style={styles.halfCol}>
+                    <Card title="Rendimiento" delay={200} style={styles.fullHeight}>
+                        <View style={styles.perfSection}>
+                            <RingGauge percentage={approvalPct} color={Colors.warning} gradientColor="#d97706" label="Tasa" size={100} strokeWidth={12} />
+                            <View style={styles.perfLegend}>
+                                <View style={styles.legendItem}>
+                                    <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
+                                    <Text style={styles.legendText}>{approved} Apr.</Text>
+                                </View>
+                                <View style={styles.legendItem}>
+                                    <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
+                                    <Text style={styles.legendText}>{students - approved} Rep.</Text>
                                 </View>
                             </View>
-                        </ListRow>
-                    ))
-                ) : <Empty message="Sin estudiantes de Técnico Medio" />}
-            </Card>
-
-            {/* Rendimiento de Técnico Medio */}
-            <Separator title="Rendimiento de Técnico Medio" />
-            <Card>
-                <View style={styles.perfSection}>
-                    <RingGauge percentage={approvalPct} color={Colors.warning} gradientColor="#d97706" label="Aprobación" size={120} />
-                    <View style={styles.perfLegend}>
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
-                            <Text style={styles.legendText}>{approved} Aprobados</Text>
                         </View>
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
-                            <Text style={styles.legendText}>{students - approved} Reprobados</Text>
-                        </View>
-                    </View>
+                    </Card>
                 </View>
-            </Card>
 
-            {/* Top 3 Estudiantes por Sección */}
-            <Separator title="Top 3 Estudiantes por Sección" />
-            <Card>
+                {/* Estudiantes con Mención */}
+                <View style={styles.halfCol}>
+                    <Card title="Menciones" delay={300} style={styles.fullHeight}>
+                        {d?.tecnicoStudentPreviews?.length ? (
+                            <View style={styles.mentionsList}>
+                                {d.tecnicoStudentPreviews.slice(0, 4).map((st: StudentPreview, i) => (
+                                    <View key={i} style={styles.mentionRow}>
+                                        <StudentAvatar name={st.studentName} color={Colors.warning} size={32} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.mentionName} numberOfLines={1}>{st.studentName}</Text>
+                                            <Text style={styles.mentionLabel} numberOfLines={1}>{st.mentionName || 'Generico'}</Text>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        ) : <Empty message="Sin estudiantes" />}
+                    </Card>
+                </View>
+            </View>
+
+            {/* Top 3 Estudiantes */}
+            <Card title="Top 3 por Sección" delay={400}>
                 {levelDashboard?.top_students_by_section?.length ? (
                     levelDashboard.top_students_by_section.map((sec, i) => (
                         <View key={i} style={styles.topSection}>
-                            <Text style={[styles.topSectionTitle, { color: Colors.warning }]}>{sec.section_name}</Text>
+                            <View style={styles.topSectionHeader}>
+                                <View style={[styles.sectionBadge, { backgroundColor: Colors.warning + '15' }]}>
+                                    <Text style={[styles.sectionBadgeText, { color: Colors.warning }]}>{sec.section_name}</Text>
+                                </View>
+                            </View>
                             {sec.top_3.map((st, j) => (
                                 <ListRow key={j} borderBottom={j < sec.top_3.length - 1}>
                                     <RankBadge rank={j + 1} />
@@ -106,41 +115,41 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
                             ))}
                         </View>
                     ))
-                ) : d?.tecnicoStudentPreviews?.length ? (
-                    <InfoNote message="Los datos de Top 3 por sección se calculan automáticamente cuando hay evaluaciones registradas." />
-                ) : <Empty />}
+                ) : <InfoNote message="Los datos de Top 3 se calculan automáticamente." />}
             </Card>
-        </>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    configRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    configText: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary },
+    container: { gap: 6 },
+    row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    halfCol: { flex: 1 },
+    fullHeight: { flex: 1, marginBottom: 0 },
+
+    configRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    configIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    configText: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary },
+    configSub: { fontSize: 12, color: Colors.textSecondary },
     configEmpty: { fontSize: 13, color: Colors.textTertiary, fontStyle: 'italic' },
-    statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
 
-    // Students
-    studentInfo: { flex: 1, marginLeft: 12 },
-    studentName: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary },
-    studentMeta: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-    mentionCol: { alignItems: 'flex-end' },
-    mentionName: { fontSize: 11, color: Colors.textSecondary, marginBottom: 4 },
-    stateBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: Colors.backgroundSecondary },
-    stateBadgeSuccess: { backgroundColor: Colors.success + '15' },
-    stateText: { fontSize: 10, fontWeight: '600', color: Colors.textSecondary },
-    stateTextSuccess: { color: Colors.success },
+    statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
 
-    // Performance
-    perfSection: { alignItems: 'center' },
-    perfLegend: { flexDirection: 'row', gap: 24, marginTop: 16 },
+    perfSection: { alignItems: 'center', paddingVertical: 8 },
+    perfLegend: { flexDirection: 'row', gap: 16, marginTop: 12 },
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    legendDot: { width: 10, height: 10, borderRadius: 5 },
-    legendText: { fontSize: 12, color: Colors.textSecondary },
+    legendDot: { width: 8, height: 8, borderRadius: 4 },
+    legendText: { fontSize: 11, color: Colors.textSecondary },
 
-    // Top Section
-    topSection: { marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-    topSectionTitle: { fontSize: 14, fontWeight: '700', marginBottom: 8 },
+    mentionsList: { gap: 12 },
+    mentionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    mentionName: { fontSize: 12, fontWeight: '600', color: Colors.textPrimary },
+    mentionLabel: { fontSize: 10, color: Colors.textSecondary },
+
+    topSection: { marginBottom: 20 },
+    topSectionHeader: { flexDirection: 'row', marginBottom: 10, alignItems: 'center' },
+    sectionBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    sectionBadgeText: { fontSize: 12, fontWeight: '700' },
     topStudentName: { flex: 1, fontSize: 13, color: Colors.textPrimary, marginLeft: 12 },
     topStudentAvg: { fontSize: 13, fontWeight: '700', color: Colors.success },
 });

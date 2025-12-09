@@ -1,7 +1,18 @@
 // Dashboard UI components index
 export {
-    Badge, Card, Empty,
-    InfoNote, KPICard, ListRow, RankBadge, Separator,
-    StatCard, StudentAvatar
+    AnimatedBadge,
+    Badge,
+    Card,
+    Empty,
+    GlassButton,
+    InfoNote,
+    KPICard,
+    ListRow,
+    RankBadge,
+    Separator,
+    Shimmer,
+    StatCard,
+    StudentAvatar
 } from './DashboardComponents';
+
 
