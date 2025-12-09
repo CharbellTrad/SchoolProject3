@@ -51,6 +51,13 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
         <>
             {/* Resumen de Profesores */}
             <Separator title="Resumen de Profesores" />
+            {/* Total Profesores Activos */}
+            {d?.professorSummary?.total && (
+                <Card style={{ alignItems: 'center' }}>
+                    <Text style={styles.totalProfessorsValue}>{d.professorSummary.total}</Text>
+                    <Text style={styles.totalProfessorsLabel}>Profesores Activos</Text>
+                </Card>
+            )}
             <Card>
                 {d?.professorSummary?.professors?.length ? (
                     d.professorSummary.professors.map((p, i) => (
@@ -73,7 +80,7 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
             </Card>
 
             {/* Estadísticas por Tipo de Estudiante - Per Professor */}
-            <Separator title="Estadísticas por Profesor" />
+            <Separator title="Estadísticas por Tipo de Estudiante" />
             <Card>
                 {d?.professorDetailedStats?.professors?.length ? (
                     d.professorDetailedStats.professors.slice(0, 5).map((prof, i) => {
@@ -101,29 +108,41 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
                                         </View>
                                     )}
                                 </View>
-                                {/* Mini stats by type */}
+                                {/* Mini stats by type - Now showing averages */}
                                 <View style={styles.typeStatsRow}>
                                     {prof.stats_by_type?.pre?.count > 0 && (
                                         <View style={styles.typeStat}>
-                                            <Text style={[styles.typeValue, { color: '#ec4899' }]}>{prof.stats_by_type.pre.count}</Text>
+                                            <Text style={[styles.typeAvg, { color: '#ec4899' }]}>
+                                                {prof.stats_by_type.pre.average?.toFixed(1) || '-'}
+                                            </Text>
+                                            <Text style={[styles.typeValue, { color: '#ec4899' }]}>({prof.stats_by_type.pre.count})</Text>
                                             <Text style={styles.typeLabel}>Pre</Text>
                                         </View>
                                     )}
                                     {prof.stats_by_type?.primary?.count > 0 && (
                                         <View style={styles.typeStat}>
-                                            <Text style={[styles.typeValue, { color: Colors.success }]}>{prof.stats_by_type.primary.count}</Text>
+                                            <Text style={[styles.typeAvg, { color: Colors.success }]}>
+                                                {prof.stats_by_type.primary.average?.toFixed(1) || '-'}
+                                            </Text>
+                                            <Text style={[styles.typeValue, { color: Colors.success }]}>({prof.stats_by_type.primary.count})</Text>
                                             <Text style={styles.typeLabel}>Prim</Text>
                                         </View>
                                     )}
                                     {prof.stats_by_type?.secundary_general?.count > 0 && (
                                         <View style={styles.typeStat}>
-                                            <Text style={[styles.typeValue, { color: Colors.primary }]}>{prof.stats_by_type.secundary_general.count}</Text>
+                                            <Text style={[styles.typeAvg, { color: Colors.primary }]}>
+                                                {prof.stats_by_type.secundary_general.average?.toFixed(1) || '-'}
+                                            </Text>
+                                            <Text style={[styles.typeValue, { color: Colors.primary }]}>({prof.stats_by_type.secundary_general.count})</Text>
                                             <Text style={styles.typeLabel}>MG</Text>
                                         </View>
                                     )}
                                     {prof.stats_by_type?.secundary_tecnico?.count > 0 && (
                                         <View style={styles.typeStat}>
-                                            <Text style={[styles.typeValue, { color: Colors.warning }]}>{prof.stats_by_type.secundary_tecnico.count}</Text>
+                                            <Text style={[styles.typeAvg, { color: Colors.warning }]}>
+                                                {prof.stats_by_type.secundary_tecnico.average?.toFixed(1) || '-'}
+                                            </Text>
+                                            <Text style={[styles.typeValue, { color: Colors.warning }]}>({prof.stats_by_type.secundary_tecnico.count})</Text>
                                             <Text style={styles.typeLabel}>TM</Text>
                                         </View>
                                     )}
@@ -160,6 +179,10 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
 };
 
 const styles = StyleSheet.create({
+    // Total Professors Card
+    totalProfessorsValue: { fontSize: 32, fontWeight: '800', color: Colors.primary },
+    totalProfessorsLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
+
     // Professor
     profAvatar: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primary + '15', justifyContent: 'center', alignItems: 'center' },
     profInfo: { flex: 1, marginLeft: 12 },
@@ -175,7 +198,8 @@ const styles = StyleSheet.create({
     levelBadgeText: { fontSize: 10, fontWeight: '600' },
     typeStatsRow: { flexDirection: 'row', marginTop: 10, marginLeft: 52, gap: 16 },
     typeStat: { alignItems: 'center' },
-    typeValue: { fontSize: 16, fontWeight: '700' },
+    typeAvg: { fontSize: 18, fontWeight: '800' },
+    typeValue: { fontSize: 10, fontWeight: '600' },
     typeLabel: { fontSize: 9, color: Colors.textSecondary, marginTop: 2 },
 
     // Difficulty

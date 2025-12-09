@@ -113,6 +113,38 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 ) : <Empty />}
             </Card>
 
+            {/* Detalle de Secciones - Table matching Odoo */}
+            {d?.sectionsComparison?.sections?.length ? (
+                <Card title="Detalle de Secciones">
+                    <View style={styles.sectionTable}>
+                        {/* Header */}
+                        <View style={styles.tableHeader}>
+                            <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Sección</Text>
+                            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Nivel</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Est.</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Prom.</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Aprob.</Text>
+                        </View>
+                        {/* Rows */}
+                        {d.sectionsComparison.sections.map((s, i) => (
+                            <View key={i} style={styles.tableRow}>
+                                <Text style={[styles.tableCell, { flex: 2, fontWeight: '600' }]}>{s.section_name}</Text>
+                                <Text style={[styles.tableCell, { flex: 1 }]}>
+                                    {s.type === 'secundary' ? 'Media' : s.type === 'primary' ? 'Prim.' : 'Pre'}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>{s.total_students}</Text>
+                                <Text style={[styles.tableCell, styles.centerText, { color: s.average >= 10 ? Colors.success : Colors.error }]}>
+                                    {s.average?.toFixed(1)}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText, { color: s.approval_rate >= 70 ? Colors.success : Colors.warning }]}>
+                                    {s.approval_rate}%
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </Card>
+            ) : null}
+
             {/* Top 10 Mejores Estudiantes del Año */}
             <Card title="Top 10 Mejores Estudiantes del Año">
                 {d?.topStudentsYear?.top_students?.length ? (
@@ -155,6 +187,14 @@ const styles = StyleSheet.create({
     topSection: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
     topScore: { backgroundColor: Colors.success + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
     topAvg: { fontSize: 14, fontWeight: '700', color: Colors.success },
+
+    // Section table
+    sectionTable: {},
+    tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.borderLight, paddingBottom: 8, marginBottom: 8 },
+    tableHeaderCell: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary },
+    tableRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+    tableCell: { fontSize: 12, color: Colors.textPrimary },
+    centerText: { textAlign: 'center', flex: 1 },
 });
 
 export default DashboardGeneralTab;
