@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
         
         <!-- ============================================== -->
         <!-- DEMO DATA: Año Escolar y Secciones Activas     -->
@@ -11,9 +10,12 @@
         <!-- ============================================== -->
         <record id="school_year_2024_2025" model="school.year">
             <field name="name">2024-2025</field>
-            <field name="start_date">2024-09-16</field>
-            <field name="end_date">2025-07-15</field>
+            <field name="start_date_real">2024-09-16</field>
+            <field name="state">active</field>
             <field name="current" eval="True"/>
+            <field name="evalution_type_secundary" ref="secundary_100"/>
+            <field name="evalution_type_primary" ref="primary_literal"/>
+            <field name="evalution_type_pree" ref="pre_observation"/>
         </record>
         
         <!-- ============================================== -->
@@ -171,5 +173,4 @@
             <field name="professor_id" ref="employee_prof_educacion_fisica"/>
         </record>
         
-    </data>
 </odoo>

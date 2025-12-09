@@ -6,11 +6,11 @@
         <field name="model">school.mention.inscription.wizard</field>
         <field name="arch" type="xml">
             <form string="Inscribir en Mención">
-                <group>
-                    <field name="student_id" invisible="1"/>
-                    <field name="mention_id" invisible="1"/>
-                </group>
+                <field name="student_id" invisible="1"/>
                 <sheet>
+                    <group string="Seleccionar Mención">
+                        <field name="mention_id" options="{'no_create': 1}"/>
+                    </group>
                     <group>
                         <group>
                             <field name="parent_id" options="{'no_create': 1}" domain="[('parent', '=', True)]"/>

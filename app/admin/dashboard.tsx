@@ -1,758 +1,282 @@
+/**
+ * Admin Dashboard - Modular Architecture
+ * Uses modular components for each tab, exactly matching Odoo school_year_view.xml
+ * 
+ * Tabs:
+ * 1. Dashboard General - Rendimiento general, distribución, aprobación, comparativa, top 10
+ * 2. Media General - Config, stats, secciones, rendimiento, top 3 por sección
+ * 3. Técnico Medio - Config, stats, menciones, rendimiento, top 3 por sección
+ * 4. Primaria - Config, stats, secciones, rendimiento, top 3 por sección
+ * 5. Preescolar - Config, stats, secciones (sin materias), rendimiento, top 3 por sección
+ * 6. Estudiantes - Lista completa con estado y fecha
+ * 7. Profesores - Resumen, stats por nivel, materias difíciles
+ * 8. Evaluaciones - Stats y timeline
+ */
+
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { UserAvatar } from '../../components/common/UserAvatar';
+import {
+  DashboardGeneralTab,
+  EvaluationsTab,
+  KPICard,
+  LevelTab,
+  ProfessorsTab,
+  StudentsTab,
+  TecnicoMedioTab,
+} from '../../components/dashboard';
 import { showAlert } from '../../components/showAlert';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../contexts/AuthContext';
 import * as authService from '../../services-odoo/authService';
 import { getSessionTimeRemaining } from '../../services-odoo/authService';
+import * as dashboardService from '../../services-odoo/dashboardService';
+import { DashboardData } from '../../services-odoo/dashboardService';
 
+type DashboardTab = 'dashboard' | 'secundary' | 'tecnico' | 'primary' | 'pre' | 'students' | 'professors' | 'evaluations';
+
+const DASHBOARD_TABS: { id: DashboardTab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { id: 'dashboard', label: 'Dashboard General', icon: 'stats-chart-outline' },
+  { id: 'secundary', label: 'Media General', icon: 'school-outline' },
+  { id: 'tecnico', label: 'Técnico Medio', icon: 'build-outline' },
+  { id: 'primary', label: 'Primaria', icon: 'book-outline' },
+  { id: 'pre', label: 'Preescolar', icon: 'happy-outline' },
+  { id: 'students', label: 'Estudiantes', icon: 'people-outline' },
+  { id: 'professors', label: 'Profesores', icon: 'person-outline' },
+  { id: 'evaluations', label: 'Evaluaciones', icon: 'clipboard-outline' },
+];
 
 export default function AdminDashboard() {
   const { user, logout, updateUser } = useAuth();
+  const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState<string>('');
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const result = await dashboardService.getCurrentSchoolYearDashboard(true);
+      if (result.success && result.data) {
+        setDashboardData(result.data);
+        setIsOfflineMode(false);
+      }
+    } catch {
+      setIsOfflineMode(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-
     try {
-      if (__DEV__) {
-        console.log('🔄 Refrescando dashboard...');
-      }
-
-
       const serverHealth = await authService.checkServerHealth();
-
-
       if (!serverHealth.ok) {
-        if (__DEV__) {
-          console.log('🔴 Servidor no disponible durante refresh');
-        }
         setIsOfflineMode(true);
-        showAlert(
-          'Sin conexión',
-          'No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
-        );
+        showAlert('Sin conexión', 'No se puede conectar con el servidor.');
         return;
       }
-
-
       const validSession = await authService.verifySession();
-
-
-      if (!validSession) {
-        if (__DEV__) {
-          console.log('❌ Sesión no válida durante refresh - El API ya manejó la expiración');
-        }
-        // ⚠️ NO llamar handleSessionExpired() - el API lo hace automáticamente
-        return;
-      }
-
-
+      if (!validSession) return;
       if (updateUser) {
         await updateUser({
           fullName: validSession.fullName,
           email: validSession.email,
-          imageUrl: validSession.imageUrl, // Actualizar imagen
+          imageUrl: validSession.imageUrl,
         });
       }
-
-      const timeRemaining = getSessionTimeRemaining(validSession);
-      setSessionTimeRemaining(timeRemaining);
-      setIsOfflineMode(false);
-
-      if (__DEV__) {
-        console.log('✅ Dashboard actualizado');
-      }
-    } catch (error) {
-      if (__DEV__) {
-        console.log('❌ Error al refrescar:', error);
-      }
+      setSessionTimeRemaining(getSessionTimeRemaining(validSession));
+      await loadDashboardData();
+    } catch {
       setIsOfflineMode(true);
-      showAlert(
-        'Error',
-        'No se pudo actualizar la información. Verifica tu conexión e intenta nuevamente.'
-      );
     } finally {
       setRefreshing(false);
     }
-  }, [updateUser]);
+  }, [updateUser, loadDashboardData]);
 
+  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
 
   useEffect(() => {
     if (user) {
-      const timeRemaining = getSessionTimeRemaining(user);
-      setSessionTimeRemaining(timeRemaining);
-
-      // Actualizar cada minuto
-      const interval = setInterval(() => {
-        const newTimeRemaining = getSessionTimeRemaining(user);
-        setSessionTimeRemaining(newTimeRemaining);
-      }, 60000); // 60 segundos
-
+      setSessionTimeRemaining(getSessionTimeRemaining(user));
+      const interval = setInterval(() => setSessionTimeRemaining(getSessionTimeRemaining(user)), 60000);
       return () => clearInterval(interval);
     }
   }, [user]);
 
-  /**
-   * Obtiene color según tiempo restante
-   */
-  const getTimeRemainingColor = (timeString: string): string => {
-    if (timeString.includes('Expirada')) return Colors.error;
+  const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
+  const handleLogout = async () => { await logout(); router.push('/login'); };
 
-    // Extraer horas si existen
-    const hoursMatch = timeString.match(/(\d+)h/);
-    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+  if (!user) return null;
 
-    if (hours >= 3) return Colors.success; // Verde: 3h o más
-    if (hours >= 1) return Colors.warning; // Amarillo: 1-3h
-    return Colors.error; // Rojo: menos de 1h
+  const yearName = dashboardData?.schoolYear?.name || 'Año Escolar';
+  const d = dashboardData;
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <DashboardGeneralTab data={d} loading={loading} />;
+      case 'secundary': return <LevelTab level="secundary" levelName="Media General" data={d} color={Colors.primary} />;
+      case 'tecnico': return <TecnicoMedioTab data={d} />;
+      case 'primary': return <LevelTab level="primary" levelName="Primaria" data={d} color={Colors.success} />;
+      case 'pre': return <LevelTab level="pre" levelName="Preescolar" data={d} color="#ec4899" />;
+      case 'students': return <StudentsTab data={d} />;
+      case 'professors': return <ProfessorsTab data={d} />;
+      case 'evaluations': return <EvaluationsTab data={d} />;
+      default: return null;
+    }
   };
-
-  const handleLogout = async (): Promise<void> => {
-    await logout();
-    // ✅ REPLACE para limpiar stack - no queremos que vuelva atrás al dashboard
-    router.push('/login');
-  };
-
-
-  if (!user) {
-    return null;
-  }
-
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" translucent />
-      <>
-        <Head>
-          <title>Panel Principal</title>
-        </Head>
-        <View style={styles.container}>
-          <LinearGradient
-            colors={[Colors.primary, Colors.primaryDark]}
-            style={styles.header}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.headerContent}>
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.schoolName}>U.E.N.B. Ciudad Jardín</Text>
-                <Text style={styles.greeting}>Hola, {user.fullName || 'Admin'}</Text>
-                <Text style={styles.userName}>Panel Principal</Text>
-                <View style={styles.roleContainer}>
-                  <View style={styles.roleBadge}>
-                    <Ionicons name="shield-checkmark" size={12} color="#fff" />
-                    <Text style={styles.roleText}>Administrador</Text>
-                  </View>
-                  {__DEV__ && (
-                    <View style={styles.devBadge}>
-                      <Ionicons name="code-working" size={10} color="#fff" />
-                      <Text style={styles.devBadgeText}>DEV</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.7}>
-                <UserAvatar
-                  imageUrl={user.imageUrl}
-                  size={100}
-                  iconColor={Colors.primary}
-                  gradientColors={['#ffffff', '#ffffff']}
-                  borderRadius={12}
-                />
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-
-
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[Colors.primary]}
-                tintColor={Colors.primary}
-                title="Actualizando..."
-                titleColor={Colors.textSecondary}
-              />
-            }
-          >
-            <View style={styles.dashboardContent}>
-
-
-              {isOfflineMode && (
-                <View style={styles.offlineBanner}>
-                  <Ionicons name="cloud-offline" size={20} color="#fff" />
-                  <Text style={styles.offlineText}>
-                    Sin conexión • Funciones limitadas
+      <StatusBar style="light" />
+      <Head><title>{yearName} - Dashboard</title></Head>
+      <View style={styles.container}>
+        {/* Header */}
+        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={styles.header}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity style={styles.menuBtn} onPress={openDrawer}>
+              <Ionicons name="menu" size={24} color="#fff" />
+            </TouchableOpacity>
+            <View style={styles.headerCenter}>
+              <Text style={styles.yearName}>{yearName}</Text>
+              {d?.schoolYear?.state && (
+                <View style={[styles.statusBadge,
+                d.schoolYear.state === 'active' && styles.statusActive,
+                d.schoolYear.state === 'finished' && styles.statusFinished
+                ]}>
+                  <Text style={styles.statusText}>
+                    {d.schoolYear.state === 'active' ? 'En Curso' : d.schoolYear.state === 'finished' ? 'Finalizado' : 'Borrador'}
                   </Text>
                 </View>
               )}
-
-
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="school-outline" size={24} color={Colors.primary} />
-                  <Text style={styles.sectionTitle}>Gestión Académica</Text>
-                </View>
-
-
-                <View style={styles.cardsGrid}>
-                  <DashboardCard
-                    icon="person-add-outline"
-                    title="Nueva Persona"
-                    description="Registrar estudiantes"
-                    accentColor="#3b82f6"
-                    disabled={isOfflineMode}
-                    onPress={() => router.push('/admin/academic-management/register-person/select-role' as any)}
-                  />
-
-                  <DashboardCard
-                    icon="book-outline"
-                    title="Sección/Materia"
-                    description="Gestionar secciones"
-                    accentColor="#10b981"
-                    disabled={true}
-                    onPress={() => router.push('/admin/academic-management/register-section-subject/select-option' as any)}
-                  />
-
-                  <DashboardCard
-                    icon="people-outline"
-                    title="Directorio"
-                    description="Ver registros"
-                    accentColor="#8b5cf6"
-                    disabled={isOfflineMode}
-                    onPress={() => router.push('/admin/academic-management/lists-persons/select-role' as any)}
-                  />
-
-                  <DashboardCard
-                    icon="library-outline"
-                    title="Académico"
-                    description="Secciones y materias"
-                    accentColor="#f59e0b"
-                    disabled={isOfflineMode}
-                    onPress={() => router.push('/admin/academic-management/section-subject/select-option' as any)}
-                  />
-                </View>
-              </View>
-
-
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="settings-outline" size={24} color={Colors.primary} />
-                  <Text style={styles.sectionTitle}>Gestión del Sistema</Text>
-                </View>
-
-
-                <View style={styles.cardsGrid}>
-                  <DashboardCard
-                    icon="key-outline"
-                    title="Usuarios"
-                    description="Accesos del sistema"
-                    accentColor="#ef4444"
-                    disabled={true}
-                    onPress={() => router.push('/admin/prueba' as any)}
-                  />
-
-                  <DashboardCard
-                    icon="stats-chart-outline"
-                    title="Reportes"
-                    description="Estadísticas"
-                    accentColor="#06b6d4"
-                    disabled={true}
-                    onPress={() => { }}
-                  />
-
-                  <DashboardCard
-                    icon="calendar-outline"
-                    title="Año Escolar"
-                    description="Períodos"
-                    accentColor="#ec4899"
-                    disabled={true}
-                    onPress={() => { }}
-                  />
-
-                  <DashboardCard
-                    icon="cog-outline"
-                    title="Configuración"
-                    description="Ajustes generales"
-                    accentColor="#6366f1"
-                    disabled={isOfflineMode}
-                    onPress={() => router.push('/admin/biometric-devices' as any)}
-                  />
-                </View>
-              </View>
-
-
-              <View style={styles.infoCard}>
-                <View style={styles.infoHeader}>
-                  <View style={styles.infoHeaderLeft}>
-                    <View style={styles.infoIconWrapper}>
-                      <Ionicons name="person" size={20} color={Colors.primary} />
-                    </View>
-                    <Text style={styles.infoTitle}>Mi Perfil</Text>
-                  </View>
-                  {refreshing && (
-                    <View style={styles.refreshingBadge}>
-                      <Text style={styles.refreshingText}>Actualizando...</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.infoContent}>
-                  <InfoRow label="Usuario" value={user.username} icon="at" />
-                  <InfoRow label="Email" value={user.email} icon="mail" />
-                  <InfoRow label="Rol" value="Administrador" icon="shield-checkmark" />
-                  <InfoRow label="Sesión" value={sessionTimeRemaining} icon="time" valueColor={getTimeRemainingColor(sessionTimeRemaining)} />
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={[Colors.error, '#b91c1c']}
-                  style={styles.logoutGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Ionicons name="log-out-outline" size={22} color="#fff" />
-                  <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
-
-              <View style={{ height: 20 }} />
             </View>
+            <TouchableOpacity>
+              <UserAvatar imageUrl={user.imageUrl} size={40} iconColor={Colors.primary}
+                gradientColors={['#fff', '#fff']} borderRadius={12} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.greetingRow}>
+            <Text style={styles.greeting}>Hola, {user.fullName?.split(' ')[0] || 'Admin'}</Text>
+            <Text style={styles.subtitle}>Bienvenido al panel de administración</Text>
+          </View>
+        </LinearGradient>
+
+        {/* KPI Cards */}
+        <View style={styles.kpiRow}>
+          <KPICard icon="people" value={d?.kpis.totalStudentsCount ?? 0} label="Estudiantes" color={Colors.primary} loading={loading} />
+          <KPICard icon="checkmark-circle" value={d?.kpis.approvedStudentsCount ?? 0} label="Aprobados" color={Colors.success} loading={loading} />
+          <KPICard icon="layers" value={d?.kpis.totalSectionsCount ?? 0} label="Secciones" color={Colors.info} loading={loading} />
+          <KPICard icon="person" value={d?.kpis.totalProfessorsCount ?? 0} label="Profesores" color={Colors.warning} loading={loading} />
+        </View>
+
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
+            {DASHBOARD_TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab.id}
+                style={[styles.tab, activeTab === tab.id && styles.tabActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Ionicons name={tab.icon} size={16} color={activeTab === tab.id ? Colors.primary : Colors.textSecondary} />
+                <Text style={[styles.tabText, activeTab === tab.id && styles.tabTextActive]}>{tab.label}</Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
-      </>
+
+        {/* Content */}
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} />}
+        >
+          <View style={styles.contentInner}>
+            {isOfflineMode && (
+              <View style={styles.offlineBanner}>
+                <Ionicons name="cloud-offline" size={18} color="#fff" />
+                <Text style={styles.offlineText}>Modo sin conexión</Text>
+              </View>
+            )}
+
+            {renderTabContent()}
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              <View style={styles.sessionRow}>
+                <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
+                <Text style={styles.sessionText}>{sessionTimeRemaining || 'Cargando...'}</Text>
+              </View>
+              <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={18} color={Colors.error} />
+                <Text style={styles.logoutText}>Cerrar Sesión</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaProvider>
   );
 }
 
-
-interface DashboardCardProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
-  accentColor: string;
-  disabled?: boolean;
-  onPress: () => void;
-}
-
-
-const DashboardCard: React.FC<DashboardCardProps> = ({ icon, title, description, onPress, disabled }) => {
-  const handlePress = () => {
-    if (disabled) {
-      showAlert('Función no disponible', 'Esta función está deshabilitada temporalmente.');
-      return;
-    }
-    onPress();
-  };
-
-  return (
-    <TouchableOpacity
-      style={[styles.card, disabled && styles.cardDisabled]}
-      onPress={handlePress}
-      activeOpacity={disabled ? 1 : 0.7}
-    >
-      {/* Backdrop Icon for Visual Interest */}
-      <Ionicons name={icon} size={100} color={Colors.primary} style={styles.cardBackdropIcon} />
-
-      <View style={styles.cardIconContainer}>
-        <Ionicons name={icon} size={30} color={disabled ? Colors.textSecondary : Colors.primary} />
-      </View>
-
-      <View>
-        <Text style={[styles.cardTitle, disabled && styles.cardTitleDisabled]}>{title}</Text>
-        <Text style={styles.cardDescription} numberOfLines={2}>{description}</Text>
-      </View>
-
-      {!disabled && (
-        <Ionicons name="arrow-forward" size={16} color={Colors.primary} style={styles.arrowIcon} />
-      )}
-
-      {disabled && (
-        <View style={styles.disabledIndicator}>
-          <Ionicons name="lock-closed" size={16} color={Colors.textSecondary} />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
-
-interface InfoRowProps {
-  label: string;
-  value: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  highlight?: boolean;
-  valueColor?: string;
-}
-
-
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, highlight, valueColor }) => {
-  return (
-    <View style={styles.infoRow}>
-      <View style={[styles.infoIconWrapper, highlight && styles.infoIconWrapperHighlight]}>
-        <Ionicons
-          name={icon}
-          size={18}
-          color={highlight ? Colors.warning : Colors.primary}
-        />
-      </View>
-      <View style={styles.infoTextContainer}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={[styles.infoValue, highlight && styles.infoValueHighlight, valueColor && { color: valueColor }]}>
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    paddingTop: Platform.OS === 'android' ? 60 : 70,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    marginBottom: -40, // Increased overlap
-    zIndex: 1,
-    overflow: 'hidden', // Ensure gradient is clipped if needed
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  schoolName: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    fontWeight: '600',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  greeting: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 8,
-    letterSpacing: -1,
-  },
-  userName: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  roleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  roleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  roleText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  devBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.5)',
-    gap: 4,
-  },
-  devBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  avatarContainer: {
-    marginLeft: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 0,
-    alignSelf: 'center', // Centrar verticalmente
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  content: {
-    flex: 1,
-  },
-  dashboardContent: {
-    padding: 20,
-    paddingTop: 60, // Reset since we handle overlap
-  },
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f59e0b',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    marginBottom: 24,
-    gap: 10,
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 0,
-    //marginTop: 50,
-  },
-  offlineText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-    flex: 1,
-  },
-  infoCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
-    marginTop: 0,
-    marginBottom: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 0,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  infoHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  refreshingBadge: {
-    backgroundColor: Colors.primary + '10',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  refreshingText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  infoContent: {
-    marginTop: 20,
-    gap: 0,
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
-    padding: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  infoIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-  },
-  infoIconWrapperHighlight: {
-    backgroundColor: '#fffbeb',
-  },
-  infoTextContainer: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    marginBottom: 2,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  infoValueHighlight: {
-    color: Colors.warning,
-  },
-  section: {
-    marginBottom: 28,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 10,
-    paddingLeft: 4,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -8,
-  },
-  card: {
-    width: '46%',
-    margin: '2%',
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 16,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-    aspectRatio: 1.0,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1.5,
-    borderColor: 'rgba(203, 213, 225, 0.6)', // Added subtle border for better definition
-  },
-  cardDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#f9fafb',
-    elevation: 0,
-  },
-  cardBackdropIcon: {
-    position: 'absolute',
-    right: -12,
-    bottom: -12,
-    opacity: 0.1, // Increased opacity slightly
-    transform: [{ rotate: '-15deg' }],
-  },
-  cardIconContainer: {
-    width: 58,
-    height: 58,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1e293b',
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  cardTitleDisabled: {
-    color: Colors.textSecondary,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
-    lineHeight: 16,
-    marginTop: 'auto',
-  },
-  arrowIcon: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    opacity: 0.3,
-  },
-  disabledIndicator: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-  },
-  logoutButton: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    marginBottom: 60,
-    marginHorizontal: 4,
-    shadowColor: Colors.error,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  logoutGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    gap: 12,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
+  container: { flex: 1, backgroundColor: Colors.backgroundSecondary },
+
+  // Header
+  header: { paddingTop: Platform.OS === 'android' ? 44 : 54, paddingHorizontal: 20, paddingBottom: 20, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  menuBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  headerCenter: { alignItems: 'center', flex: 1 },
+  yearName: { fontSize: 20, fontWeight: '700', color: '#fff' },
+  statusBadge: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginTop: 6 },
+  statusActive: { backgroundColor: 'rgba(16, 185, 129, 0.3)' },
+  statusFinished: { backgroundColor: 'rgba(107, 114, 128, 0.3)' },
+  statusText: { fontSize: 11, fontWeight: '600', color: '#fff' },
+  greetingRow: { marginTop: 4 },
+  greeting: { fontSize: 24, fontWeight: '700', color: '#fff' },
+  subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+
+  // KPIs
+  kpiRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 16, gap: 10, marginTop: -10 },
+
+  // Tabs
+  tabContainer: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.border },
+  tabScroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  tab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.backgroundSecondary, gap: 6 },
+  tabActive: { backgroundColor: Colors.primary + '10' },
+  tabText: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  tabTextActive: { color: Colors.primary },
+
+  // Content
+  content: { flex: 1 },
+  contentInner: { padding: 16, paddingBottom: 100 },
+
+  // Offline
+  offlineBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.warning, padding: 12, borderRadius: 12, marginBottom: 16, gap: 10 },
+  offlineText: { fontSize: 13, fontWeight: '600', color: '#fff' },
+
+  // Footer
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, marginTop: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
+  sessionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sessionText: { fontSize: 12, color: Colors.textSecondary },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.error + '10', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12 },
+  logoutText: { fontSize: 13, fontWeight: '600', color: Colors.error },
 });

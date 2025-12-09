@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <data>
 
         <!-- Sofía - 1er Nivel Preescolar -->
         <record id="student_sofia_preescolar" model="school.student">
@@ -124,7 +123,7 @@
             <field name="height">1.62</field>
             <field name="weight">52.0</field>
             <field name="size_shirt">l</field>
-            <field name="size_pants">S</field>
+            <field name="size_pants">38</field>
             <field name="size_shoes">37</field>
             <field name="mention_id" ref="mention_informatica"/>
         </record>
@@ -157,6 +156,6 @@
             <field name="size_pants">28</field>
             <field name="size_shoes">38</field>
             <field name="mention_id" ref="mention_comercio"/>
+        </record>
 
-    </data>
 </odoo>

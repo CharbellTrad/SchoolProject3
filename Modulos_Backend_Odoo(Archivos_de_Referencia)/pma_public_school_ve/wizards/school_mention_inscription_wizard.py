@@ -17,7 +17,8 @@ class SchoolMentionInscriptionWizard(models.TransientModel):
         comodel_name='school.mention',
         string='Mención',
         required=True,
-        readonly=True
+        domain="[('active', '=', True)]",
+        help='Seleccione la mención técnica para el estudiante'
     )
     
     parent_id = fields.Many2one(
@@ -60,8 +61,9 @@ class SchoolMentionInscriptionWizard(models.TransientModel):
                 "Debe seleccionar un representante."
             )
         
-        # Actualizar estudiante
+        # Actualizar estudiante con la mención seleccionada
         self.student_id.write({
+            'mention_id': self.mention_id.id,
             'mention_state': 'enrolled',
             'mention_inscription_date': fields.Date.today(),
             'mention_parent_signature': self.parent_signature,

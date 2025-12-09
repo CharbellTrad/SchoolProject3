@@ -488,15 +488,20 @@ class SchoolStudent(models.Model):
                 "Solo los estudiantes de Media General pueden inscribirse en menciones."
             )
         
-        if not self.mention_id:
-            raise exceptions.UserError(
-                "Debe seleccionar una mención antes de inscribir al estudiante."
-            )
-        
         if self.mention_state == 'enrolled':
             raise exceptions.UserError(
-                "El estudiante ya está inscrito en esta mención."
+                "El estudiante ya está inscrito en una mención."
             )
+        
+        # Preparar contexto
+        ctx = {
+            'default_student_id': self.id,
+            'default_parent_id': self.parent_id.id if self.parent_id else False,
+        }
+        
+        # Pre-llenar mención si ya tiene una seleccionada
+        if self.mention_id:
+            ctx['default_mention_id'] = self.mention_id.id
         
         return {
             'type': 'ir.actions.act_window',
@@ -504,11 +509,7 @@ class SchoolStudent(models.Model):
             'res_model': 'school.mention.inscription.wizard',
             'view_mode': 'form',
             'target': 'new',
-            'context': {
-                'default_student_id': self.id,
-                'default_mention_id': self.mention_id.id,
-                'default_parent_id': self.parent_id.id if self.parent_id else False,
-            }
+            'context': ctx,
         }
     
     def action_withdraw_from_mention(self):

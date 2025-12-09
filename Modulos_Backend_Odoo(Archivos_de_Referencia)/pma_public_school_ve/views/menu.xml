@@ -47,6 +47,7 @@
         
         <menuitem id="school_config_menu_categ" name="Configuración" parent="people_root_menu" sequence="100"/>
             <menuitem id="school_register_section_menu" name="Grados/Secciones Base" action="school_register_section_action" parent="school_config_menu_categ" sequence="10"/>
+            <menuitem id="school_section_letter_menu" name="Letras de Sección" action="school_section_letter_action" parent="school_config_menu_categ" sequence="15"/>
             <menuitem id="school_register_subject_menu" name="Catálogo de Materias" action="school_register_subject_action" parent="school_config_menu_categ" sequence="20"/>
             <menuitem id="school_mention_menu" name="Menciones Técnicas" action="school_mention_action" parent="school_config_menu_categ" sequence="25"/>
 

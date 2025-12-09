@@ -40,10 +40,6 @@
     </record>
 
     <!-- Menu item -->
-    <menuitem id="school_section_letter_menu"
-              name="Letras de Sección"
-              parent="school_config_menu_categ"
-              action="school_section_letter_action"
-              sequence="5"/>
+
 
 </odoo>

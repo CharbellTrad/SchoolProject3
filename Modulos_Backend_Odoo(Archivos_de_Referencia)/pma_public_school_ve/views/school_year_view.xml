@@ -274,6 +274,64 @@
                                        colspan="2" 
                                        nolabel="1"/>
                             </group>
+                            
+                            <!-- Dashboard con Top 3 estudiantes por sección -->
+                            <group string="Top 3 Estudiantes por Sección">
+                                <field name="secundary_general_dashboard_json" 
+                                       widget="level_dashboard" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 3: Técnico Medio (NUEVO) -->
+                        <page string="Técnico Medio" name="secundary_tecnico">
+                            <separator string="Configuración de Evaluación"/>
+                            <group>
+                                <field name="evalution_type_secundary" options="{'no_create':True}" readonly="1"/>
+                            </group>
+
+                            <group name="secundary_tecnico" col="3">
+                                <group name="students" string="Estudiantes">
+                                    <field name="students_tecnico_count" nolabel="1" readonly="1"/>
+                                    <label for="students_tecnico_count" string="Total Estudiantes"/>
+                                </group>
+                                <group name="approved" string="Aprobados">
+                                    <field name="approved_tecnico_count" nolabel="1" readonly="1"/>
+                                    <label for="approved_tecnico_count" string="Aprobados"/>
+                                </group>
+                                <group name="sections" string="Secciones">
+                                    <field name="sections_secundary_count" nolabel="1" readonly="1"/>
+                                    <label for="sections_secundary_count" string="Secciones Activas"/>
+                                </group>
+                            </group>
+
+                            <separator string="Estudiantes con Mención Inscrita"/>
+                            <field name="students_secundary_tecnico_ids" 
+                                    readonly="1">
+                                <list decoration-info="mention_state == 'enrolled'">
+                                    <field name="student_id"/>
+                                    <field name="section_id"/>
+                                    <field name="mention_id"/>
+                                    <field name="mention_state" widget="badge" 
+                                           decoration-success="mention_state == 'enrolled'"/>
+                                </list>
+                            </field>
+
+                            <group string="Rendimiento de Técnico Medio">
+                                <field name="secundary_performance_json" 
+                                       widget="general_performance_graph"
+                                       colspan="2" 
+                                       nolabel="1"/>
+                            </group>
+                            
+                            <!-- Dashboard con Top 3 estudiantes por sección -->
+                            <group string="Top 3 Estudiantes por Sección">
+                                <field name="secundary_tecnico_dashboard_json" 
+                                       widget="level_dashboard" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
                         </page>
 
                         <!-- TAB 3: Primaria (tu estructura original mejorada) -->
@@ -316,6 +374,14 @@
                             <group string="Rendimiento de Primaria">
                                 <field name="primary_performance_json" 
                                        widget="general_performance_graph" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                            
+                            <!-- Dashboard con Top 3 estudiantes por sección -->
+                            <group string="Top 3 Estudiantes por Sección">
+                                <field name="primary_dashboard_json" 
+                                       widget="level_dashboard" 
                                        colspan="2"
                                        nolabel="1"/>
                             </group>
@@ -363,6 +429,14 @@
                                        colspan="2"
                                        nolabel="1"/>
                             </group>
+                            
+                            <!-- Dashboard con Top 3 estudiantes por sección -->
+                            <group string="Top 3 Estudiantes por Sección">
+                                <field name="pre_dashboard_json" 
+                                       widget="level_dashboard" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
                         </page>
 
                         <!-- TAB 5: Todos los Estudiantes -->
@@ -391,6 +465,13 @@
                             <group string="Resumen de Profesores">
                                 <field name="professor_summary_json" 
                                        widget="professor_summary_widget" 
+                                       colspan="2"
+                                       nolabel="1"/>
+                            </group>
+                            
+                            <group string="Estadísticas por Tipo de Estudiante">
+                                <field name="professor_detailed_stats_json" 
+                                       widget="professor_detailed_stats_widget" 
                                        colspan="2"
                                        nolabel="1"/>
                             </group>
