@@ -1,19 +1,33 @@
 /**
  * ProfessorsTab - enhanced visual design
+ * Features: Tables for Professors Summary and Stats, Detail Modal
  */
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useRef, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../../constants/Colors';
-import { DashboardData } from '../../../services-odoo/dashboardService';
+import { DashboardData, ProfessorDetailedItem } from '../../../services-odoo/dashboardService';
 import { AnimatedBarChart, ProgressLine } from '../charts';
-import { Badge, Card, Empty } from '../ui';
+import { Card, Empty } from '../ui';
 
 interface Props {
     data: DashboardData | null;
 }
 
 export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const selectedProfRef = useRef<ProfessorDetailedItem | null>(null);
+
+    const openModal = (prof: ProfessorDetailedItem) => {
+        selectedProfRef.current = prof;
+        setModalVisible(true);
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+    };
+
     // Difficult subjects bar data
     const difficultyData = d?.difficultSubjects?.subjects?.slice(0, 6).map((s) => ({
         value: s.failure_rate || 0,
@@ -22,106 +36,112 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
         gradientColor: '#f87171',
     })) || [];
 
-    // Helper to get best stat from a professor
-    const getBestLevel = (stats: any) => {
-        if (!stats) return null;
-        const levels = [
-            { key: 'pre', name: 'Pre', color: '#ec4899' },
-            { key: 'primary', name: 'Prim', color: Colors.success },
-            { key: 'secundary_general', name: 'Media', color: Colors.primary },
-            { key: 'secundary_tecnico', name: 'Tec', color: Colors.warning },
-        ];
-        let best = null;
-        let maxCount = 0;
-        for (const lv of levels) {
-            const data = stats[lv.key];
-            if (data && data.count > maxCount) {
-                maxCount = data.count;
-                best = { ...lv, count: data.count, average: data.average };
-            }
+    const getLevelLabel = (key: string) => {
+        switch (key) {
+            case 'pre': return 'Preescolar';
+            case 'primary': return 'Primaria';
+            case 'secundary_general': return 'Media General';
+            case 'secundary_tecnico': return 'Técnico Medio';
+            default: return key;
         }
-        return best;
     };
 
-    const statsAnim = useRef(new Animated.Value(0)).current;
-    useEffect(() => {
-        Animated.timing(statsAnim, { toValue: 1, duration: 400, delay: 100, useNativeDriver: true }).start();
-    }, []);
+    const getLevelColor = (key: string) => {
+        switch (key) {
+            case 'pre': return Colors.levelPre;
+            case 'primary': return Colors.levelPrimary;
+            case 'secundary_general': return Colors.levelSecundary;
+            case 'secundary_tecnico': return Colors.levelTecnico;
+            default: return Colors.textSecondary;
+        }
+    };
 
     return (
         <View style={styles.container}>
-            {/* Total Active */}
-            <View style={styles.row}>
-                <View style={styles.halfCol}>
-                    <Card style={styles.totalCard} delay={0}>
-                        <View style={styles.totalIcon}>
-                            <Ionicons name="people" size={24} color={Colors.primary} />
-                        </View>
-                        <Text style={styles.totalValue}>{d?.professorSummary?.total || 0}</Text>
-                        <Text style={styles.totalLabel}>Activos</Text>
-                    </Card>
+            {/* Resumen de Profesores */}
+            <Card title="Resumen de Profesores" delay={100}>
+                {/* Total Counter */}
+                <View style={styles.totalCard}>
+                    <View style={styles.totalIcon}>
+                        <Ionicons name="people" size={28} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.totalValue}>{d?.professorSummary?.total || 0}</Text>
+                    <Text style={styles.totalLabel}>Profesores Activos</Text>
                 </View>
 
-                {/* Resumen Lista */}
-                <View style={styles.halfCol}>
-                    <Card title="Resumen" delay={100} style={styles.fullHeight}>
-                        {d?.professorSummary?.professors?.length ? (
-                            <View style={styles.summaryList}>
-                                {d.professorSummary.professors.slice(0, 3).map((p, i) => (
-                                    <View key={i} style={styles.summaryRow}>
-                                        <View style={styles.dot} />
-                                        <Text style={styles.summaryName} numberOfLines={1}>{p.professor_name}</Text>
-                                        <Badge value={p.evaluations_count} color={Colors.primary} />
-                                    </View>
-                                ))}
+                {/* Professors Table */}
+                {d?.professorSummary?.professors?.length ? (
+                    <View style={styles.table}>
+                        {/* Header */}
+                        <LinearGradient
+                            colors={[Colors.backgroundTertiary, '#fff']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.tableHeader}
+                        >
+                            <Text style={[styles.tableHeaderCell, { flex: 2, paddingLeft: 8 }]}>Profesor</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Secciones</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Materias</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Evaluac.</Text>
+                        </LinearGradient>
+
+                        {/* Rows */}
+                        {d.professorSummary.professors.map((p, i) => (
+                            <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]}>
+                                <Text style={[styles.tableCell, { flex: 2, fontWeight: '600', paddingLeft: 8 }]} numberOfLines={1}>
+                                    {p.professor_name}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>
+                                    {p.sections_count}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>
+                                    {p.subjects_count}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>
+                                    {p.evaluations_count}
+                                </Text>
                             </View>
-                        ) : <Empty />}
-                    </Card>
-                </View>
-            </View>
+                        ))}
+                    </View>
+                ) : <Empty />}
+            </Card>
 
-            {/* Estadísticas Detalladas */}
-            <Card title="Estadísticas por Profesor" delay={200}>
+            {/* Estadísticas por Tipo de Estudiante */}
+            <Card title="Estadísticas por Tipo de Estudiante" delay={200}>
                 {d?.professorDetailedStats?.professors?.length ? (
-                    d.professorDetailedStats.professors.slice(0, 5).map((prof, i) => {
-                        const best = getBestLevel(prof.stats_by_type);
-                        return (
-                            <View key={i} style={styles.detailedRow}>
-                                <View style={styles.detailedHeader}>
-                                    <View style={styles.profAvatar}>
-                                        <Text style={styles.profInitials}>{prof.professor_name.charAt(0)}</Text>
-                                    </View>
-                                    <View style={styles.detailedInfo}>
-                                        <Text style={styles.profName}>{prof.professor_name}</Text>
-                                        <Text style={styles.profMeta}>{prof.total_evaluations} evaluaciones</Text>
-                                    </View>
-                                    {best && (
-                                        <View style={[styles.bestBadge, { backgroundColor: best.color + '15' }]}>
-                                            <Text style={[styles.bestBadgeText, { color: best.color }]}>{best.name}</Text>
-                                        </View>
-                                    )}
-                                </View>
+                    <View style={styles.table}>
+                        {/* Header */}
+                        <LinearGradient
+                            colors={[Colors.backgroundTertiary, '#fff']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.tableHeader}
+                        >
+                            <Text style={[styles.tableHeaderCell, { flex: 2, paddingLeft: 8 }]}>Profesor</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Evaluac.</Text>
+                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Secciones</Text>
+                        </LinearGradient>
 
-                                {/* Mini Stats Grid */}
-                                <View style={styles.typeStatsGrid}>
-                                    {(['pre', 'primary', 'secundary_general', 'secundary_tecnico'] as const).map((key) => {
-                                        const stat = prof.stats_by_type[key];
-                                        if (!stat || stat.count === 0) return null;
-
-                                        const color = key === 'pre' ? '#ec4899' : key === 'primary' ? Colors.success : key === 'secundary_general' ? Colors.primary : Colors.warning;
-                                        const label = key === 'pre' ? 'Pre' : key === 'primary' ? 'Prim' : key === 'secundary_general' ? 'MG' : 'TM';
-
-                                        return (
-                                            <View key={key} style={styles.typeStatItem}>
-                                                <Text style={[styles.typeStatValue, { color }]}>{stat.average?.toFixed(1)}</Text>
-                                                <Text style={styles.typeStatLabel}>{label} ({stat.count})</Text>
-                                            </View>
-                                        );
-                                    })}
-                                </View>
-                            </View>
-                        );
-                    })
+                        {/* Rows */}
+                        {d.professorDetailedStats.professors.map((prof, i) => (
+                            <TouchableOpacity
+                                key={i}
+                                style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]}
+                                onPress={() => openModal(prof)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[styles.tableCell, { flex: 2, fontWeight: '600', paddingLeft: 8 }]} numberOfLines={1}>
+                                    {prof.professor_name}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>
+                                    {prof.total_evaluations}
+                                </Text>
+                                <Text style={[styles.tableCell, styles.centerText]}>
+                                    {prof.sections_count}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 ) : <Empty />}
             </Card>
 
@@ -148,47 +168,185 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
                     </>
                 ) : <Empty />}
             </Card>
+
+            {/* Professor Detail Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={closeModal}
+            >
+                <Pressable style={styles.modalOverlay} onPress={closeModal}>
+                    <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Detalle del Profesor</Text>
+                            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Content */}
+                        {selectedProfRef.current && (
+                            <View style={styles.modalBody}>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Profesor</Text>
+                                    <Text style={styles.detailValue}>{selectedProfRef.current.professor_name}</Text>
+                                </View>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Evaluaciones</Text>
+                                    <Text style={[styles.detailValue]}>
+                                        {selectedProfRef.current.total_evaluations}
+                                    </Text>
+                                </View>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Secciones</Text>
+                                    <Text style={styles.detailValue}>{selectedProfRef.current.sections_count}</Text>
+                                </View>
+
+                                {/* Stats by Type Header */}
+                                <View style={styles.statsHeader}>
+                                    <Text style={styles.statsHeaderText}>Promedios por Nivel</Text>
+                                </View>
+
+                                {/* Stats by Type */}
+                                {(['pre', 'primary', 'secundary_general', 'secundary_tecnico'] as const).map((key) => {
+                                    const stat = selectedProfRef.current?.stats_by_type?.[key];
+                                    if (!stat || stat.count === 0) return null;
+
+                                    return (
+                                        <View key={key} style={styles.detailRow}>
+                                            <View style={styles.levelLabelContainer}>
+                                                <View style={[styles.levelDot, { backgroundColor: getLevelColor(key) }]} />
+                                                <Text style={styles.detailLabel}>{getLevelLabel(key)}</Text>
+                                            </View>
+                                            <Text style={[styles.detailValue, { color: getLevelColor(key), fontWeight: '700' }]}>
+                                                {stat.average?.toFixed(1) || '-'} ({stat.count})
+                                            </Text>
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        )}
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: { gap: 6 },
-    row: { flexDirection: 'column', gap: 12, marginBottom: 16 },
-    halfCol: { width: '100%' },
-    fullHeight: { marginBottom: 0 },
 
-    totalCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
-    totalIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-    totalValue: { fontSize: 42, fontWeight: '800', color: Colors.primary },
-    totalLabel: { fontSize: 13, color: Colors.textSecondary, fontWeight: '600' },
+    totalCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: 20, marginBottom: 16 },
+    totalIcon: { width: 48, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 8, backgroundColor: Colors.primary + '15' },
+    totalValue: { fontSize: 32, fontWeight: '800', color: Colors.primary },
+    totalLabel: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
 
-    summaryList: { gap: 12 },
-    summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.textTertiary },
-    summaryName: { flex: 1, fontSize: 13, color: Colors.textPrimary },
+    // Table styles
+    table: { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: Colors.borderLight },
+    tableHeader: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 4 },
+    tableHeaderCell: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', flex: 1 },
+    tableRow: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 4, alignItems: 'center', backgroundColor: '#fff' },
+    tableRowAlt: { backgroundColor: Colors.backgroundTertiary },
+    tableCell: { fontSize: 12, color: Colors.textPrimary, flex: 1 },
+    centerText: { textAlign: 'center' },
+    pillsContainer: { flexDirection: 'row', flex: 1 },
 
-    detailedRow: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-    detailedHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    profAvatar: { width: 36, height: 36, borderRadius: 12, backgroundColor: Colors.backgroundTertiary, justifyContent: 'center', alignItems: 'center' },
-    profInitials: { fontSize: 14, fontWeight: '700', color: Colors.textSecondary },
-    detailedInfo: { flex: 1, marginLeft: 12 },
-    profName: { fontSize: 13, fontWeight: '700', color: Colors.textPrimary },
-    profMeta: { fontSize: 11, color: Colors.textSecondary },
-    bestBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-    bestBadgeText: { fontSize: 10, fontWeight: '700' },
-
-    typeStatsGrid: { flexDirection: 'row', gap: 16, marginLeft: 48 },
-    typeStatItem: { alignItems: 'center' },
-    typeStatValue: { fontSize: 14, fontWeight: '800' },
-    typeStatLabel: { fontSize: 10, color: Colors.textSecondary },
-
+    // Difficulty section
     diffList: { gap: 12, marginBottom: 20 },
     difficultyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     difficultyName: { width: 100, fontSize: 12, fontWeight: '600', color: Colors.textPrimary },
     difficultyBar: { flex: 1 },
     difficultyValue: { width: 30, fontSize: 11, fontWeight: '700', color: Colors.error, textAlign: 'right' },
     chartSection: { paddingTop: 16, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+
+    // Modal styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        width: '100%',
+        maxWidth: 400,
+        overflow: 'hidden',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderLight,
+        backgroundColor: Colors.backgroundTertiary,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+    },
+    closeButton: {
+        padding: 4,
+    },
+    modalBody: {
+        padding: 20,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderLight,
+    },
+    detailLabel: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+        fontWeight: '500',
+    },
+    detailValue: {
+        fontSize: 14,
+        color: Colors.textPrimary,
+        fontWeight: '600',
+        textAlign: 'right',
+        flex: 1,
+        marginLeft: 16,
+    },
+    statsHeader: {
+        paddingTop: 16,
+        paddingBottom: 8,
+        borderBottomWidth: 0,
+    },
+    statsHeaderText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+    },
+    levelLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    levelDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 8,
+    },
+    levelStats: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    levelCount: {
+        fontSize: 11,
+        color: Colors.textTertiary,
+        marginLeft: 6,
+    },
 });
 
 export default ProfessorsTab;

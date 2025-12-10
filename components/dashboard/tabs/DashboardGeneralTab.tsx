@@ -2,12 +2,13 @@
  * DashboardGeneralTab - enhanced visual design
  * Features: Staggered animations, gradient tables, glassmorphism
  */
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData } from '../../../services-odoo/dashboardService';
-import { DonutChart, GroupedBarChart, ProgressLine, RingGauge } from '../charts';
+import { DonutChart, GroupedBarChart, RingGauge } from '../charts';
 import { Card, Empty, ListRow, RankBadge } from '../ui';
 
 interface Props {
@@ -16,11 +17,11 @@ interface Props {
 }
 
 export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
-    // Distribución de Estudiantes data
+    // Distribución de Estudiantes data - Colors match Odoo: Pre=info, Primary=success, Secundary=primary, Tecnico=warning
     const distributionData = d?.studentsDistribution?.labels.map((label, i) => ({
         value: d.studentsDistribution!.data[i],
-        color: [Colors.primary, Colors.success, '#ec4899', Colors.warning][i] || Colors.info,
-        gradientCenterColor: ['#1e40af', '#059669', '#db2777', '#d97706'][i] || Colors.info,
+        color: [Colors.levelPre, Colors.levelPrimary, Colors.levelSecundary, Colors.levelTecnico][i] || Colors.info,
+        gradientCenterColor: ['#0e7490', '#15803d', '#1e3a8a', '#d97706'][i] || Colors.info,
         label,
     })) || [];
 
@@ -34,23 +35,76 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
     const approvalRate = d?.approvalRate?.rate || 0;
     const approvalColor = approvalRate >= 70 ? Colors.success : approvalRate >= 50 ? Colors.warning : Colors.error;
 
+    // Helper to get level color and icon
+    const getLevelStyle = (type: string) => {
+        switch (type) {
+            case 'pre': return { color: Colors.levelPre, icon: 'school-outline' as const, border: Colors.levelPre };
+            case 'primary': return { color: Colors.levelPrimary, icon: 'book-outline' as const, border: Colors.levelPrimary };
+            case 'secundary': return { color: Colors.levelSecundary, icon: 'library-outline' as const, border: Colors.levelSecundary };
+            default: return { color: Colors.textSecondary, icon: 'school-outline' as const, border: Colors.borderLight };
+        }
+    };
+
     return (
         <View style={styles.container}>
-            {/* Rendimiento General */}
-            <Card title="Rendimiento General del Año" delay={0}>
+            {/* Rendimiento General del Año - Matching Odoo year_performance_overview widget */}
+            <Card title="Rendimiento General del Año Escolar" delay={0}>
                 {d?.performanceByLevel?.levels?.length ? (
-                    <View>
-                        {d.performanceByLevel.levels.map((lv, i) => (
-                            <View key={i} style={styles.perfRow}>
-                                <View style={styles.perfInfo}>
-                                    <Text style={styles.perfName}>{lv.name}</Text>
-                                    <Text style={styles.perfStats}>{lv.total_students} estudiantes • {lv.approved_students} aprobados</Text>
+                    <View style={styles.levelCardsContainer}>
+                        {d.performanceByLevel.levels.map((lv, i) => {
+                            const style = getLevelStyle(lv.type);
+                            const approvalPct = lv.total_students > 0
+                                ? (lv.approved_students / lv.total_students * 100)
+                                : 0;
+                            return (
+                                <View key={i} style={[styles.levelCard, { borderColor: style.border }]}>
+                                    {/* Header */}
+                                    <View style={[styles.levelCardHeader, { backgroundColor: style.color + '10' }]}>
+                                        <Ionicons name={style.icon} size={18} color={style.color} />
+                                        <Text style={[styles.levelCardTitle, { color: style.color }]}>{lv.name}</Text>
+                                    </View>
+
+                                    {/* Stats Row */}
+                                    <View style={styles.levelStatsRow}>
+                                        <View style={styles.levelStatItem}>
+                                            <Text style={styles.levelStatValue}>{lv.total_students}</Text>
+                                            <Text style={styles.levelStatLabel}>Estudiantes</Text>
+                                        </View>
+                                        <View style={styles.levelStatItem}>
+                                            <Text style={[styles.levelStatValue, { color: lv.average >= 10 ? Colors.success : Colors.error }]}>
+                                                {lv.average?.toFixed(1) || '-'}
+                                            </Text>
+                                            <Text style={styles.levelStatLabel}>Promedio</Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Progress Bar */}
+                                    <View style={styles.levelProgressContainer}>
+                                        <View style={styles.levelProgressBg}>
+                                            <View style={[styles.levelProgressFill, { width: `${approvalPct}%`, backgroundColor: Colors.success }]}>
+                                                <Text style={styles.levelProgressText}>{lv.approved_students} aprobados</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    {/* Footer Stats */}
+                                    <View style={styles.levelFooter}>
+                                        <View style={styles.levelFooterItem}>
+                                            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+                                            <Text style={[styles.levelFooterText, { color: Colors.success }]}>
+                                                {lv.approval_rate?.toFixed(0) || 0}% aprobación
+                                            </Text>
+                                        </View>
+                                        <View style={styles.levelFooterItem}>
+                                            <Ionicons name="close-circle" size={14} color={Colors.error} />
+                                            <Text style={[styles.levelFooterText, { color: Colors.error }]}>
+                                                {lv.failed_students} reprobados
+                                            </Text>
+                                        </View>
+                                    </View>
                                 </View>
-                                <View style={styles.perfProgress}>
-                                    <ProgressLine value={lv.approval_rate || 0} height={8} animate />
-                                </View>
-                            </View>
-                        ))}
+                            );
+                        })}
                     </View>
                 ) : <Empty />}
             </Card>
@@ -81,9 +135,23 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                                     percentage={approvalRate}
                                     color={approvalColor}
                                     label="Tasa"
-                                    size={110}
-                                    strokeWidth={14}
+                                    size={140}
+                                    strokeWidth={16}
                                 />
+                                <View style={styles.approvalStats}>
+                                    <View style={styles.approvalStatItem}>
+                                        <Text style={styles.approvalStatValue}>{d.approvalRate.total}</Text>
+                                        <Text style={styles.approvalStatLabel}>Total</Text>
+                                    </View>
+                                    <View style={styles.approvalStatItem}>
+                                        <Text style={[styles.approvalStatValue, { color: Colors.success }]}>{d.approvalRate.approved}</Text>
+                                        <Text style={styles.approvalStatLabel}>Aprobados</Text>
+                                    </View>
+                                    <View style={styles.approvalStatItem}>
+                                        <Text style={[styles.approvalStatValue, { color: Colors.error }]}>{d.approvalRate.failed}</Text>
+                                        <Text style={styles.approvalStatLabel}>Reprobados</Text>
+                                    </View>
+                                </View>
                             </View>
                         ) : <Empty />}
                     </Card>
@@ -170,20 +238,68 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { gap: 6 }, // Add gap between cards via container styling (or handled by Cards marginBottom)
+    container: { gap: 6 },
     row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
     halfCol: { flex: 1 },
     fullHeight: { flex: 1, marginBottom: 0 },
 
-    // Performance rows
-    perfRow: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-    perfInfo: { marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    perfName: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary },
-    perfStats: { fontSize: 11, color: Colors.textSecondary },
-    perfProgress: { width: '100%' },
+    // Level Performance Cards (Matching Odoo year_performance_overview)
+    levelCardsContainer: { gap: 12 },
+    levelCard: {
+        borderRadius: 12,
+        borderWidth: 1.5,
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+    },
+    levelCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        gap: 8,
+    },
+    levelCardTitle: { fontSize: 14, fontWeight: '700' },
+    levelStatsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+    },
+    levelStatItem: { alignItems: 'center' },
+    levelStatValue: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary },
+    levelStatLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
+    levelProgressContainer: { paddingHorizontal: 14, marginBottom: 10 },
+    levelProgressBg: {
+        height: 24,
+        backgroundColor: Colors.backgroundTertiary,
+        borderRadius: 6,
+        overflow: 'hidden',
+    },
+    levelProgressFill: {
+        height: '100%',
+        borderRadius: 6,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+        minWidth: 80,
+    },
+    levelProgressText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+    levelFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderTopWidth: 1,
+        borderTopColor: Colors.borderLight,
+    },
+    levelFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    levelFooterText: { fontSize: 11, fontWeight: '600' },
 
     // Gauge section
     gaugeSection: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+    approvalStats: { flexDirection: 'row', justifyContent: 'center', width: '100%', marginTop: 16, gap: 10 },
+    approvalStatItem: { alignItems: 'center' },
+    approvalStatValue: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary },
+    approvalStatLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
 
     // Top students
     topInfo: { flex: 1, marginLeft: 12 },

@@ -3,36 +3,42 @@ export const Colors = {
   primary: '#1e40af',
   primaryLight: '#3b82f6',
   primaryDark: '#1e3a8a',
-  
+
   // Colores secundarios
   secondary: '#00c070ff',
   secondaryLight: '#10b981',
   secondaryDark: '#059669',
-  
+
   // Colores de estado
   success: '#16a34a',
   successLight: '#22c55e',
   error: '#dc2626',
   errorLight: '#ef4444',
   warning: '#f59e0b',
-  info: '#3b82f6',
-  
+  info: '#0891b2',  // Cyan/Teal
+
+  // Colores por nivel educativo (matching Odoo)
+  levelPre: '#0891b2',       // bg-info - Preescolar (Cyan)
+  levelPrimary: '#16a34a',   // bg-success - Primaria (Green)
+  levelSecundary: '#1e40af', // bg-primary - Media General (Blue)
+  levelTecnico: '#f59e0b',   // bg-warning - Técnico Medio (Orange)
+
   // Colores de texto
   textPrimary: '#1e293b',
   textSecondary: '#64748b',
   textTertiary: '#94a3b8',
   textLight: '#cbd5e1',
-  
+
   // Colores de fondo
   background: '#ffffff',
   backgroundSecondary: '#f8fafc',
   backgroundTertiary: '#f1f5f9',
-  
+
   // Colores de bordes
   border: '#e2e8f0',
   borderLight: '#f1f5f9',
   borderDark: '#cbd5e1',
-  
+
   // Colores neutros
   white: '#ffffff',
   black: '#000000',
@@ -48,13 +54,13 @@ export const Colors = {
     800: '#1f2937',
     900: '#111827',
   },
-  
+
   // Colores con transparencia
   overlay: 'rgba(0, 0, 0, 0.5)',
   shadowLight: 'rgba(0, 0, 0, 0.1)',
   shadowMedium: 'rgba(0, 0, 0, 0.2)',
   shadowDark: 'rgba(0, 0, 0, 0.3)',
-  
+
   // Colores para gradientes
   gradientStart: '#ffffff',
   gradientMiddle: '#f8fafc',

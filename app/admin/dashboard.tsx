@@ -131,8 +131,8 @@ export default function AdminDashboard() {
     Animated.sequence([
       Animated.timing(headerOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.parallel([
-        Animated.timing(kpiTranslateY, { toValue: 0, duration: 600, useNativeDriver: true }),
-        Animated.timing(kpiOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(kpiTranslateY, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(kpiOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
       ])
     ]).start();
   }, [loadDashboardData]);
@@ -213,22 +213,21 @@ export default function AdminDashboard() {
                 <Text style={styles.dateText}>{new Date().toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
               </View>
             </View>
+            {/* Staggered KPI Cards */}
+            <Animated.View style={[{ transform: [{ translateY: kpiTranslateY }], opacity: kpiOpacity }]}>
+              <View style={[styles.kpiRow, { marginBottom: 65, marginTop: 15 }]}>
+                <KPICard icon="people" value={d?.kpis.totalStudentsCount ?? 0} label="Estudiantes" color={Colors.primary} loading={loading} />
+                <KPICard icon="checkmark-circle" value={d?.kpis.approvedStudentsCount ?? 0} label="Aprobados" color={Colors.success} loading={loading} />
+              </View>
+              <View style={styles.kpiRow}>
+                <KPICard icon="layers" value={d?.kpis.totalSectionsCount ?? 0} label="Secciones" color={Colors.info} loading={loading} />
+                <KPICard icon="person" value={d?.kpis.totalProfessorsCount ?? 0} label="Profesores" color={Colors.warning} loading={loading} />
+              </View>
+            </Animated.View>
           </Animated.View>
         </LinearGradient>
 
         <View style={styles.mainContainer}>
-          {/* Staggered KPI Cards */}
-          <Animated.View style={[styles.kpiContainer, { transform: [{ translateY: kpiTranslateY }], opacity: kpiOpacity }]}>
-            <View style={styles.kpiRow}>
-              <KPICard icon="people" value={d?.kpis.totalStudentsCount ?? 0} label="Estudiantes" color={Colors.primary} loading={loading} />
-              <KPICard icon="checkmark-circle" value={d?.kpis.approvedStudentsCount ?? 0} label="Aprobados" color={Colors.success} loading={loading} />
-            </View>
-            <View style={styles.kpiRow}>
-              <KPICard icon="layers" value={d?.kpis.totalSectionsCount ?? 0} label="Secciones" color={Colors.info} loading={loading} />
-              <KPICard icon="person" value={d?.kpis.totalProfessorsCount ?? 0} label="Profesores" color={Colors.warning} loading={loading} />
-            </View>
-          </Animated.View>
-
           {/* Tab Navigation */}
           <View style={styles.tabContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     paddingTop: Platform.OS === 'android' ? 44 : 54,
-    paddingBottom: 155, // Extra padding for KPI overlap
+    paddingBottom: 75, // Extra padding for KPI overlap
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',
@@ -324,17 +323,16 @@ const styles = StyleSheet.create({
 
   // Main Container & KPI overlap
   mainContainer: { flex: 1 },
-  kpiContainer: { paddingHorizontal: 16, marginTop: -140, marginBottom: -10, gap: 12, zIndex: 1 },
-  kpiRow: { flexDirection: 'row', gap: 12, marginBottom: 55, zIndex: 1 },
+  kpiRow: { flexDirection: 'row', gap: 12, zIndex: 1 },
 
   // Tab Navigation
   tabContainer: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
-    paddingTop: 27,
+    paddingTop: 13,
+    marginTop: -10,
     paddingVertical: 4,
-    // zIndex: 10,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
       android: { elevation: 2 }
