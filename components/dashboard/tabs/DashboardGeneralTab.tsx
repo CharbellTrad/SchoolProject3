@@ -1,6 +1,6 @@
 /**
  * DashboardGeneralTab - enhanced visual design
- * Features: Staggered animations, gradient tables, glassmorphism
+ * Features: Staggered animations, gradient tables, glassmorphism, skeleton loading
  */
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,7 +9,16 @@ import { StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData } from '../../../services-odoo/dashboardService';
 import { DonutChart, GroupedBarChart, RingGauge } from '../charts';
-import { Card, Empty, ListRow, RankBadge } from '../ui';
+import {
+    Card,
+    ChartSkeleton,
+    Empty,
+    LevelCardSkeleton,
+    ListRow,
+    ListRowSkeleton,
+    RankBadge,
+    TableRowSkeleton
+} from '../ui';
 
 interface Props {
     data: DashboardData | null;
@@ -45,11 +54,20 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
         }
     };
 
+    // Show skeleton when loading
+    const isLoading = loading || !d;
+
     return (
         <View style={styles.container}>
             {/* Rendimiento General del Año - Matching Odoo year_performance_overview widget */}
             <Card title="Rendimiento General del Año Escolar" delay={0}>
-                {d?.performanceByLevel?.levels?.length ? (
+                {isLoading ? (
+                    <View style={styles.levelCardsContainer}>
+                        <LevelCardSkeleton />
+                        <LevelCardSkeleton />
+                        <LevelCardSkeleton />
+                    </View>
+                ) : d?.performanceByLevel?.levels?.length ? (
                     <View style={styles.levelCardsContainer}>
                         {d.performanceByLevel.levels.map((lv, i) => {
                             const style = getLevelStyle(lv.type);
@@ -113,7 +131,9 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 {/* Distribución Donut */}
                 <View style={styles.halfCol}>
                     <Card title="Distribución" delay={100} style={styles.fullHeight}>
-                        {distributionData.length > 0 ? (
+                        {isLoading ? (
+                            <ChartSkeleton type="donut" size={140} />
+                        ) : distributionData.length > 0 ? (
                             <DonutChart
                                 data={distributionData}
                                 centerValue={d?.studentsDistribution?.total || 0}
@@ -129,7 +149,9 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 {/* Tasa Aprobación Gauge */}
                 <View style={styles.halfCol}>
                     <Card title="Aprobación" delay={150} style={styles.fullHeight}>
-                        {d?.approvalRate ? (
+                        {isLoading ? (
+                            <ChartSkeleton type="ring" size={140} />
+                        ) : d?.approvalRate ? (
                             <View style={styles.gaugeSection}>
                                 <RingGauge
                                     percentage={approvalRate}
@@ -160,7 +182,9 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
 
             {/* Comparativa Chart */}
             <Card title="Comparativa de Secciones" delay={200}>
-                {sectionsGroupedData.length > 0 ? (
+                {isLoading ? (
+                    <ChartSkeleton type="bar" height={180} />
+                ) : sectionsGroupedData.length > 0 ? (
                     <GroupedBarChart
                         data={sectionsGroupedData}
                         value1Color={Colors.success}
@@ -175,8 +199,16 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
             </Card>
 
             {/* Detalle de Secciones Table */}
-            {d?.sectionsComparison?.sections?.length ? (
-                <Card title="Detalle de Secciones" delay={300}>
+            <Card title="Detalle de Secciones" delay={300}>
+                {isLoading ? (
+                    <View style={styles.sectionTable}>
+                        <TableRowSkeleton columns={5} />
+                        <TableRowSkeleton columns={5} isAlt />
+                        <TableRowSkeleton columns={5} />
+                        <TableRowSkeleton columns={5} isAlt />
+                        <TableRowSkeleton columns={5} />
+                    </View>
+                ) : d?.sectionsComparison?.sections?.length ? (
                     <View style={styles.sectionTable}>
                         {/* Gradient Header */}
                         <LinearGradient
@@ -213,12 +245,18 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                             </View>
                         ))}
                     </View>
-                </Card>
-            ) : null}
+                ) : <Empty message="Sin secciones" />}
+            </Card>
 
             {/* Top 10 Estudiantes */}
             <Card title="Top 10 Mejores Estudiantes" delay={400} glassmorphism>
-                {d?.topStudentsYear?.top_students?.length ? (
+                {isLoading ? (
+                    <>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <ListRowSkeleton key={i} hasAvatar hasBadge />
+                        ))}
+                    </>
+                ) : d?.topStudentsYear?.top_students?.length ? (
                     d.topStudentsYear.top_students.map((st, i) => (
                         <ListRow key={i}>
                             <RankBadge rank={i + 1} />

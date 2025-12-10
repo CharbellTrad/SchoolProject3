@@ -20,9 +20,8 @@ import {
     animateCounter,
     createPressAnimation,
     createPulseAnimation,
-    createShimmerAnimation,
     DURATIONS,
-    slideUpFadeIn,
+    slideUpFadeIn
 } from '../animations';
 
 // ==================== SHIMMER SKELETON ====================
@@ -34,16 +33,30 @@ interface ShimmerProps {
 }
 
 export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 8, style }) => {
-    const translateX = useRef(new Animated.Value(-100)).current;
+    const translateX = useRef(new Animated.Value(-150)).current;
 
     useEffect(() => {
-        const animation = createShimmerAnimation(translateX, 200);
+        // Inline shimmer animation - smooth diagonal effect
+        const animation = Animated.loop(
+            Animated.timing(translateX, {
+                toValue: 400,
+                duration: 1500,
+                easing: require('react-native').Easing.inOut(require('react-native').Easing.ease),
+                useNativeDriver: true,
+            })
+        );
         animation.start();
         return () => animation.stop();
     }, [translateX]);
 
     return (
-        <View style={[{ width: width as number, height, borderRadius, backgroundColor: Colors.backgroundTertiary, overflow: 'hidden' }, style]}>
+        <View style={[{
+            width: width as number,
+            height,
+            borderRadius,
+            backgroundColor: Colors.skeleton.base,
+            overflow: 'hidden'
+        }, style]}>
             <Animated.View
                 style={[
                     styles.shimmerWave,
@@ -55,6 +68,200 @@ export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 
         </View>
     );
 };
+
+// ==================== SKELETON COMPOSITE COMPONENTS ====================
+
+// Circle shimmer for icons/avatars
+interface CircleShimmerProps {
+    size: number;
+    style?: ViewStyle;
+}
+
+export const CircleShimmer: React.FC<CircleShimmerProps> = ({ size, style }) => (
+    <Shimmer width={size} height={size} borderRadius={size / 2} style={style} />
+);
+
+// KPI Card Skeleton (for dashboard header KPIs)
+export const KPICardSkeleton: React.FC = () => {
+    return (
+        <View style={[styles.kpiCardShadow, { flex: 1 }]}>
+            <View style={[styles.kpiCardContent, { alignItems: 'flex-start', paddingHorizontal: 20, justifyContent: 'center' }]}>
+                {/* Value shimmer */}
+                <Shimmer width={60} height={28} borderRadius={8} style={{ marginTop: -15, marginBottom: 6 }} />
+                {/* Label shimmer */}
+                <Shimmer width={80} height={14} borderRadius={6} />
+                {/* Trend bar shimmer */}
+                <View style={{ marginTop: 8, marginBottom: -10 }}>
+                    <Shimmer width={32} height={4} borderRadius={2} />
+                </View>
+            </View>
+        </View>
+    );
+};
+
+// Stat Card Skeleton (for level tabs stats row)
+export const StatCardSkeleton: React.FC = () => {
+    return (
+        <View style={[styles.statCard, { flex: 1 }]}>
+            <Shimmer width={50} height={28} borderRadius={8} style={{ marginBottom: 6 }} />
+            <Shimmer width={70} height={12} borderRadius={6} />
+        </View>
+    );
+};
+
+// Chart Skeleton (for donut, ring gauge, bar charts)
+interface ChartSkeletonProps {
+    type: 'ring' | 'donut' | 'bar';
+    size?: number;
+    height?: number;
+}
+
+export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({ type, size = 120, height = 140 }) => {
+    if (type === 'bar') {
+        return (
+            <View style={{ height, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', paddingHorizontal: 20 }}>
+                {[0.6, 0.8, 0.5, 0.9, 0.7, 0.4].map((h, i) => (
+                    <Shimmer key={i} width={24} height={height * h} borderRadius={4} />
+                ))}
+            </View>
+        );
+    }
+
+    // Ring or Donut
+    return (
+        <View style={{ alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <View style={{
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: Colors.skeleton.base,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}>
+                <View style={{
+                    width: size - 32,
+                    height: size - 32,
+                    borderRadius: (size - 32) / 2,
+                    backgroundColor: '#fff',
+                }} />
+            </View>
+        </View>
+    );
+};
+
+// Table Row Skeleton
+interface TableRowSkeletonProps {
+    columns?: number;
+    isAlt?: boolean;
+}
+
+export const TableRowSkeleton: React.FC<TableRowSkeletonProps> = ({ columns = 4, isAlt = false }) => {
+    return (
+        <View style={[styles.tableRowSkeleton, isAlt && styles.tableRowSkeletonAlt]}>
+            {Array.from({ length: columns }).map((_, i) => (
+                <View key={i} style={{ flex: i === 0 ? 2 : 1, paddingHorizontal: 4 }}>
+                    <Shimmer
+                        width={i === 0 ? '80%' : '60%'}
+                        height={12}
+                        borderRadius={6}
+                    />
+                </View>
+            ))}
+        </View>
+    );
+};
+
+// List Row Skeleton (for student/professors lists)
+interface ListRowSkeletonProps {
+    hasAvatar?: boolean;
+    hasBadge?: boolean;
+}
+
+export const ListRowSkeleton: React.FC<ListRowSkeletonProps> = ({ hasAvatar = true, hasBadge = false }) => {
+    return (
+        <View style={styles.listRowSkeleton}>
+            {hasAvatar && <CircleShimmer size={40} />}
+            <View style={{ flex: 1, marginLeft: hasAvatar ? 12 : 0, gap: 6 }}>
+                <Shimmer width="70%" height={14} borderRadius={6} />
+                <Shimmer width="50%" height={10} borderRadius={4} />
+            </View>
+            {hasBadge && <Shimmer width={60} height={24} borderRadius={8} />}
+        </View>
+    );
+};
+
+// Level Card Skeleton (for DashboardGeneralTab performance cards)
+export const LevelCardSkeleton: React.FC = () => {
+    return (
+        <View style={styles.levelCardSkeleton}>
+            {/* Header */}
+            <View style={styles.levelCardSkeletonHeader}>
+                <CircleShimmer size={24} />
+                <Shimmer width={100} height={14} borderRadius={6} style={{ marginLeft: 8 }} />
+            </View>
+            {/* Stats row */}
+            <View style={styles.levelCardSkeletonStats}>
+                <View style={{ alignItems: 'center' }}>
+                    <Shimmer width={40} height={22} borderRadius={6} />
+                    <Shimmer width={60} height={10} borderRadius={4} style={{ marginTop: 4 }} />
+                </View>
+                <View style={{ alignItems: 'center' }}>
+                    <Shimmer width={40} height={22} borderRadius={6} />
+                    <Shimmer width={50} height={10} borderRadius={4} style={{ marginTop: 4 }} />
+                </View>
+            </View>
+            {/* Progress bar */}
+            <View style={{ paddingHorizontal: 14, marginBottom: 10 }}>
+                <Shimmer width="100%" height={24} borderRadius={6} />
+            </View>
+            {/* Footer */}
+            <View style={styles.levelCardSkeletonFooter}>
+                <Shimmer width={80} height={12} borderRadius={4} />
+                <Shimmer width={70} height={12} borderRadius={4} />
+            </View>
+        </View>
+    );
+};
+
+// Config Row Skeleton
+export const ConfigRowSkeleton: React.FC = () => {
+    return (
+        <View style={styles.configRowSkeleton}>
+            <CircleShimmer size={40} />
+            <View style={{ flex: 1, marginLeft: 12, gap: 6 }}>
+                <Shimmer width="60%" height={14} borderRadius={6} />
+                <Shimmer width="40%" height={10} borderRadius={4} />
+            </View>
+            <CircleShimmer size={24} />
+        </View>
+    );
+};
+
+// Section Row Skeleton (for compact section lists)
+export const SectionRowSkeleton: React.FC = () => {
+    return (
+        <View style={styles.sectionRowSkeleton}>
+            <CircleShimmer size={8} />
+            <Shimmer width="70%" height={12} borderRadius={4} style={{ marginLeft: 8, flex: 1 }} />
+            <Shimmer width={24} height={12} borderRadius={4} />
+        </View>
+    );
+};
+
+// Distribution Row Skeleton (for progress bars)
+export const DistributionRowSkeleton: React.FC = () => {
+    return (
+        <View style={styles.distributionRowSkeleton}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <CircleShimmer size={10} style={{ marginRight: 8 }} />
+                <Shimmer width={80} height={12} borderRadius={4} style={{ flex: 1 }} />
+                <Shimmer width={24} height={12} borderRadius={4} />
+            </View>
+            <Shimmer width="100%" height={8} borderRadius={4} />
+        </View>
+    );
+};
+
 
 // ==================== CARD ====================
 interface CardProps {
@@ -387,15 +594,77 @@ export const GlassButton: React.FC<GlassButtonProps> = ({ onPress, children, siz
 
 // ==================== STYLES ====================
 const styles = StyleSheet.create({
-    // Shimmer
+    // Shimmer - enhanced diagonal effect
     shimmerWave: {
         position: 'absolute',
         top: 0,
         bottom: 0,
-        width: 100,
-        backgroundColor: 'rgba(255,255,255,0.4)',
+        width: 150,
+        backgroundColor: Colors.skeleton.highlight,
         transform: [{ skewX: '-20deg' }],
     },
+
+    // Skeleton component styles
+    tableRowSkeleton: {
+        flexDirection: 'row',
+        paddingVertical: 14,
+        paddingHorizontal: 8,
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    tableRowSkeletonAlt: {
+        backgroundColor: Colors.backgroundTertiary,
+    },
+    listRowSkeleton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderLight,
+    },
+    levelCardSkeleton: {
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: Colors.skeleton.base,
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+    },
+    levelCardSkeletonHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        backgroundColor: Colors.skeleton.highlight,
+    },
+    levelCardSkeletonStats: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+    },
+    levelCardSkeletonFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderTopWidth: 1,
+        borderTopColor: Colors.borderLight,
+    },
+    configRowSkeleton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    sectionRowSkeleton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+    },
+    distributionRowSkeleton: {
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderLight,
+    },
+
 
     // Card - Enhanced with layered shadows
     card: {

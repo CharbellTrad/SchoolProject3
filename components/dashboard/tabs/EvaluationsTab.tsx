@@ -1,5 +1,5 @@
 /**
- * EvaluationsTab - enhanced visual design
+ * EvaluationsTab - enhanced visual design with skeleton loading
  * Features: Stats, Distribution by Level, Recent Evaluations Table with Detail Modal
  */
 import { Ionicons } from '@expo/vector-icons';
@@ -9,15 +9,17 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import Colors from '../../../constants/Colors';
 import { DashboardData, RecentEvaluation } from '../../../services-odoo/dashboardService';
 import { ProgressLine } from '../charts';
-import { AnimatedBadge, Card, Empty } from '../ui';
+import { AnimatedBadge, Card, DistributionRowSkeleton, Empty, StatCardSkeleton, TableRowSkeleton } from '../ui';
 
 interface Props {
     data: DashboardData | null;
+    loading?: boolean;
 }
 
-export const EvaluationsTab: React.FC<Props> = ({ data: d }) => {
+export const EvaluationsTab: React.FC<Props> = ({ data: d, loading }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const selectedEvalRef = useRef<RecentEvaluation | null>(null);
+    const isLoading = loading || !d;
 
     const openModal = (evaluation: RecentEvaluation) => {
         selectedEvalRef.current = evaluation;
@@ -61,39 +63,60 @@ export const EvaluationsTab: React.FC<Props> = ({ data: d }) => {
         <View style={styles.container}>
             {/* Stats Grid */}
             <Card title="Estadísticas de Evaluaciones" delay={100}>
-                <View style={[styles.statsRow, { marginBottom: 10 }]}>
-                    <Card style={styles.breakdownCard}>
-                        <View style={styles.breakdownItem}>
-                            <Text style={[styles.bdValue, { color: Colors.primary }]}>{total}</Text>
-                            <Text style={styles.bdLabel}>Total Evaluaciones</Text>
+                {isLoading ? (
+                    <>
+                        <View style={[styles.statsRow, { marginBottom: 10 }]}>
+                            <StatCardSkeleton />
+                            <StatCardSkeleton />
                         </View>
-                    </Card>
-                    <Card style={styles.breakdownCard}>
-                        <View style={styles.breakdownItem}>
-                            <Text style={[styles.bdValue, { color: Colors.success }]}>{d?.evaluationsStats?.qualified || 0}</Text>
-                            <Text style={styles.bdLabel}>Calificadas</Text>
+                        <View style={styles.statsRow}>
+                            <StatCardSkeleton />
+                            <StatCardSkeleton />
                         </View>
-                    </Card>
-                </View>
-                <View style={styles.statsRow}>
-                    <Card style={styles.breakdownCard}>
-                        <View style={styles.breakdownItem}>
-                            <Text style={[styles.bdValue, { color: Colors.warning }]}>{d?.evaluationsStats?.partial || 0}</Text>
-                            <Text style={styles.bdLabel}>Parciales</Text>
+                    </>
+                ) : (
+                    <>
+                        <View style={[styles.statsRow, { marginBottom: 10 }]}>
+                            <Card style={styles.breakdownCard}>
+                                <View style={styles.breakdownItem}>
+                                    <Text style={[styles.bdValue, { color: Colors.primary }]}>{total}</Text>
+                                    <Text style={styles.bdLabel}>Total Evaluaciones</Text>
+                                </View>
+                            </Card>
+                            <Card style={styles.breakdownCard}>
+                                <View style={styles.breakdownItem}>
+                                    <Text style={[styles.bdValue, { color: Colors.success }]}>{d?.evaluationsStats?.qualified || 0}</Text>
+                                    <Text style={styles.bdLabel}>Calificadas</Text>
+                                </View>
+                            </Card>
                         </View>
-                    </Card>
-                    <Card style={styles.breakdownCard}>
-                        <View style={styles.breakdownItem}>
-                            <Text style={[styles.bdValue, { color: Colors.textTertiary }]}>{d?.evaluationsStats?.draft || 0}</Text>
-                            <Text style={styles.bdLabel}>Borrador</Text>
+                        <View style={styles.statsRow}>
+                            <Card style={styles.breakdownCard}>
+                                <View style={styles.breakdownItem}>
+                                    <Text style={[styles.bdValue, { color: Colors.warning }]}>{d?.evaluationsStats?.partial || 0}</Text>
+                                    <Text style={styles.bdLabel}>Parciales</Text>
+                                </View>
+                            </Card>
+                            <Card style={styles.breakdownCard}>
+                                <View style={styles.breakdownItem}>
+                                    <Text style={[styles.bdValue, { color: Colors.textTertiary }]}>{d?.evaluationsStats?.draft || 0}</Text>
+                                    <Text style={styles.bdLabel}>Borrador</Text>
+                                </View>
+                            </Card>
                         </View>
-                    </Card>
-                </View>
+                    </>
+                )}
             </Card>
 
             {/* Distribución por Nivel */}
             <Card title="Distribución por Nivel" delay={150}>
-                {distributionData.length > 0 && totalByType > 0 ? (
+                {isLoading ? (
+                    <>
+                        <DistributionRowSkeleton />
+                        <DistributionRowSkeleton />
+                        <DistributionRowSkeleton />
+                    </>
+                ) : distributionData.length > 0 && totalByType > 0 ? (
                     <View>
                         {distributionData.map((item, i) => (
                             <View key={i} style={styles.distRow}>
@@ -118,7 +141,15 @@ export const EvaluationsTab: React.FC<Props> = ({ data: d }) => {
 
             {/* Evaluaciones Recientes - Simplified Table */}
             <Card title="Evaluaciones Recientes" delay={200}>
-                {d?.recentEvaluations?.evaluations?.length ? (
+                {isLoading ? (
+                    <>
+                        <TableRowSkeleton columns={4} />
+                        <TableRowSkeleton columns={4} isAlt />
+                        <TableRowSkeleton columns={4} />
+                        <TableRowSkeleton columns={4} isAlt />
+                        <TableRowSkeleton columns={4} />
+                    </>
+                ) : d?.recentEvaluations?.evaluations?.length ? (
                     <View style={styles.evalTable}>
                         {/* Gradient Header */}
                         <LinearGradient

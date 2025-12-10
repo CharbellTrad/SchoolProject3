@@ -61,6 +61,12 @@ export const Colors = {
   shadowMedium: 'rgba(0, 0, 0, 0.2)',
   shadowDark: 'rgba(0, 0, 0, 0.3)',
 
+  // Skeleton colors for shimmer effects
+  skeleton: {
+    base: '#e5e7eb',      // Gray-200 - base background
+    highlight: '#f3f4f6', // Gray-100 - shimmer highlight
+  },
+
   // Colores para gradientes
   gradientStart: '#ffffff',
   gradientMiddle: '#f8fafc',

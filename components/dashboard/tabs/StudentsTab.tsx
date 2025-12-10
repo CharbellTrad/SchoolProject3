@@ -1,14 +1,15 @@
 /**
- * StudentsTab - enhanced visual design
+ * StudentsTab - enhanced visual design with skeleton loading
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData, StudentPreview } from '../../../services-odoo/dashboardService';
-import { AnimatedBadge, Card, Empty, ListRow, StudentAvatar } from '../ui';
+import { AnimatedBadge, Card, Empty, ListRow, ListRowSkeleton, StudentAvatar } from '../ui';
 
 interface Props {
     data: DashboardData | null;
+    loading?: boolean;
 }
 
 const getTypeLabel = (type: string) => {
@@ -29,14 +30,21 @@ const getStateConfig = (state: string) => {
     }
 };
 
-export const StudentsTab: React.FC<Props> = ({ data: d }) => {
+export const StudentsTab: React.FC<Props> = ({ data: d, loading }) => {
     const totalStudents = d?.kpis.totalStudentsCount || 0;
     const previewCount = d?.studentPreviews?.length || 0;
+    const isLoading = loading || !d;
 
     return (
         <View style={styles.container}>
-            <Card title={`Estudiantes del Año (${totalStudents})`} delay={0}>
-                {d?.studentPreviews?.length ? (
+            <Card title={isLoading ? "Estudiantes del Año" : `Estudiantes del Año (${totalStudents})`} delay={0}>
+                {isLoading ? (
+                    <>
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <ListRowSkeleton key={i} hasAvatar hasBadge />
+                        ))}
+                    </>
+                ) : d?.studentPreviews?.length ? (
                     <>
                         {d.studentPreviews.map((st: StudentPreview, i) => {
                             const stateConfig = getStateConfig(st.state || 'draft');

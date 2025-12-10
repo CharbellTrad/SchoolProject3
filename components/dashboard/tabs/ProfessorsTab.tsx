@@ -1,5 +1,5 @@
 /**
- * ProfessorsTab - enhanced visual design
+ * ProfessorsTab - enhanced visual design with skeleton loading
  * Features: Tables for Professors Summary and Stats, Detail Modal
  */
 import { Ionicons } from '@expo/vector-icons';
@@ -9,15 +9,17 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import Colors from '../../../constants/Colors';
 import { DashboardData, ProfessorDetailedItem } from '../../../services-odoo/dashboardService';
 import { AnimatedBarChart, ProgressLine } from '../charts';
-import { Card, Empty } from '../ui';
+import { Card, ChartSkeleton, Empty, StatCardSkeleton, TableRowSkeleton } from '../ui';
 
 interface Props {
     data: DashboardData | null;
+    loading?: boolean;
 }
 
-export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
+export const ProfessorsTab: React.FC<Props> = ({ data: d, loading }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const selectedProfRef = useRef<ProfessorDetailedItem | null>(null);
+    const isLoading = loading || !d;
 
     const openModal = (prof: ProfessorDetailedItem) => {
         selectedProfRef.current = prof;
@@ -60,55 +62,76 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
         <View style={styles.container}>
             {/* Resumen de Profesores */}
             <Card title="Resumen de Profesores" delay={100}>
-                {/* Total Counter */}
-                <View style={styles.totalCard}>
-                    <View style={styles.totalIcon}>
-                        <Ionicons name="people" size={28} color={Colors.primary} />
-                    </View>
-                    <Text style={styles.totalValue}>{d?.professorSummary?.total || 0}</Text>
-                    <Text style={styles.totalLabel}>Profesores Activos</Text>
-                </View>
-
-                {/* Professors Table */}
-                {d?.professorSummary?.professors?.length ? (
-                    <View style={styles.table}>
-                        {/* Header */}
-                        <LinearGradient
-                            colors={[Colors.backgroundTertiary, '#fff']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.tableHeader}
-                        >
-                            <Text style={[styles.tableHeaderCell, { flex: 2, paddingLeft: 8 }]}>Profesor</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Secciones</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Materias</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Evaluac.</Text>
-                        </LinearGradient>
-
-                        {/* Rows */}
-                        {d.professorSummary.professors.map((p, i) => (
-                            <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]}>
-                                <Text style={[styles.tableCell, { flex: 2, fontWeight: '600', paddingLeft: 8 }]} numberOfLines={1}>
-                                    {p.professor_name}
-                                </Text>
-                                <Text style={[styles.tableCell, styles.centerText]}>
-                                    {p.sections_count}
-                                </Text>
-                                <Text style={[styles.tableCell, styles.centerText]}>
-                                    {p.subjects_count}
-                                </Text>
-                                <Text style={[styles.tableCell, styles.centerText]}>
-                                    {p.evaluations_count}
-                                </Text>
+                {isLoading ? (
+                    <>
+                        <StatCardSkeleton />
+                        <TableRowSkeleton columns={4} />
+                        <TableRowSkeleton columns={4} isAlt />
+                        <TableRowSkeleton columns={4} />
+                        <TableRowSkeleton columns={4} isAlt />
+                        <TableRowSkeleton columns={4} />
+                    </>
+                ) : (
+                    <>
+                        {/* Total Counter */}
+                        <View style={styles.totalCard}>
+                            <View style={styles.totalIcon}>
+                                <Ionicons name="people" size={28} color={Colors.primary} />
                             </View>
-                        ))}
-                    </View>
-                ) : <Empty />}
+                            <Text style={styles.totalValue}>{d?.professorSummary?.total || 0}</Text>
+                            <Text style={styles.totalLabel}>Profesores Activos</Text>
+                        </View>
+
+                        {/* Professors Table */}
+                        {d?.professorSummary?.professors?.length ? (
+                            <View style={styles.table}>
+                                {/* Header */}
+                                <LinearGradient
+                                    colors={[Colors.backgroundTertiary, '#fff']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 0, y: 1 }}
+                                    style={styles.tableHeader}
+                                >
+                                    <Text style={[styles.tableHeaderCell, { flex: 2, paddingLeft: 8 }]}>Profesor</Text>
+                                    <Text style={[styles.tableHeaderCell, styles.centerText]}>Secciones</Text>
+                                    <Text style={[styles.tableHeaderCell, styles.centerText]}>Materias</Text>
+                                    <Text style={[styles.tableHeaderCell, styles.centerText]}>Evaluac.</Text>
+                                </LinearGradient>
+
+                                {/* Rows */}
+                                {d.professorSummary.professors.map((p, i) => (
+                                    <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]}>
+                                        <Text style={[styles.tableCell, { flex: 2, fontWeight: '600', paddingLeft: 8 }]} numberOfLines={1}>
+                                            {p.professor_name}
+                                        </Text>
+                                        <Text style={[styles.tableCell, styles.centerText]}>
+                                            {p.sections_count}
+                                        </Text>
+                                        <Text style={[styles.tableCell, styles.centerText]}>
+                                            {p.subjects_count}
+                                        </Text>
+                                        <Text style={[styles.tableCell, styles.centerText]}>
+                                            {p.evaluations_count}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        ) : <Empty />}
+                    </>
+                )}
             </Card>
 
             {/* Estadísticas por Tipo de Estudiante */}
             <Card title="Estadísticas por Tipo de Estudiante" delay={200}>
-                {d?.professorDetailedStats?.professors?.length ? (
+                {isLoading ? (
+                    <>
+                        <TableRowSkeleton columns={3} />
+                        <TableRowSkeleton columns={3} isAlt />
+                        <TableRowSkeleton columns={3} />
+                        <TableRowSkeleton columns={3} isAlt />
+                        <TableRowSkeleton columns={3} />
+                    </>
+                ) : d?.professorDetailedStats?.professors?.length ? (
                     <View style={styles.table}>
                         {/* Header */}
                         <LinearGradient
@@ -147,7 +170,9 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d }) => {
 
             {/* Materias Difíciles */}
             <Card title="Materias con Mayor Dificultad" delay={300}>
-                {d?.difficultSubjects?.subjects?.length ? (
+                {isLoading ? (
+                    <ChartSkeleton type="bar" height={140} />
+                ) : d?.difficultSubjects?.subjects?.length ? (
                     <>
                         <View style={styles.diffList}>
                             {d.difficultSubjects.subjects.slice(0, 4).map((s, i) => (

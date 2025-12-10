@@ -1,5 +1,5 @@
 /**
- * TecnicoMedioTab - enhanced visual design
+ * TecnicoMedioTab - enhanced visual design with skeleton loading
  */
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
@@ -8,18 +8,32 @@ import Colors from '../../../constants/Colors';
 import { DashboardData, StudentPreview } from '../../../services-odoo/dashboardService';
 import { slideUpFadeIn } from '../animations';
 import { RingGauge } from '../charts';
-import { Card, Empty, InfoNote, ListRow, RankBadge, StatCard, StudentAvatar } from '../ui';
+import {
+    Card,
+    ChartSkeleton,
+    ConfigRowSkeleton,
+    Empty,
+    InfoNote,
+    ListRow,
+    ListRowSkeleton,
+    RankBadge,
+    StatCard,
+    StatCardSkeleton,
+    StudentAvatar
+} from '../ui';
 
 interface Props {
     data: DashboardData | null;
+    loading?: boolean;
 }
 
-export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
+export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
     const students = d?.studentsByLevel.tecnicoCount ?? 0;
     const approved = d?.approvedByLevel.tecnicoCount ?? 0;
     const sections = d?.sectionsByLevel.secundaryCount ?? 0;
     const approvalPct = students > 0 ? (approved / students) * 100 : 0;
     const levelDashboard = d?.secundaryTecnicoDashboard;
+    const isLoading = loading || !d;
 
     // Animation for Stats Row
     const statsAnim = useRef(new Animated.Value(0)).current;
@@ -33,7 +47,9 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
         <View style={styles.container}>
             {/* Configuración */}
             <Card title="Configuración" delay={0}>
-                {d?.evaluationConfigs.secundary ? (
+                {isLoading ? (
+                    <ConfigRowSkeleton />
+                ) : d?.evaluationConfigs.secundary ? (
                     <View style={styles.configRow}>
                         <View style={[styles.configIcon, { backgroundColor: Colors.warning + '15' }]}>
                             <Ionicons name="construct-outline" size={20} color={Colors.warning} />
@@ -51,35 +67,55 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
 
             {/* Estadísticas */}
             <Animated.View style={[styles.statsRow, { transform: [{ translateY: statsAnim }], opacity: statsOpacity }]}>
-                <StatCard value={students} label="Estudiantes" color={Colors.primary} />
-                <StatCard value={approved} label="Aprobados" color={Colors.success} />
-                <StatCard value={sections} label="Secciones" color={Colors.warning} />
+                {isLoading ? (
+                    <>
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                    </>
+                ) : (
+                    <>
+                        <StatCard value={students} label="Estudiantes" color={Colors.primary} />
+                        <StatCard value={approved} label="Aprobados" color={Colors.success} />
+                        <StatCard value={sections} label="Secciones" color={Colors.warning} />
+                    </>
+                )}
             </Animated.View>
 
             {/* Rendimiento */}
             <View style={styles.row}>
                 <View style={styles.halfCol}>
                     <Card title="Rendimiento" delay={200} style={styles.fullHeight}>
-                        <View style={styles.perfSection}>
-                            <RingGauge percentage={approvalPct} color={Colors.warning} gradientColor="#d97706" label="Tasa" size={100} strokeWidth={12} />
-                            <View style={styles.perfLegend}>
-                                <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
-                                    <Text style={styles.legendText}>{approved} Apr.</Text>
-                                </View>
-                                <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
-                                    <Text style={styles.legendText}>{students - approved} Rep.</Text>
+                        {isLoading ? (
+                            <ChartSkeleton type="ring" size={100} />
+                        ) : (
+                            <View style={styles.perfSection}>
+                                <RingGauge percentage={approvalPct} color={Colors.warning} gradientColor="#d97706" label="Tasa" size={100} strokeWidth={12} />
+                                <View style={styles.perfLegend}>
+                                    <View style={styles.legendItem}>
+                                        <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
+                                        <Text style={styles.legendText}>{approved} Apr.</Text>
+                                    </View>
+                                    <View style={styles.legendItem}>
+                                        <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
+                                        <Text style={styles.legendText}>{students - approved} Rep.</Text>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
+                        )}
                     </Card>
                 </View>
 
                 {/* Estudiantes con Mención */}
                 <View style={styles.halfCol}>
                     <Card title="Menciones" delay={300} style={styles.fullHeight}>
-                        {d?.tecnicoStudentPreviews?.length ? (
+                        {isLoading ? (
+                            <View style={styles.mentionsList}>
+                                <ListRowSkeleton hasAvatar />
+                                <ListRowSkeleton hasAvatar />
+                                <ListRowSkeleton hasAvatar />
+                            </View>
+                        ) : d?.tecnicoStudentPreviews?.length ? (
                             <View style={styles.mentionsList}>
                                 {d.tecnicoStudentPreviews.slice(0, 4).map((st: StudentPreview, i) => (
                                     <View key={i} style={styles.mentionRow}>
@@ -98,7 +134,13 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d }) => {
 
             {/* Top 3 Estudiantes */}
             <Card title="Top 3 por Sección" delay={400}>
-                {levelDashboard?.top_students_by_section?.length ? (
+                {isLoading ? (
+                    <>
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
+                    </>
+                ) : levelDashboard?.top_students_by_section?.length ? (
                     levelDashboard.top_students_by_section.map((sec, i) => (
                         <View key={i} style={styles.topSection}>
                             <View style={styles.topSectionHeader}>

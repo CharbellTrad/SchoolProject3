@@ -183,6 +183,39 @@ export const createShimmerAnimation = (
     );
 };
 
+/**
+ * Create enhanced diagonal shimmer animation for skeleton loading
+ * Longer duration (1.8s) with smooth ease-in-out for premium feel
+ */
+export const createDiagonalShimmerAnimation = (
+    translateX: Animated.Value,
+    width: number
+): Animated.CompositeAnimation => {
+    return Animated.loop(
+        Animated.timing(translateX, {
+            toValue: width * 2,
+            duration: 1800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+        })
+    );
+};
+
+/**
+ * Create fade transition animation for skeleton → content
+ */
+export const createFadeTransition = (
+    opacity: Animated.Value,
+    duration = 300
+): Animated.CompositeAnimation => {
+    return Animated.timing(opacity, {
+        toValue: 1,
+        duration,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+    });
+};
+
 // ==================== COUNTER ANIMATION ====================
 
 /**
@@ -285,6 +318,8 @@ export default {
     createPulseAnimation,
     createStaggeredAnimation,
     createShimmerAnimation,
+    createDiagonalShimmerAnimation,
+    createFadeTransition,
     animateCounter,
     animateTabIndicator,
     createGlowAnimation,

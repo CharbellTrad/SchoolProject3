@@ -1,6 +1,6 @@
 /**
  * LevelTab - enhanced visual design
- * Features: Staggered animations, enhanced stats
+ * Features: Staggered animations, enhanced stats, skeleton loading
  */
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
@@ -9,16 +9,29 @@ import Colors from '../../../constants/Colors';
 import { DashboardData, SectionPreview } from '../../../services-odoo/dashboardService';
 import { slideUpFadeIn } from '../animations';
 import { RingGauge } from '../charts';
-import { Card, Empty, InfoNote, ListRow, RankBadge, StatCard } from '../ui';
+import {
+    Card,
+    ChartSkeleton,
+    ConfigRowSkeleton,
+    Empty,
+    InfoNote,
+    ListRow,
+    ListRowSkeleton,
+    RankBadge,
+    SectionRowSkeleton,
+    StatCard,
+    StatCardSkeleton
+} from '../ui';
 
 interface Props {
     level: 'secundary' | 'primary' | 'pre';
     levelName: string;
     data: DashboardData | null;
     color: string;
+    loading?: boolean;
 }
 
-export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) => {
+export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, loading }) => {
     // Get level-specific data (same logic as before)
     const students = level === 'secundary' ? d?.studentsByLevel.secundaryCount
         : level === 'primary' ? d?.studentsByLevel.primaryCount
@@ -42,6 +55,7 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
 
     const approvalPct = students && students > 0 ? ((approved || 0) / students) * 100 : 0;
     const showSubjects = level !== 'pre';
+    const isLoading = loading || !d;
 
     // Animation for Stats Row
     const statsAnim = useRef(new Animated.Value(0)).current;
@@ -55,7 +69,9 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
         <View style={styles.container}>
             {/* Configuración de Evaluación */}
             <Card title="Configuración" delay={0}>
-                {evalConfig ? (
+                {isLoading ? (
+                    <ConfigRowSkeleton />
+                ) : evalConfig ? (
                     <View style={styles.configRow}>
                         <View style={[styles.configIcon, { backgroundColor: color + '15' }]}>
                             <Ionicons name="settings-outline" size={20} color={color} />
@@ -73,16 +89,28 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
 
             {/* Estadísticas Row - Animated */}
             <Animated.View style={[styles.statsRow, { transform: [{ translateY: statsAnim }], opacity: statsOpacity }]}>
-                <StatCard value={students ?? 0} label="Estudiantes" color={Colors.primary} />
-                <StatCard value={approved ?? 0} label="Aprobados" color={Colors.success} />
-                <StatCard value={sections ?? 0} label="Secciones" color={color} />
+                {isLoading ? (
+                    <>
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                    </>
+                ) : (
+                    <>
+                        <StatCard value={students ?? 0} label="Estudiantes" color={Colors.primary} />
+                        <StatCard value={approved ?? 0} label="Aprobados" color={Colors.success} />
+                        <StatCard value={sections ?? 0} label="Secciones" color={color} />
+                    </>
+                )}
             </Animated.View>
 
             {/* Rendimiento */}
             <View style={styles.row}>
                 <View style={styles.halfCol}>
                     <Card title="Rendimiento" delay={200} style={styles.fullHeight}>
-                        {perf ? (
+                        {isLoading ? (
+                            <ChartSkeleton type="ring" size={100} />
+                        ) : perf ? (
                             <View style={styles.perfSection}>
                                 <RingGauge percentage={approvalPct} color={color} label="Tasa" size={100} strokeWidth={12} />
                                 <View style={styles.perfStats}>
@@ -102,8 +130,15 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
 
                 {/* Secciones List */}
                 <View style={styles.halfCol}>
-                    <Card title={`Secciones (${sectionPreviews.length})`} delay={300} style={styles.fullHeight}>
-                        {sectionPreviews.length > 0 ? (
+                    <Card title={isLoading ? "Secciones" : `Secciones (${sectionPreviews.length})`} delay={300} style={styles.fullHeight}>
+                        {isLoading ? (
+                            <View style={styles.sectionsList}>
+                                <SectionRowSkeleton />
+                                <SectionRowSkeleton />
+                                <SectionRowSkeleton />
+                                <SectionRowSkeleton />
+                            </View>
+                        ) : sectionPreviews.length > 0 ? (
                             <View style={styles.sectionsList}>
                                 {sectionPreviews.slice(0, 4).map((sec: SectionPreview, i) => (
                                     <View key={i} style={styles.sectionRow}>
@@ -123,7 +158,13 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color }) 
 
             {/* Top 3 Estudiantes por Sección */}
             <Card title="Top 3 Estudiantes por Sección" delay={400}>
-                {levelDashboard?.top_students_by_section?.length ? (
+                {isLoading ? (
+                    <>
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
+                    </>
+                ) : levelDashboard?.top_students_by_section?.length ? (
                     levelDashboard.top_students_by_section.map((sec, i) => (
                         <View key={i} style={styles.topSection}>
                             <View style={styles.topSectionHeader}>
