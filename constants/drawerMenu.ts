@@ -64,25 +64,25 @@ export const DRAWER_MENU: DrawerMenuSection[] = [
                         id: 'active_sections',
                         label: 'Secciones Activas',
                         icon: 'layers-outline',
-                        route: '/admin/academic-management/section-subject/sections-list',
+                        route: '/admin/academic-management/daily-operations/sections-list',
                     },
                     {
                         id: 'current_students',
                         label: 'Estudiantes del Año',
                         icon: 'people-outline',
-                        route: '/admin/academic-management/lists-persons/students-list',
+                        route: '/admin/academic-management/daily-operations/students-list',
                     },
                     {
                         id: 'assigned_teachers',
                         label: 'Docentes Asignados',
                         icon: 'person-outline',
-                        disabled: true, // TODO: Implementar school.professor del año actual
+                        route: '/admin/academic-management/daily-operations/professors-list',
                     },
                     {
                         id: 'current_evaluations',
                         label: 'Evaluaciones en Curso',
                         icon: 'document-text-outline',
-                        disabled: true, // TODO: Implementar school.evaluation del año actual
+                        route: '/admin/academic-management/daily-operations/evaluations-list',
                     },
                 ],
             } as DrawerMenuSection,

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+        <!-- ============================================== -->
+        <!-- 1. ESTUDIANTES DE PREESCOLAR                   -->
+        <!-- ============================================== -->
 
         <!-- Sofía - 1er Nivel Preescolar -->
         <record id="student_sofia_preescolar" model="school.student">
@@ -15,6 +18,9 @@
             <field name="size_shirt">xs</field>
             <field name="size_pants">4</field>
             <field name="size_shoes">25</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-10</field>
+            <field name="parent_siganture_date">2024-09-10</field>
         </record>
         
         <!-- Matías - 2do Nivel Preescolar -->
@@ -29,6 +35,9 @@
             <field name="size_shirt">s</field>
             <field name="size_pants">6</field>
             <field name="size_shoes">27</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-11</field>
+            <field name="parent_siganture_date">2024-09-11</field>
         </record>
         
         <!-- Lucía - 3er Nivel Preescolar -->
@@ -43,13 +52,16 @@
             <field name="size_shirt">s</field>
             <field name="size_pants">6</field>
             <field name="size_shoes">28</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-12</field>
+            <field name="parent_siganture_date">2024-09-12</field>
         </record>
         
         <!-- ============================================== -->
         <!-- 2. ESTUDIANTES DE PRIMARIA                     -->
         <!-- ============================================== -->
         
-        <!-- Andrés - 1er Grado -->
+        <!-- Andrés - 1er Grado A -->
         <record id="student_andres_primaria" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_primaria_1_a"/>
@@ -62,9 +74,12 @@
             <field name="size_shirt">m</field>
             <field name="size_pants">8</field>
             <field name="size_shoes">30</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-05</field>
+            <field name="parent_siganture_date">2024-09-05</field>
         </record>
         
-        <!-- Valentina - 3er Grado -->
+        <!-- Valentina - 3er Grado A -->
         <record id="student_valentina_primaria" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_primaria_3_a"/>
@@ -77,13 +92,16 @@
             <field name="size_shirt">m</field>
             <field name="size_pants">10</field>
             <field name="size_shoes">33</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-06</field>
+            <field name="parent_siganture_date">2024-09-06</field>
         </record>
         
         <!-- ============================================== -->
         <!-- 3. ESTUDIANTES DE MEDIA GENERAL                -->
         <!-- ============================================== -->
         
-        <!-- Diego - 1er Año Media -->
+        <!-- Diego - 1er Año Media A -->
         <record id="student_diego_media" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_media_1_a"/>
@@ -96,9 +114,12 @@
             <field name="size_shirt">l</field>
             <field name="size_pants">14</field>
             <field name="size_shoes">38</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-03</field>
+            <field name="parent_siganture_date">2024-09-03</field>
         </record>
         
-        <!-- Gabriel - 1er Año Media -->
+        <!-- Gabriel - 1er Año Media A -->
         <record id="student_gabriel_media" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_media_1_a"/>
@@ -111,9 +132,12 @@
             <field name="size_shirt">l</field>
             <field name="size_pants">14</field>
             <field name="size_shoes">39</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-03</field>
+            <field name="parent_siganture_date">2024-09-03</field>
         </record>
         
-        <!-- Carolina - 3er Año Media -->
+        <!-- Carolina - 3er Año Media B -->
         <record id="student_carolina_media" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_media_3_b"/>
@@ -126,9 +150,14 @@
             <field name="size_pants">38</field>
             <field name="size_shoes">37</field>
             <field name="mention_id" ref="mention_informatica"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-02</field>
+            <field name="parent_siganture_date">2024-09-02</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-15</field>
         </record>
         
-        <!-- Luis Fernando - 4to Año Media -->
+        <!-- Luis Fernando - 4to Año Media A -->
         <record id="student_luis_media" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_media_4_a"/>
@@ -141,9 +170,14 @@
             <field name="size_pants">32</field>
             <field name="size_shoes">42</field>
             <field name="mention_id" ref="mention_electricidad"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-02</field>
+            <field name="parent_siganture_date">2024-09-02</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-16</field>
         </record>
         
-        <!-- María José - 5to Año Media -->
+        <!-- María José - 5to Año Media A -->
         <record id="student_mariajose_media" model="school.student">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="section_id" ref="section_media_5_a"/>
@@ -156,6 +190,292 @@
             <field name="size_pants">28</field>
             <field name="size_shoes">38</field>
             <field name="mention_id" ref="mention_comercio"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-01</field>
+            <field name="parent_siganture_date">2024-09-01</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-14</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 4. ESTUDIANTES ADICIONALES INSCRITOS           -->
+        <!-- ============================================== -->
+        
+        <!-- Emma - 1er Nivel Preescolar -->
+        <record id="student_emma_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_1_a"/>
+            <field name="student_id" ref="partner_estudiante_11"/>
+            <field name="parent_id" ref="partner_representante_6"/>
+            <field name="from_school">Centro Maternal Mi Casita</field>
+            <field name="observations">Primera experiencia escolar. Buena adaptación.</field>
+            <field name="height">0.98</field>
+            <field name="weight">19.0</field>
+            <field name="size_shirt">xs</field>
+            <field name="size_pants">4</field>
+            <field name="size_shoes">26</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-10</field>
+            <field name="parent_siganture_date">2024-09-10</field>
+        </record>
+        
+        <!-- Santiago - 2do Nivel Preescolar -->
+        <record id="student_santiago_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_2_a"/>
+            <field name="student_id" ref="partner_estudiante_12"/>
+            <field name="parent_id" ref="partner_representante_7"/>
+            <field name="from_school">Preescolar Rayito de Luz</field>
+            <field name="height">1.00</field>
+            <field name="weight">19.5</field>
+            <field name="size_shirt">s</field>
+            <field name="size_pants">5</field>
+            <field name="size_shoes">27</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-11</field>
+            <field name="parent_siganture_date">2024-09-11</field>
+        </record>
+        
+        <!-- Daniela - 3er Nivel Preescolar -->
+        <record id="student_daniela_preescolar" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_preescolar_3_a"/>
+            <field name="student_id" ref="partner_estudiante_13"/>
+            <field name="parent_id" ref="partner_representante_8"/>
+            <field name="from_school">Guardería Mis Primeros Pasos</field>
+            <field name="height">1.05</field>
+            <field name="weight">20.5</field>
+            <field name="size_shirt">s</field>
+            <field name="size_pants">6</field>
+            <field name="size_shoes">28</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-12</field>
+            <field name="parent_siganture_date">2024-09-12</field>
+        </record>
+        
+        <!-- Sebastián - 1er Grado B -->
+        <record id="student_sebastian_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_1_b"/>
+            <field name="student_id" ref="partner_estudiante_14"/>
+            <field name="parent_id" ref="partner_representante_9"/>
+            <field name="from_school">Preescolar Semillitas</field>
+            <field name="observations">Transición de preescolar. Muy entusiasta.</field>
+            <field name="height">1.18</field>
+            <field name="weight">25.0</field>
+            <field name="size_shirt">m</field>
+            <field name="size_pants">8</field>
+            <field name="size_shoes">31</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-05</field>
+            <field name="parent_siganture_date">2024-09-05</field>
+        </record>
+        
+        <!-- Camila - 2do Grado B -->
+        <record id="student_camila_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_2_b"/>
+            <field name="student_id" ref="partner_estudiante_15"/>
+            <field name="parent_id" ref="partner_representante_10"/>
+            <field name="from_school">Escuela Básica Los Próceres</field>
+            <field name="height">1.25</field>
+            <field name="weight">28.0</field>
+            <field name="size_shirt">m</field>
+            <field name="size_pants">10</field>
+            <field name="size_shoes">32</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-06</field>
+            <field name="parent_siganture_date">2024-09-06</field>
+        </record>
+        
+        <!-- Nicolás - 4to Grado A -->
+        <record id="student_nicolas_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_4_a"/>
+            <field name="student_id" ref="partner_estudiante_16"/>
+            <field name="parent_id" ref="partner_representante_11"/>
+            <field name="from_school">Unidad Educativa Padre Machado</field>
+            <field name="observations">Excelente estudiante. Participa en competencias de matemáticas.</field>
+            <field name="height">1.38</field>
+            <field name="weight">35.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">12</field>
+            <field name="size_shoes">35</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-04</field>
+            <field name="parent_siganture_date">2024-09-04</field>
+        </record>
+        
+        <!-- Isabella - 5to Grado A -->
+        <record id="student_isabella_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_5_a"/>
+            <field name="student_id" ref="partner_estudiante_17"/>
+            <field name="parent_id" ref="partner_representante_12"/>
+            <field name="from_school">Colegio María Auxiliadora</field>
+            <field name="observations">Destacada en actividades artísticas y culturales.</field>
+            <field name="height">1.42</field>
+            <field name="weight">38.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">12</field>
+            <field name="size_shoes">36</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-04</field>
+            <field name="parent_siganture_date">2024-09-04</field>
+        </record>
+        
+        <!-- Martín - 6to Grado A -->
+        <record id="student_martin_primaria" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_primaria_6_a"/>
+            <field name="student_id" ref="partner_estudiante_18"/>
+            <field name="parent_id" ref="partner_representante_13"/>
+            <field name="from_school">Escuela Básica Andrés Bello</field>
+            <field name="observations">Último año de primaria. Buen rendimiento académico.</field>
+            <field name="height">1.50</field>
+            <field name="weight">45.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">14</field>
+            <field name="size_shoes">38</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-04</field>
+            <field name="parent_siganture_date">2024-09-04</field>
+        </record>
+        
+        <!-- Valeria - 1er Año Media B -->
+        <record id="student_valeria_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_1_b"/>
+            <field name="student_id" ref="partner_estudiante_19"/>
+            <field name="parent_id" ref="partner_representante_6"/>
+            <field name="from_school">Escuela Básica Nacional Caracas</field>
+            <field name="observations">Inicia bachillerato. Interesada en ciencias.</field>
+            <field name="height">1.58</field>
+            <field name="weight">50.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">38</field>
+            <field name="size_shoes">37</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-03</field>
+            <field name="parent_siganture_date">2024-09-03</field>
+        </record>
+        
+        <!-- Alejandro - 2do Año Media B -->
+        <record id="student_alejandro_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_2_b"/>
+            <field name="student_id" ref="partner_estudiante_20"/>
+            <field name="parent_id" ref="partner_representante_7"/>
+            <field name="from_school">Liceo Bolivariano Miranda</field>
+            <field name="observations">Buen deportista. Participa en equipo de fútbol.</field>
+            <field name="height">1.65</field>
+            <field name="weight">55.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">30</field>
+            <field name="size_shoes">40</field>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-03</field>
+            <field name="parent_siganture_date">2024-09-03</field>
+        </record>
+        
+        <!-- Adriana - 3er Año Media B -->
+        <record id="student_adriana_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="student_id" ref="partner_estudiante_21"/>
+            <field name="parent_id" ref="partner_representante_8"/>
+            <field name="observations">Excelente rendimiento. Mención Informática.</field>
+            <field name="height">1.60</field>
+            <field name="weight">52.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">36</field>
+            <field name="size_shoes">37</field>
+            <field name="mention_id" ref="mention_informatica"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-02</field>
+            <field name="parent_siganture_date">2024-09-02</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-17</field>
+        </record>
+        
+        <!-- Eduardo - 4to Año Media A -->
+        <record id="student_eduardo_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="student_id" ref="partner_estudiante_22"/>
+            <field name="parent_id" ref="partner_representante_9"/>
+            <field name="observations">Interesado en electricidad. Cursa mención técnica.</field>
+            <field name="height">1.75</field>
+            <field name="weight">65.0</field>
+            <field name="size_shirt">xl</field>
+            <field name="size_pants">32</field>
+            <field name="size_shoes">43</field>
+            <field name="mention_id" ref="mention_electricidad"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-02</field>
+            <field name="parent_siganture_date">2024-09-02</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-18</field>
+        </record>
+        
+        <!-- Fernanda - 5to Año Media A -->
+        <record id="student_fernanda_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="student_id" ref="partner_estudiante_23"/>
+            <field name="parent_id" ref="partner_representante_10"/>
+            <field name="observations">Próxima a graduarse. Excelente promedio. Mención Comercio.</field>
+            <field name="height">1.62</field>
+            <field name="weight">54.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">28</field>
+            <field name="size_shoes">38</field>
+            <field name="mention_id" ref="mention_comercio"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-01</field>
+            <field name="parent_siganture_date">2024-09-01</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-15</field>
+        </record>
+        
+        <!-- Andrés Felipe - 5to Año Media A -->
+        <record id="student_andres_felipe_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="student_id" ref="partner_estudiante_24"/>
+            <field name="parent_id" ref="partner_representante_11"/>
+            <field name="observations">Último año. Mención Informática. Interesado en programación.</field>
+            <field name="height">1.78</field>
+            <field name="weight">70.0</field>
+            <field name="size_shirt">xl</field>
+            <field name="size_pants">34</field>
+            <field name="size_shoes">44</field>
+            <field name="mention_id" ref="mention_informatica"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-01</field>
+            <field name="parent_siganture_date">2024-09-01</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-16</field>
+        </record>
+        
+        <!-- Paula - 4to Año Media A -->
+        <record id="student_paula_media" model="school.student">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="student_id" ref="partner_estudiante_25"/>
+            <field name="parent_id" ref="partner_representante_12"/>
+            <field name="observations">Destacada en humanidades. Mención Comercio.</field>
+            <field name="height">1.63</field>
+            <field name="weight">55.0</field>
+            <field name="size_shirt">l</field>
+            <field name="size_pants">28</field>
+            <field name="size_shoes">38</field>
+            <field name="mention_id" ref="mention_comercio"/>
+            <field name="state">done</field>
+            <field name="inscription_date">2024-09-02</field>
+            <field name="parent_siganture_date">2024-09-02</field>
+            <field name="mention_state">enrolled</field>
+            <field name="mention_inscription_date">2024-09-17</field>
         </record>
 
 </odoo>

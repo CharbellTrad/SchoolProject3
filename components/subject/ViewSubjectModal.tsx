@@ -29,7 +29,7 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const snapPoints = useMemo(() => ['90%'], []);
-  
+
   const [sectionsExpanded, setSectionsExpanded] = useState(false);
   const [professorsExpanded, setProfessorsExpanded] = useState(false);
 
@@ -72,7 +72,7 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
   // Mostrar solo los primeros 6 items cuando está colapsado
   const displayedSections = sectionsExpanded ? assignedSections : assignedSections.slice(0, 6);
   const displayedProfessors = professorsExpanded ? assignedProfessors : assignedProfessors.slice(0, 6);
-  
+
   const hasMoreSections = assignedSections.length > 6;
   const hasMoreProfessors = assignedProfessors.length > 6;
 
@@ -144,7 +144,7 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
                       </View>
                     ))}
                   </View>
-                  
+
                   {hasMoreSections && (
                     <TouchableOpacity
                       style={styles.expandButton}
@@ -152,15 +152,15 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
                       activeOpacity={0.7}
                     >
                       <Text style={styles.expandButtonText}>
-                        {sectionsExpanded 
-                          ? 'Ver menos' 
+                        {sectionsExpanded
+                          ? 'Ver menos'
                           : `Ver ${assignedSections.length - 6} más`
                         }
                       </Text>
-                      <Ionicons 
-                        name={sectionsExpanded ? 'chevron-up' : 'chevron-down'} 
-                        size={20} 
-                        color={Colors.primary} 
+                      <Ionicons
+                        name={sectionsExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={Colors.primary}
                       />
                     </TouchableOpacity>
                   )}
@@ -194,7 +194,7 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
                       </View>
                     ))}
                   </View>
-                  
+
                   {hasMoreProfessors && (
                     <TouchableOpacity
                       style={styles.expandButton}
@@ -202,15 +202,15 @@ export const ViewSubjectModal: React.FC<ViewSubjectModalProps> = ({
                       activeOpacity={0.7}
                     >
                       <Text style={styles.expandButtonText}>
-                        {professorsExpanded 
-                          ? 'Ver menos' 
+                        {professorsExpanded
+                          ? 'Ver menos'
                           : `Ver ${assignedProfessors.length - 6} más`
                         }
                       </Text>
-                      <Ionicons 
-                        name={professorsExpanded ? 'chevron-up' : 'chevron-down'} 
-                        size={20} 
-                        color={Colors.primary} 
+                      <Ionicons
+                        name={professorsExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={Colors.primary}
                       />
                     </TouchableOpacity>
                   )}
@@ -278,7 +278,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   bodyContent: {
-    position: 'absolute',
     paddingHorizontal: 20,
     paddingVertical: 20,
     gap: 15

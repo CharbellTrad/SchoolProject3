@@ -28,7 +28,7 @@ export const SectionFilters: React.FC<SectionFiltersProps> = ({
         onPress={() => onFilterChange('pre')}
         activeOpacity={0.7}
       >
-        <View style={[styles.filterDot, { backgroundColor: '#ec4899' }]} />
+        <View style={[styles.filterDot, { backgroundColor: Colors.levelPre }]} />
         <Text style={[
           styles.filterChipText,
           selectedFilter === 'pre' && styles.filterChipTextSelected,
@@ -45,7 +45,7 @@ export const SectionFilters: React.FC<SectionFiltersProps> = ({
         onPress={() => onFilterChange('primary')}
         activeOpacity={0.7}
       >
-        <View style={[styles.filterDot, { backgroundColor: '#3b82f6' }]} />
+        <View style={[styles.filterDot, { backgroundColor: Colors.levelPrimary }]} />
         <Text style={[
           styles.filterChipText,
           selectedFilter === 'primary' && styles.filterChipTextSelected,
@@ -62,7 +62,7 @@ export const SectionFilters: React.FC<SectionFiltersProps> = ({
         onPress={() => onFilterChange('secundary')}
         activeOpacity={0.7}
       >
-        <View style={[styles.filterDot, { backgroundColor: '#10b981' }]} />
+        <View style={[styles.filterDot, { backgroundColor: Colors.levelSecundary }]} />
         <Text style={[
           styles.filterChipText,
           selectedFilter === 'secundary' && styles.filterChipTextSelected,

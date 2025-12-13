@@ -69,6 +69,102 @@
             <field name="vat">15678901</field>
         </record>
         
+        <!-- Representante 6 -->
+        <record id="partner_representante_6" model="res.partner">
+            <field name="name">Ana Beatriz Colmenares</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 424 555-6006</field>
+            <field name="email">a.colmenares@email.com</field>
+            <field name="street">Calle Miranda, Casa #45</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">16789012</field>
+        </record>
+        
+        <!-- Representante 7 -->
+        <record id="partner_representante_7" model="res.partner">
+            <field name="name">Carlos Eduardo Rojas</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 414 555-7007</field>
+            <field name="email">c.rojas@email.com</field>
+            <field name="street">Av. Bolívar, Residencias El Sol, Piso 5</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">17890123</field>
+        </record>
+        
+        <!-- Representante 8 -->
+        <record id="partner_representante_8" model="res.partner">
+            <field name="name">Luisa Elena Medina</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 416 555-8008</field>
+            <field name="email">l.medina@email.com</field>
+            <field name="street">Calle Las Flores, Casa #12</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">18901234</field>
+        </record>
+        
+        <!-- Representante 9 -->
+        <record id="partner_representante_9" model="res.partner">
+            <field name="name">Fernando Antonio Briceño</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 426 555-9009</field>
+            <field name="email">f.briceno@email.com</field>
+            <field name="street">Av. Principal Los Ruices, Edificio Alfa</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">19012345</field>
+        </record>
+        
+        <!-- Representante 10 -->
+        <record id="partner_representante_10" model="res.partner">
+            <field name="name">Patricia del Carmen Salazar</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 424 555-1010</field>
+            <field name="email">p.salazar@email.com</field>
+            <field name="street">Calle El Rosal, Qta. Patricia</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">20123456</field>
+        </record>
+        
+        <!-- Representante 11 -->
+        <record id="partner_representante_11" model="res.partner">
+            <field name="name">Miguel Ángel Castillo</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 414 555-1111</field>
+            <field name="email">m.castillo@email.com</field>
+            <field name="street">Av. Fuerzas Armadas, Torre B, Apto 8-C</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">21234567</field>
+        </record>
+        
+        <!-- Representante 12 -->
+        <record id="partner_representante_12" model="res.partner">
+            <field name="name">Rosa María Quintero</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 416 555-1212</field>
+            <field name="email">r.quintero@email.com</field>
+            <field name="street">Calle Sucre, Casa #78</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">22345678</field>
+        </record>
+        
+        <!-- Representante 13 -->
+        <record id="partner_representante_13" model="res.partner">
+            <field name="name">Antonio José Herrera</field>
+            <field name="type_enrollment">parent</field>
+            <field name="phone">+58 412 555-1313</field>
+            <field name="email">a.herrera@email.com</field>
+            <field name="street">Calle Los Jabillos, Casa #33</field>
+            <field name="city">Caracas</field>
+            <field name="nationality">V</field>
+            <field name="vat">23456789</field>
+        </record>
+        
         <!-- ============================================== -->
         <!-- 2. ESTUDIANTES (res.partner)                   -->
         <!-- ============================================== -->
@@ -77,113 +173,331 @@
         <record id="partner_estudiante_1" model="res.partner">
             <field name="name">Andrés Eduardo Fernández García</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">E</field>
             <field name="vat">31234567</field>
             <field name="sex">M</field>
             <field name="born_date">2017-03-15</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_1"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_1')])]"/>
         </record>
         
         <record id="partner_estudiante_2" model="res.partner">
             <field name="name">Valentina Andrea Rondón López</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">E</field>
             <field name="vat">31345678</field>
             <field name="sex">F</field>
             <field name="born_date">2015-09-22</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_2"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_2')])]"/>
         </record>
         
         <!-- Estudiantes de Media General -->
         <record id="partner_estudiante_3" model="res.partner">
             <field name="name">Diego Alejandro Martínez Pérez</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">V</field>
             <field name="vat">30456789</field>
             <field name="sex">M</field>
             <field name="born_date">2009-05-10</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_3"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_3')])]"/>
         </record>
         
         <record id="partner_estudiante_4" model="res.partner">
             <field name="name">Carolina Isabel Vargas Mendoza</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">V</field>
             <field name="vat">30567890</field>
             <field name="sex">F</field>
             <field name="born_date">2008-11-28</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_4"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_4')])]"/>
         </record>
         
         <record id="partner_estudiante_5" model="res.partner">
             <field name="name">Luis Fernando Delgado Ramírez</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">V</field>
             <field name="vat">30678901</field>
             <field name="sex">M</field>
             <field name="born_date">2007-07-05</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_5"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_5')])]"/>
         </record>
         
         <record id="partner_estudiante_6" model="res.partner">
             <field name="name">María José Fernández García</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">V</field>
             <field name="vat">30789012</field>
             <field name="sex">F</field>
             <field name="born_date">2008-02-14</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_1"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_1')])]"/>
         </record>
         
         <record id="partner_estudiante_7" model="res.partner">
             <field name="name">Gabriel Andrés Rondón López</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">V</field>
             <field name="vat">30890123</field>
             <field name="sex">M</field>
             <field name="born_date">2009-08-20</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_2"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_2')])]"/>
         </record>
         
         <!-- Estudiantes de Preescolar -->
         <record id="partner_estudiante_8" model="res.partner">
             <field name="name">Sofía Elena Martínez Pérez</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">E</field>
             <field name="vat">32123456</field>
             <field name="sex">F</field>
             <field name="born_date">2019-04-12</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_3"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_3')])]"/>
         </record>
         
         <record id="partner_estudiante_9" model="res.partner">
             <field name="name">Matías Antonio Vargas Mendoza</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">E</field>
             <field name="vat">32234567</field>
             <field name="sex">M</field>
             <field name="born_date">2020-01-08</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_4"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_4')])]"/>
         </record>
         
         <record id="partner_estudiante_10" model="res.partner">
             <field name="name">Lucía Victoria Delgado Ramírez</field>
             <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
             <field name="nationality">E</field>
             <field name="vat">32345678</field>
             <field name="sex">F</field>
             <field name="born_date">2019-12-03</field>
             <field name="city">Caracas</field>
             <field name="parent_id" ref="partner_representante_5"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_5')])]"/>
         </record>
         
+        <!-- Estudiantes adicionales de Preescolar -->
+        <record id="partner_estudiante_11" model="res.partner">
+            <field name="name">Emma Isabella Colmenares Ruiz</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">32456789</field>
+            <field name="sex">F</field>
+            <field name="born_date">2019-06-20</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_6"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_6')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_12" model="res.partner">
+            <field name="name">Santiago Andrés Rojas Pérez</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">32567890</field>
+            <field name="sex">M</field>
+            <field name="born_date">2019-09-15</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_7"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_7')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_13" model="res.partner">
+            <field name="name">Daniela Victoria Medina Castro</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">32678901</field>
+            <field name="sex">F</field>
+            <field name="born_date">2020-02-28</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_8"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_8')])]"/>
+        </record>
+        
+        <!-- Estudiantes adicionales de Primaria -->
+        <record id="partner_estudiante_14" model="res.partner">
+            <field name="name">Sebastián José Briceño Mora</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">31456789</field>
+            <field name="sex">M</field>
+            <field name="born_date">2017-11-05</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_9"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_9')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_15" model="res.partner">
+            <field name="name">Camila Andrea Salazar González</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">31567890</field>
+            <field name="sex">F</field>
+            <field name="born_date">2016-08-12</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_10"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_10')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_16" model="res.partner">
+            <field name="name">Nicolás Eduardo Castillo Díaz</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">31678901</field>
+            <field name="sex">M</field>
+            <field name="born_date">2015-04-18</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_11"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_11')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_17" model="res.partner">
+            <field name="name">Isabella María Quintero Ramos</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">31789012</field>
+            <field name="sex">F</field>
+            <field name="born_date">2014-12-30</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_12"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_12')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_18" model="res.partner">
+            <field name="name">Martín Alejandro Herrera Silva</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">E</field>
+            <field name="vat">31890123</field>
+            <field name="sex">M</field>
+            <field name="born_date">2013-07-08</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_13"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_13')])]"/>
+        </record>
+        
+        <!-- Estudiantes adicionales de Media General -->
+        <record id="partner_estudiante_19" model="res.partner">
+            <field name="name">Valeria Sofía Colmenares Ruiz</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30901234</field>
+            <field name="sex">F</field>
+            <field name="born_date">2010-03-25</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_6"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_6')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_20" model="res.partner">
+            <field name="name">Alejandro David Rojas Pérez</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30012345</field>
+            <field name="sex">M</field>
+            <field name="born_date">2009-10-18</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_7"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_7')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_21" model="res.partner">
+            <field name="name">Adriana Carolina Medina Castro</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30123456</field>
+            <field name="sex">F</field>
+            <field name="born_date">2008-06-15</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_8"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_8')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_22" model="res.partner">
+            <field name="name">Eduardo José Briceño Mora</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30234567</field>
+            <field name="sex">M</field>
+            <field name="born_date">2007-01-22</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_9"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_9')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_23" model="res.partner">
+            <field name="name">Fernanda Alejandra Salazar González</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30345678</field>
+            <field name="sex">F</field>
+            <field name="born_date">2006-08-30</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_10"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_10')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_24" model="res.partner">
+            <field name="name">Andrés Felipe Castillo Díaz</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30456781</field>
+            <field name="sex">M</field>
+            <field name="born_date">2006-11-12</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_11"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_11')])]"/>
+        </record>
+        
+        <record id="partner_estudiante_25" model="res.partner">
+            <field name="name">Paula Victoria Quintero Ramos</field>
+            <field name="type_enrollment">student</field>
+            <field name="is_enrollment" eval="True"/>
+            <field name="nationality">V</field>
+            <field name="vat">30567891</field>
+            <field name="sex">F</field>
+            <field name="born_date">2007-04-05</field>
+            <field name="city">Caracas</field>
+            <field name="parent_id" ref="partner_representante_12"/>
+            <field name="parents_ids" eval="[(6, 0, [ref('partner_representante_12')])]"/>
+        </record>
+
 </odoo>

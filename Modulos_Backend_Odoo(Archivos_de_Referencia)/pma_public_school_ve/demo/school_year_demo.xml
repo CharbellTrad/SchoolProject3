@@ -13,7 +13,7 @@
             <field name="start_date_real">2024-09-16</field>
             <field name="state">active</field>
             <field name="current" eval="True"/>
-            <field name="evalution_type_secundary" ref="secundary_100"/>
+            <field name="evalution_type_secundary" ref="secundary_20"/>
             <field name="evalution_type_primary" ref="primary_literal"/>
             <field name="evalution_type_pree" ref="pre_observation"/>
         </record>
@@ -171,6 +171,324 @@
         <record id="professor_educacion_fisica" model="school.professor">
             <field name="year_id" ref="school_year_2024_2025"/>
             <field name="professor_id" ref="employee_prof_educacion_fisica"/>
+        </record>
+        
+        <!-- Profesores adicionales -->
+        <record id="professor_primaria_3" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_3"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_3_a')])]"/>
+        </record>
+        
+        <record id="professor_primaria_4" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_4"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_4_a')])]"/>
+        </record>
+        
+        <record id="professor_primaria_5" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_5"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_5_a')])]"/>
+        </record>
+        
+        <record id="professor_primaria_6" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_6"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_6_a')])]"/>
+        </record>
+        
+        <record id="professor_preescolar_1" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_preescolar_1"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_preescolar_1_a')])]"/>
+        </record>
+        
+        <record id="professor_preescolar_2" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_preescolar_2"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_preescolar_2_a')])]"/>
+        </record>
+        
+        <record id="professor_preescolar_3" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_preescolar_3"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_preescolar_3_a')])]"/>
+        </record>
+        
+        <record id="professor_geografia" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_geografia"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_geografia')])]"/>
+        </record>
+        
+        <record id="professor_contabilidad" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_contabilidad"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_contabilidad')])]"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 4. SECCIONES ADICIONALES (B)                   -->
+        <!-- ============================================== -->
+        
+        <!-- Sección B de Primaria 1er Grado -->
+        <record id="section_primaria_1_b" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_1_b"/>
+        </record>
+        
+        <!-- Sección B de Primaria 2do Grado -->
+        <record id="section_primaria_2_b" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_primaria_2_b"/>
+        </record>
+        
+        <!-- Sección B de Media 1er Año -->
+        <record id="section_media_1_b" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_1_b"/>
+        </record>
+        
+        <!-- Sección B de Media 2do Año -->
+        <record id="section_media_2_b" model="school.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="section_id" ref="register_section_media_2_b"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 5. ASIGNACIÓN DE PROFESORES A SECCIONES        -->
+        <!--    (Actualizar profes Primaria/Preescolar)     -->
+        <!-- ============================================== -->
+        
+        <!-- Actualizar primaria_1 y primaria_2 con sus secciones -->
+        <record id="professor_primaria_1" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_1"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_1_a'), ref('section_primaria_1_b')])]"/>
+        </record>
+        
+        <record id="professor_primaria_2" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_primaria_2"/>
+            <field name="section_ids" eval="[(6, 0, [ref('section_primaria_2_a'), ref('section_primaria_2_b')])]"/>
+        </record>
+        
+        <!-- Actualizar profesores de Media con sus materias -->
+        <record id="professor_matematica_media" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_matematica"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+        </record>
+        
+        <record id="professor_fisica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_fisica"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_fisica')])]"/>
+        </record>
+        
+        <record id="professor_quimica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_quimica"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_quimica')])]"/>
+        </record>
+        
+        <record id="professor_biologia" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_biologia"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_biologia')])]"/>
+        </record>
+        
+        <record id="professor_castellano" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_castellano"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+        </record>
+        
+        <record id="professor_historia" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_historia"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_historia')])]"/>
+        </record>
+        
+        <record id="professor_ingles" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_ingles"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_ingles')])]"/>
+        </record>
+        
+        <record id="professor_informatica" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_informatica"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica'), ref('subject_programacion'), ref('subject_base_datos')])]"/>
+        </record>
+        
+        <record id="professor_electricidad" model="school.professor">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="employee_prof_electricidad"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_circuitos'), ref('subject_instalaciones'), ref('subject_electronica')])]"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 6. MATERIAS ASIGNADAS A SECCIONES (school.subject) -->
+        <!-- ============================================== -->
+        
+        <!-- Matemática en secciones de Media -->
+        <record id="subject_matematica_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_matematica_media"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+        </record>
+        
+        <record id="subject_matematica_1b" model="school.subject">
+            <field name="section_id" ref="section_media_1_b"/>
+            <field name="subject_id" ref="subject_matematica_media"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+        </record>
+        
+        <record id="subject_matematica_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_matematica_media"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+        </record>
+        
+        <record id="subject_matematica_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_matematica_media"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+        </record>
+        
+        <record id="subject_matematica_5a" model="school.subject">
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_matematica_media"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+        </record>
+        
+        <!-- Física en secciones de Media -->
+        <record id="subject_fisica_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_fisica"/>
+            <field name="professor_id" ref="professor_fisica"/>
+        </record>
+        
+        <record id="subject_fisica_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_fisica"/>
+            <field name="professor_id" ref="professor_fisica"/>
+        </record>
+        
+        <record id="subject_fisica_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_fisica"/>
+            <field name="professor_id" ref="professor_fisica"/>
+        </record>
+        
+        <!-- Química en secciones de Media -->
+        <record id="subject_quimica_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_quimica"/>
+            <field name="professor_id" ref="professor_quimica"/>
+        </record>
+        
+        <record id="subject_quimica_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_quimica"/>
+            <field name="professor_id" ref="professor_quimica"/>
+        </record>
+        
+        <!-- Biología en secciones de Media -->
+        <record id="subject_biologia_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_biologia"/>
+            <field name="professor_id" ref="professor_biologia"/>
+        </record>
+        
+        <record id="subject_biologia_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_biologia"/>
+            <field name="professor_id" ref="professor_biologia"/>
+        </record>
+        
+        <!-- Castellano en secciones de Media -->
+        <record id="subject_castellano_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_castellano"/>
+            <field name="professor_id" ref="professor_castellano"/>
+        </record>
+        
+        <record id="subject_castellano_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_castellano"/>
+            <field name="professor_id" ref="professor_castellano"/>
+        </record>
+        
+        <record id="subject_castellano_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_castellano"/>
+            <field name="professor_id" ref="professor_castellano"/>
+        </record>
+        
+        <record id="subject_castellano_5a" model="school.subject">
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_castellano"/>
+            <field name="professor_id" ref="professor_castellano"/>
+        </record>
+        
+        <!-- Historia en secciones de Media -->
+        <record id="subject_historia_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_historia"/>
+            <field name="professor_id" ref="professor_historia"/>
+        </record>
+        
+        <record id="subject_historia_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_historia"/>
+            <field name="professor_id" ref="professor_historia"/>
+        </record>
+        
+        <!-- Inglés en secciones de Media -->
+        <record id="subject_ingles_1a" model="school.subject">
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_ingles"/>
+            <field name="professor_id" ref="professor_ingles"/>
+        </record>
+        
+        <record id="subject_ingles_3b" model="school.subject">
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_ingles"/>
+            <field name="professor_id" ref="professor_ingles"/>
+        </record>
+        
+        <record id="subject_ingles_5a" model="school.subject">
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_ingles"/>
+            <field name="professor_id" ref="professor_ingles"/>
+        </record>
+        
+        <!-- Informática y técnicas en 4to y 5to año -->
+        <record id="subject_programacion_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_programacion"/>
+            <field name="professor_id" ref="professor_informatica"/>
+        </record>
+        
+        <record id="subject_programacion_5a" model="school.subject">
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_programacion"/>
+            <field name="professor_id" ref="professor_informatica"/>
+        </record>
+        
+        <record id="subject_circuitos_4a" model="school.subject">
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_circuitos"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+        </record>
+        
+        <record id="subject_contabilidad_5a" model="school.subject">
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_contabilidad"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
         </record>
         
 </odoo>

@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- ============================================== -->
+        <!-- DEMO DATA: Evaluaciones y Notas de Estudiantes -->
+        <!-- ============================================== -->
+        
+        <!-- ============================================== -->
+        <!-- 1. EVALUACIONES DE MEDIA GENERAL               -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de Matemática - 1er Año A -->
+        <record id="eval_matematica_1a_1" model="school.evaluation">
+            <field name="name">Primer Examen de Matemática</field>
+            <field name="description">&lt;p&gt;Examen de evaluación sobre ecuaciones de primer grado y operaciones básicas.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_matematica_1a"/>
+            <field name="evaluation_date">2024-10-15</field>
+        </record>
+        
+        <!-- Notas Diego - 1er Año Media A -->
+        <record id="score_matematica_1a_1_diego" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_1a_1"/>
+            <field name="student_id" ref="student_diego_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- Notas Gabriel - 1er Año Media A -->
+        <record id="score_matematica_1a_1_gabriel" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_1a_1"/>
+            <field name="student_id" ref="student_gabriel_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <!-- Segunda Evaluación de Matemática - 1er Año A -->
+        <record id="eval_matematica_1a_2" model="school.evaluation">
+            <field name="name">Segundo Examen de Matemática</field>
+            <field name="description">&lt;p&gt;Evaluación sobre fracciones y números decimales.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_matematica_1a"/>
+            <field name="evaluation_date">2024-11-20</field>
+        </record>
+        
+        <record id="score_matematica_1a_2_diego" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_1a_2"/>
+            <field name="student_id" ref="student_diego_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_matematica_1a_2_gabriel" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_1a_2"/>
+            <field name="student_id" ref="student_gabriel_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <!-- Evaluación de Física - 1er Año A -->
+        <record id="eval_fisica_1a_1" model="school.evaluation">
+            <field name="name">Evaluación de Cinemática</field>
+            <field name="description">&lt;p&gt;Evaluación de introducción a la cinemática: velocidad, distancia y tiempo.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_fisica"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_fisica_1a"/>
+            <field name="evaluation_date">2024-10-25</field>
+        </record>
+        
+        <record id="score_fisica_1a_1_diego" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_1a_1"/>
+            <field name="student_id" ref="student_diego_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <record id="score_fisica_1a_1_gabriel" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_1a_1"/>
+            <field name="student_id" ref="student_gabriel_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <!-- Evaluación de Castellano - 1er Año A -->
+        <record id="eval_castellano_1a_1" model="school.evaluation">
+            <field name="name">Análisis Literario</field>
+            <field name="description">&lt;p&gt;Análisis y comprensión de textos literarios venezolanos.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_castellano"/>
+            <field name="section_id" ref="section_media_1_a"/>
+            <field name="subject_id" ref="subject_castellano_1a"/>
+            <field name="evaluation_date">2024-10-18</field>
+        </record>
+        
+        <record id="score_castellano_1a_1_diego" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_castellano_1a_1"/>
+            <field name="student_id" ref="student_diego_media"/>
+            <field name="score">14</field>
+        </record>
+        
+        <record id="score_castellano_1a_1_gabriel" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_castellano_1a_1"/>
+            <field name="student_id" ref="student_gabriel_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- Evaluaciones 3er Año Media B                   -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de Matemática - 3er Año B -->
+        <record id="eval_matematica_3b_1" model="school.evaluation">
+            <field name="name">Examen de Álgebra</field>
+            <field name="description">&lt;p&gt;Evaluación sobre sistemas de ecuaciones y polinomios.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_matematica_3b"/>
+            <field name="evaluation_date">2024-10-20</field>
+        </record>
+        
+        <record id="score_matematica_3b_1_carolina" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_3b_1"/>
+            <field name="student_id" ref="student_carolina_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_matematica_3b_1_adriana" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_3b_1"/>
+            <field name="student_id" ref="student_adriana_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <!-- Evaluación de Física - 3er Año B -->
+        <record id="eval_fisica_3b_1" model="school.evaluation">
+            <field name="name">Examen de Dinámica</field>
+            <field name="description">&lt;p&gt;Evaluación sobre leyes de Newton y fuerzas.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_fisica"/>
+            <field name="section_id" ref="section_media_3_b"/>
+            <field name="subject_id" ref="subject_fisica_3b"/>
+            <field name="evaluation_date">2024-10-28</field>
+        </record>
+        
+        <record id="score_fisica_3b_1_carolina" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_3b_1"/>
+            <field name="student_id" ref="student_carolina_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_fisica_3b_1_adriana" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_3b_1"/>
+            <field name="student_id" ref="student_adriana_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- Evaluaciones 4to Año Media A                   -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de Matemática - 4to Año A -->
+        <record id="eval_matematica_4a_1" model="school.evaluation">
+            <field name="name">Examen de Trigonometría</field>
+            <field name="description">&lt;p&gt;Evaluación sobre funciones trigonométricas y sus aplicaciones.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_matematica_4a"/>
+            <field name="evaluation_date">2024-10-22</field>
+        </record>
+        
+        <record id="score_matematica_4a_1_luis" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_4a_1"/>
+            <field name="student_id" ref="student_luis_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <record id="score_matematica_4a_1_eduardo" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_4a_1"/>
+            <field name="student_id" ref="student_eduardo_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <record id="score_matematica_4a_1_paula" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_4a_1"/>
+            <field name="student_id" ref="student_paula_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <!-- Evaluación de Física - 4to Año A -->
+        <record id="eval_fisica_4a_1" model="school.evaluation">
+            <field name="name">Examen de Electricidad</field>
+            <field name="description">&lt;p&gt;Evaluación sobre circuitos eléctricos y ley de Ohm.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_fisica"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_fisica_4a"/>
+            <field name="evaluation_date">2024-11-05</field>
+        </record>
+        
+        <record id="score_fisica_4a_1_luis" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_4a_1"/>
+            <field name="student_id" ref="student_luis_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_fisica_4a_1_eduardo" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_4a_1"/>
+            <field name="student_id" ref="student_eduardo_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_fisica_4a_1_paula" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_fisica_4a_1"/>
+            <field name="student_id" ref="student_paula_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <!-- Evaluación de Circuitos - 4to Año A (Mención Electricidad) -->
+        <record id="eval_circuitos_4a_1" model="school.evaluation">
+            <field name="name">Examen de Circuitos Básicos</field>
+            <field name="description">&lt;p&gt;Evaluación sobre análisis de circuitos eléctricos básicos.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+            <field name="section_id" ref="section_media_4_a"/>
+            <field name="subject_id" ref="subject_circuitos_4a"/>
+            <field name="evaluation_date">2024-10-30</field>
+        </record>
+        
+        <record id="score_circuitos_4a_1_luis" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_circuitos_4a_1"/>
+            <field name="student_id" ref="student_luis_media"/>
+            <field name="score">20</field>
+        </record>
+        
+        <record id="score_circuitos_4a_1_eduardo" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_circuitos_4a_1"/>
+            <field name="student_id" ref="student_eduardo_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- Evaluaciones 5to Año Media A                   -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de Matemática - 5to Año A -->
+        <record id="eval_matematica_5a_1" model="school.evaluation">
+            <field name="name">Examen de Estadística</field>
+            <field name="description">&lt;p&gt;Evaluación sobre probabilidad y estadística descriptiva.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_matematica_media"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_matematica_5a"/>
+            <field name="evaluation_date">2024-10-18</field>
+        </record>
+        
+        <record id="score_matematica_5a_1_mariajose" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_5a_1"/>
+            <field name="student_id" ref="student_mariajose_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_matematica_5a_1_fernanda" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_5a_1"/>
+            <field name="student_id" ref="student_fernanda_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_matematica_5a_1_andres" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_matematica_5a_1"/>
+            <field name="student_id" ref="student_andres_felipe_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- Evaluación de Programación - 5to Año A -->
+        <record id="eval_programacion_5a_1" model="school.evaluation">
+            <field name="name">Proyecto de Programación</field>
+            <field name="description">&lt;p&gt;Proyecto de desarrollo de una aplicación web básica.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_informatica"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_programacion_5a"/>
+            <field name="evaluation_date">2024-11-15</field>
+        </record>
+        
+        <record id="score_programacion_5a_1_mariajose" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_programacion_5a_1"/>
+            <field name="student_id" ref="student_mariajose_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <record id="score_programacion_5a_1_fernanda" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_programacion_5a_1"/>
+            <field name="student_id" ref="student_fernanda_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <record id="score_programacion_5a_1_andres" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_programacion_5a_1"/>
+            <field name="student_id" ref="student_andres_felipe_media"/>
+            <field name="score">20</field>
+        </record>
+        
+        <!-- Evaluación de Contabilidad - 5to Año A -->
+        <record id="eval_contabilidad_5a_1" model="school.evaluation">
+            <field name="name">Examen de Estados Financieros</field>
+            <field name="description">&lt;p&gt;Evaluación sobre elaboración e interpretación de estados financieros.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+            <field name="section_id" ref="section_media_5_a"/>
+            <field name="subject_id" ref="subject_contabilidad_5a"/>
+            <field name="evaluation_date">2024-11-08</field>
+        </record>
+        
+        <record id="score_contabilidad_5a_1_mariajose" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_contabilidad_5a_1"/>
+            <field name="student_id" ref="student_mariajose_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_contabilidad_5a_1_fernanda" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_contabilidad_5a_1"/>
+            <field name="student_id" ref="student_fernanda_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 2. EVALUACIONES DE PRIMARIA (Sistema Literal)  -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de 1er Grado A -->
+        <record id="eval_primaria_1a_1" model="school.evaluation">
+            <field name="name">Evaluación de Lectura</field>
+            <field name="description">&lt;p&gt;Evaluación de comprensión lectora y fluidez.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_primaria_1"/>
+            <field name="section_id" ref="section_primaria_1_a"/>
+            <field name="evaluation_date">2024-10-10</field>
+        </record>
+        
+        <record id="score_primaria_1a_1_andres" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_primaria_1a_1"/>
+            <field name="student_id" ref="student_andres_primaria"/>
+            <field name="literal_type">B</field>
+        </record>
+        
+        <!-- Evaluación de 3er Grado A -->
+        <record id="eval_primaria_3a_1" model="school.evaluation">
+            <field name="name">Evaluación de Matemáticas</field>
+            <field name="description">&lt;p&gt;Evaluación de multiplicación y división.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_primaria_3"/>
+            <field name="section_id" ref="section_primaria_3_a"/>
+            <field name="evaluation_date">2024-10-12</field>
+        </record>
+        
+        <record id="score_primaria_3a_1_valentina" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_primaria_3a_1"/>
+            <field name="student_id" ref="student_valentina_primaria"/>
+            <field name="literal_type">A</field>
+        </record>
+        
+        <!-- Evaluación de 4to Grado A -->
+        <record id="eval_primaria_4a_1" model="school.evaluation">
+            <field name="name">Evaluación de Ciencias</field>
+            <field name="description">&lt;p&gt;Evaluación sobre el sistema solar.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_primaria_4"/>
+            <field name="section_id" ref="section_primaria_4_a"/>
+            <field name="evaluation_date">2024-10-15</field>
+        </record>
+        
+        <record id="score_primaria_4a_1_nicolas" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_primaria_4a_1"/>
+            <field name="student_id" ref="student_nicolas_primaria"/>
+            <field name="literal_type">A</field>
+        </record>
+        
+        <!-- Evaluación de 5to Grado A -->
+        <record id="eval_primaria_5a_1" model="school.evaluation">
+            <field name="name">Evaluación de Historia</field>
+            <field name="description">&lt;p&gt;Evaluación sobre historia de Venezuela.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_primaria_5"/>
+            <field name="section_id" ref="section_primaria_5_a"/>
+            <field name="evaluation_date">2024-10-18</field>
+        </record>
+        
+        <record id="score_primaria_5a_1_isabella" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_primaria_5a_1"/>
+            <field name="student_id" ref="student_isabella_primaria"/>
+            <field name="literal_type">B</field>
+        </record>
+        
+        <!-- Evaluación de 6to Grado A -->
+        <record id="eval_primaria_6a_1" model="school.evaluation">
+            <field name="name">Evaluación de Lengua</field>
+            <field name="description">&lt;p&gt;Evaluación de redacción y ortografía.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_primaria_6"/>
+            <field name="section_id" ref="section_primaria_6_a"/>
+            <field name="evaluation_date">2024-10-20</field>
+        </record>
+        
+        <record id="score_primaria_6a_1_martin" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_primaria_6a_1"/>
+            <field name="student_id" ref="student_martin_primaria"/>
+            <field name="literal_type">B</field>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 3. EVALUACIONES DE PREESCOLAR (Observaciones)  -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación de 1er Nivel Preescolar -->
+        <record id="eval_preescolar_1a_1" model="school.evaluation">
+            <field name="name">Evaluación de Desarrollo Motor</field>
+            <field name="description">&lt;p&gt;Observación del desarrollo de habilidades motoras finas y gruesas.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_preescolar_1"/>
+            <field name="section_id" ref="section_preescolar_1_a"/>
+            <field name="evaluation_date">2024-10-08</field>
+        </record>
+        
+        <record id="score_preescolar_1a_1_sofia" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_1a_1"/>
+            <field name="student_id" ref="student_sofia_preescolar"/>
+            <field name="observation">&lt;p&gt;Sofía demuestra excelente desarrollo en motricidad fina. Puede recortar con tijeras y colorear dentro de las líneas. En motricidad gruesa, salta con ambos pies y mantiene el equilibrio.&lt;/p&gt;</field>
+        </record>
+        
+        <record id="score_preescolar_1a_1_emma" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_1a_1"/>
+            <field name="student_id" ref="student_emma_preescolar"/>
+            <field name="observation">&lt;p&gt;Emma está en proceso de desarrollar habilidades de motricidad fina. Muestra entusiasmo por las actividades manuales. Buena coordinación en juegos de movimiento.&lt;/p&gt;</field>
+        </record>
+        
+        <!-- Evaluación de 2do Nivel Preescolar -->
+        <record id="eval_preescolar_2a_1" model="school.evaluation">
+            <field name="name">Evaluación de Lenguaje</field>
+            <field name="description">&lt;p&gt;Observación del desarrollo del lenguaje oral y comunicación.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_preescolar_2"/>
+            <field name="section_id" ref="section_preescolar_2_a"/>
+            <field name="evaluation_date">2024-10-10</field>
+        </record>
+        
+        <record id="score_preescolar_2a_1_matias" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_2a_1"/>
+            <field name="student_id" ref="student_matias_preescolar"/>
+            <field name="observation">&lt;p&gt;Matías se expresa con claridad y amplio vocabulario. Participa activamente en las conversaciones grupales. Reconoce su nombre escrito.&lt;/p&gt;</field>
+        </record>
+        
+        <record id="score_preescolar_2a_1_santiago" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_2a_1"/>
+            <field name="student_id" ref="student_santiago_preescolar"/>
+            <field name="observation">&lt;p&gt;Santiago demuestra buen desarrollo del lenguaje. Narra experiencias personales con secuencia lógica. Le gusta escuchar cuentos y hace preguntas sobre la historia.&lt;/p&gt;</field>
+        </record>
+        
+        <!-- Evaluación de 3er Nivel Preescolar -->
+        <record id="eval_preescolar_3a_1" model="school.evaluation">
+            <field name="name">Evaluación de Pre-lectura</field>
+            <field name="description">&lt;p&gt;Observación de habilidades pre-lectoras y reconocimiento de letras.&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="professor_id" ref="professor_preescolar_3"/>
+            <field name="section_id" ref="section_preescolar_3_a"/>
+            <field name="evaluation_date">2024-10-12</field>
+        </record>
+        
+        <record id="score_preescolar_3a_1_lucia" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_3a_1"/>
+            <field name="student_id" ref="student_lucia_preescolar"/>
+            <field name="observation">&lt;p&gt;Lucía reconoce todas las vocales y varias consonantes. Intenta escribir su nombre correctamente. Muestra interés por los libros y pregunta qué dicen las palabras.&lt;/p&gt;</field>
+        </record>
+        
+        <record id="score_preescolar_3a_1_daniela" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_preescolar_3a_1"/>
+            <field name="student_id" ref="student_daniela_preescolar"/>
+            <field name="observation">&lt;p&gt;Daniela está avanzando bien en el reconocimiento de letras. Identifica las vocales y algunas consonantes. Disfruta de las actividades de lectura compartida.&lt;/p&gt;</field>
+        </record>
+
+</odoo>

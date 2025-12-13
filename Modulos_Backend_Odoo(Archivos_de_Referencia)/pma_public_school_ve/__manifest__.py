@@ -38,6 +38,12 @@
         'demo/school_students_demo.xml',
         'demo/school_year_demo.xml',
         'demo/school_enrollment_demo.xml',
+        'demo/school_evaluations_demo.xml',
+        # Generated massive demo data
+        'demo/school_students_generated.xml',
+        'demo/school_employees_generated.xml',
+        'demo/school_enrollment_generated.xml',
+        'demo/school_evaluations_generated.xml',
     ],
     'assets': {
         'web.assets_backend': [

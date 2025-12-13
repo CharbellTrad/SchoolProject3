@@ -214,7 +214,7 @@ export default function AdminDashboard() {
               </View>
             </View>
             {/* Staggered KPI Cards */}
-            <Animated.View style={[{ transform: [{ translateY: kpiTranslateY }], opacity: kpiOpacity }]}>
+            <Animated.View>
               <View style={[styles.kpiRow, { marginBottom: 65, marginTop: 15 }]}>
                 <KPICard icon="people" value={d?.kpis.totalStudentsCount ?? 0} label="Estudiantes" color={Colors.primary} loading={loading} />
                 <KPICard icon="checkmark-circle" value={d?.kpis.approvedStudentsCount ?? 0} label="Aprobados" color={Colors.success} loading={loading} />

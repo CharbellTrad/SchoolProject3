@@ -122,33 +122,43 @@
         <!-- Materias de Media General -->
         <record id="subject_matematica_media" model="school.register.subject">
             <field name="name">Matemática (Media)</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_castellano" model="school.register.subject">
             <field name="name">Castellano y Literatura</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_fisica" model="school.register.subject">
             <field name="name">Física</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_quimica" model="school.register.subject">
             <field name="name">Química</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_biologia" model="school.register.subject">
             <field name="name">Biología</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3')])]"/>
         </record>
         <record id="subject_historia" model="school.register.subject">
             <field name="name">Historia de Venezuela</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_geografia" model="school.register.subject">
             <field name="name">Geografía</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3')])]"/>
         </record>
         <record id="subject_ingles" model="school.register.subject">
             <field name="name">Inglés</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_informatica" model="school.register.subject">
             <field name="name">Informática</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         <record id="subject_educacion_fisica_media" model="school.register.subject">
             <field name="name">Educación Física (Media)</field>
+            <field name="section_ids" eval="[(6, 0, [ref('register_section_media_1'), ref('register_section_media_2'), ref('register_section_media_3'), ref('register_section_media_4'), ref('register_section_media_5')])]"/>
         </record>
         
         <!-- Materias de Menciones Técnicas -->
@@ -202,6 +212,57 @@
             <field name="code">COM</field>
             <field name="description">Mención en Comercio y Servicios Administrativos. Prepara profesionales para la gestión empresarial y comercial.</field>
             <field name="subject_ids" eval="[(6, 0, [ref('subject_contabilidad'), ref('subject_administracion'), ref('subject_mercadeo')])]"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 5. SECCIONES BASE ADICIONALES (B)              -->
+        <!-- ============================================== -->
+        
+        <!-- Primaria - Sección B -->
+        <record id="register_section_primaria_1_b" model="school.register.section">
+            <field name="name">1er Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_b"/>
+        </record>
+        <record id="register_section_primaria_2_b" model="school.register.section">
+            <field name="name">2do Grado</field>
+            <field name="type">primary</field>
+            <field name="letter_id" ref="section_letter_b"/>
+        </record>
+        
+        <!-- Media General - Sección B -->
+        <record id="register_section_media_1_b" model="school.register.section">
+            <field name="name">1er Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_b"/>
+        </record>
+        <record id="register_section_media_2_b" model="school.register.section">
+            <field name="name">2do Año</field>
+            <field name="type">secundary</field>
+            <field name="letter_id" ref="section_letter_b"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 6. MATERIAS ADICIONALES                        -->
+        <!-- ============================================== -->
+        
+        <record id="subject_arte" model="school.register.subject">
+            <field name="name">Arte y Cultura</field>
+        </record>
+        <record id="subject_orientacion" model="school.register.subject">
+            <field name="name">Orientación y Convivencia</field>
+        </record>
+        <record id="subject_musica" model="school.register.subject">
+            <field name="name">Música</field>
+        </record>
+        <record id="subject_dibujo_tecnico" model="school.register.subject">
+            <field name="name">Dibujo Técnico</field>
+        </record>
+        <record id="subject_filosofia" model="school.register.subject">
+            <field name="name">Filosofía</field>
+        </record>
+        <record id="subject_psicologia" model="school.register.subject">
+            <field name="name">Psicología</field>
         </record>
         
 </odoo>

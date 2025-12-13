@@ -28,31 +28,22 @@ export const SectionStatsCardSkeleton: React.FC = () => {
   );
 };
 
-// Skeleton para SectionFilters
+// Skeleton para SectionFilters - With internal content matching real chips
 export const SectionFiltersSkeleton: React.FC = () => {
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(shimmerAnimation, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, [shimmerAnimation]);
-
-  const opacity = shimmerAnimation.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 0.7, 0.3],
-  });
-
   return (
     <View style={styles.filtersContainer}>
-      <Animated.View style={[styles.filterChip, { opacity }]} />
-      <Animated.View style={[styles.filterChip, { opacity }]} />
-      <Animated.View style={[styles.filterChip, { opacity }]} />
+      <View style={styles.filterChipSkeleton}>
+        <View style={styles.filterDotSkeleton} />
+        <View style={styles.filterTextSkeleton} />
+      </View>
+      <View style={styles.filterChipSkeleton}>
+        <View style={styles.filterDotSkeleton} />
+        <View style={styles.filterTextSkeleton} />
+      </View>
+      <View style={styles.filterChipSkeleton}>
+        <View style={styles.filterDotSkeleton} />
+        <View style={styles.filterTextSkeleton} />
+      </View>
     </View>
   );
 };
@@ -141,7 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#e5e7eb',
   },
-  
+
   // Filters
   filtersContainer: {
     flexDirection: 'row',
@@ -153,9 +144,33 @@ const styles = StyleSheet.create({
     width: Platform.OS === 'android' ? 112 : 123.5,
     height: Platform.OS === 'android' ? 42 : 35,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#e2e8f0',
   },
-  
+  filterChipSkeleton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: Platform.OS === 'android' ? 112 : 123.5,
+    height: Platform.OS === 'android' ? 42 : 35,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  filterDotSkeleton: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#e2e8f0',
+  },
+  filterTextSkeleton: {
+    flex: 1,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#e2e8f0',
+  },
+
   // Search Bar
   searchContainer: {
     marginBottom: 8,
@@ -165,7 +180,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#e5e7eb',
   },
-  
+
   // Section Card
   cardContainer: {
     marginBottom: 12,

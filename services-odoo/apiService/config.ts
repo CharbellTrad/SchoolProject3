@@ -3,9 +3,9 @@
  */
 export const ODOO_CONFIG = {
   // host: 'http://185.111.156.32',
-  host: 'https://cautious-space-fiesta-g4vr7rvpgr9w2vgwv-8069.app.github.dev',
+  host: 'https://ominous-trout-x5gpvpg4jrqph6p64-8069.app.github.dev',
   // database: 'test',
-  database: 'odoo',
+  database: 'odooo',
 };
 
 export const SESSION_KEY = '@odoo_session_id';

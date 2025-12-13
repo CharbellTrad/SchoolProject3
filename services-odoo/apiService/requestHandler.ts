@@ -91,7 +91,7 @@ export const odooRequest = async <T = any>(
         console.log('❌ Error de Odoo:', errorMsg);
       }
 
-      return { success: false, error: responseJson.error };
+      return { success: false, error: errorMsg };
     }
 
     if (__DEV__) {

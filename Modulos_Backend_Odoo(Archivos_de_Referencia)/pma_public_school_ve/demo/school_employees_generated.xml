@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- ============================================== -->
+        <!-- PROFESORES ADICIONALES GENERADOS             -->
+        <!-- ============================================== -->
+
+        <record id="employee_prof_gen_20" model="hr.employee">
+            <field name="name">Rosa Tatiana Rivera Rojas</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+            <field name="work_email">r.rivera@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_21" model="hr.employee">
+            <field name="name">Génesis Tatiana Navarro Ruiz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Física</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_fisica')])]"/>
+            <field name="work_email">g.navarro@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_22" model="hr.employee">
+            <field name="name">Daniel Pedro Rivera Briceño</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Química</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_quimica')])]"/>
+            <field name="work_email">d.rivera@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_23" model="hr.employee">
+            <field name="name">Sergio Jesús Mendoza Sánchez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+            <field name="work_email">s.mendoza@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_24" model="hr.employee">
+            <field name="name">Héctor Daniel Flores Hernández</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestro de Educación Integral</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">h.flores@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_25" model="hr.employee">
+            <field name="name">Carmen Patricia Sánchez Paredes</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+            <field name="work_email">c.sanchez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_26" model="hr.employee">
+            <field name="name">Tatiana Andrea Castro García</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Biología</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_biologia')])]"/>
+            <field name="work_email">t.castro@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_27" model="hr.employee">
+            <field name="name">Carmen Catalina Gutiérrez Silva</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Inglés</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_ingles')])]"/>
+            <field name="work_email">c.gutierrez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_28" model="hr.employee">
+            <field name="name">Héctor Adrián Mendoza Navarro</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Historia</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_historia')])]"/>
+            <field name="work_email">h.mendoza@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_29" model="hr.employee">
+            <field name="name">Juan Luis Morales Martínez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Biología</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_biologia')])]"/>
+            <field name="work_email">j.morales@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_30" model="hr.employee">
+            <field name="name">Jorge Daniel Ramírez Briceño</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestro de Educación Integral</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">j.ramirez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_31" model="hr.employee">
+            <field name="name">Roberto Martín Ortiz Ramírez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de Educación Inicial</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">r.ortiz@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_32" model="hr.employee">
+            <field name="name">Rosa Génesis Cruz Cruz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Geografía</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_geografia')])]"/>
+            <field name="work_email">r.cruz@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_33" model="hr.employee">
+            <field name="name">Cristian Oscar Hernández Cruz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">c.hernandez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_34" model="hr.employee">
+            <field name="name">Gabriela Tatiana Díaz González</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">g.diaz@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_35" model="hr.employee">
+            <field name="name">Valentina Vanessa Contreras Paredes</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de Educación Inicial</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">v.contreras@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_36" model="hr.employee">
+            <field name="name">Víctor Manuel Mendoza Castro</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Geografía</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_geografia')])]"/>
+            <field name="work_email">v.mendoza@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_37" model="hr.employee">
+            <field name="name">Gustavo Alejandro González Ortiz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Física</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_fisica')])]"/>
+            <field name="work_email">g.gonzalez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_38" model="hr.employee">
+            <field name="name">Sergio Víctor González Vargas</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">s.gonzalez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_39" model="hr.employee">
+            <field name="name">Santiago Nicolás Ortiz Torres</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Biología</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_biologia')])]"/>
+            <field name="work_email">s.ortiz@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_40" model="hr.employee">
+            <field name="name">María Laura Jiménez Reyes</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Geografía</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_geografia')])]"/>
+            <field name="work_email">m.jimenez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_41" model="hr.employee">
+            <field name="name">Pedro Diego Navarro Ramos</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de Educación Inicial</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">p.navarro@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_42" model="hr.employee">
+            <field name="name">Laura Catalina Castillo Contreras</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+            <field name="work_email">l.castillo@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_43" model="hr.employee">
+            <field name="name">Yulimar Laura López Flores</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Historia</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_historia')])]"/>
+            <field name="work_email">y.lopez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_44" model="hr.employee">
+            <field name="name">Carolina Mariana Silva Chávez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de Educación Inicial</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">c.silva@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_45" model="hr.employee">
+            <field name="name">Lucía Mileidy Ramírez Cruz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+            <field name="work_email">l.ramirez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_46" model="hr.employee">
+            <field name="name">Rafael Manuel Jiménez Contreras</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+            <field name="work_email">r.jimenez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_47" model="hr.employee">
+            <field name="name">Santiago Alejandro Briceño Medina</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Inglés</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_ingles')])]"/>
+            <field name="work_email">s.briceno@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_48" model="hr.employee">
+            <field name="name">Jesús Martín Suárez Paredes</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+            <field name="work_email">j.suarez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_49" model="hr.employee">
+            <field name="name">Estefanía Catalina Reyes Ramos</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">e.reyes@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_50" model="hr.employee">
+            <field name="name">Jorge Víctor Mendoza Hernández</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">j.mendoza@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_51" model="hr.employee">
+            <field name="name">Antonio Alejandro Hernández Flores</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestra de Educación Inicial</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">a.hernandez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_52" model="hr.employee">
+            <field name="name">Francisco Ricardo Chávez Ruiz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+            <field name="work_email">f.chavez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_53" model="hr.employee">
+            <field name="name">Valeria Luisa Romero Ruiz</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Maestro de Educación Integral</field>
+            <field name="department_id" ref="dept_academico"/>
+            <field name="work_email">v.romero@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_54" model="hr.employee">
+            <field name="name">Cristian José Colmenares Gómez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Matemáticas</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_matematica_media')])]"/>
+            <field name="work_email">c.colmenares@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_55" model="hr.employee">
+            <field name="name">Tatiana Mariana Morales Navarro</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Docente de Informática</field>
+            <field name="department_id" ref="dept_tecnico"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_informatica')])]"/>
+            <field name="work_email">t.morales@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_56" model="hr.employee">
+            <field name="name">Gustavo Jesús Flores Navarro</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Biología</field>
+            <field name="department_id" ref="dept_ciencias"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_biologia')])]"/>
+            <field name="work_email">g.flores@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_57" model="hr.employee">
+            <field name="name">Antonio Santiago Ramírez Paredes</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Historia</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_historia')])]"/>
+            <field name="work_email">a.ramirez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_58" model="hr.employee">
+            <field name="name">Ángel Adrián Jiménez Flores</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesora de Historia</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_historia')])]"/>
+            <field name="work_email">a.jimenez@escuela.edu.ve</field>
+        </record>
+        
+        <record id="employee_prof_gen_59" model="hr.employee">
+            <field name="name">Nicolás Alejandro Silva Sánchez</field>
+            <field name="school_employee_type">docente</field>
+            <field name="job_title">Profesor de Castellano</field>
+            <field name="department_id" ref="dept_humanidades"/>
+            <field name="subject_ids" eval="[(6, 0, [ref('subject_castellano')])]"/>
+            <field name="work_email">n.silva@escuela.edu.ve</field>
+        </record>
+        
+
+</odoo>
