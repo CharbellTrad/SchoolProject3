@@ -264,7 +264,8 @@ export const getEnrolledSectionsCountByType = async (): Promise<{
  * Interface for subject with professor info
  */
 export interface SubjectWithProfessor {
-    subjectId: number;
+    subjectId: number;              // school.subject ID
+    registerSubjectId: number;      // school.register.subject ID (for professor filtering)
     subjectName: string;
     professorId: number | null;
     professorName: string | null;
@@ -302,14 +303,17 @@ export const loadSubjectsForSection = async (sectionId: number): Promise<Subject
                 professorName = record.professor_id[1];
             }
 
-            // subject_id is Many2one [id, name]
+            // subject_id is Many2one [id, name] to school.register.subject
+            let registerSubjectId = 0;
             let subjectName = '';
             if (Array.isArray(record.subject_id) && record.subject_id.length >= 2) {
+                registerSubjectId = record.subject_id[0];
                 subjectName = record.subject_id[1];
             }
 
             return {
                 subjectId: record.id,
+                registerSubjectId,
                 subjectName,
                 professorId,
                 professorName,
@@ -477,10 +481,145 @@ export const loadAvailableProfessors = async (): Promise<ProfessorForSection[]> 
 };
 
 /**
+ * Interface for master subject from catalog (school.register.subject)
+ */
+export interface RegisterSubject {
+    id: number;
+    name: string;
+}
+
+/**
+ * Carga las materias disponibles para asignar a una sección
+ * Obtiene materias del catálogo (school.register.subject) que aplican a la sección base
+ * y filtra las que ya están asignadas
+ */
+export const loadAvailableSubjectsForSection = async (
+    sectionId: number,
+    baseSectionId: number
+): Promise<RegisterSubject[]> => {
+    try {
+        if (__DEV__) {
+            console.log(`🔄 Cargando materias disponibles para sección ${sectionId}...`);
+        }
+
+        // 1. Get already assigned subjects for this section
+        const assignedResult = await odooApi.searchRead(
+            'school.subject',
+            [['section_id', '=', sectionId]],
+            ['subject_id'],
+            100
+        );
+
+        const assignedSubjectIds = assignedResult.success && assignedResult.data
+            ? assignedResult.data.map((s: any) =>
+                Array.isArray(s.subject_id) ? s.subject_id[0] : s.subject_id
+            )
+            : [];
+
+        // 2. Get subjects from catalog that apply to this base section
+        // school.register.subject has section_ids Many2many to school.register.section
+        const catalogResult = await odooApi.searchRead(
+            'school.register.subject',
+            [['section_ids', 'in', [baseSectionId]]],
+            ['id', 'name'],
+            100,
+            0,
+            'name asc'
+        );
+
+        if (!catalogResult.success || !catalogResult.data) {
+            return [];
+        }
+
+        // 3. Filter out already assigned subjects
+        const availableSubjects: RegisterSubject[] = catalogResult.data
+            .filter((s: any) => !assignedSubjectIds.includes(s.id))
+            .map((s: any) => ({
+                id: s.id,
+                name: s.name || '',
+            }));
+
+        if (__DEV__) {
+            console.log(`✅ ${availableSubjects.length} materias disponibles para sección ${sectionId}`);
+        }
+
+        return availableSubjects;
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error cargando materias disponibles:', error);
+        }
+        return [];
+    }
+};
+
+/**
+ * Carga los profesores que pueden dictar una materia específica
+ * Filtra school.professor donde:
+ * - subject_ids (Many2many a school.register.subject) incluye la materia del catálogo
+ * - year_id = el año escolar de la sección (exactamente como Odoo school_subject.py)
+ */
+export const loadProfessorsForSubject = async (
+    registerSubjectId: number,
+    yearId?: number
+): Promise<ProfessorForSection[]> => {
+    try {
+        if (__DEV__) {
+            console.log(`🔄 Cargando profesores para materia ${registerSubjectId}, año ${yearId || 'actual'}...`);
+        }
+
+        // Build domain exactly like Odoo school_subject.py _compute_available_professor_ids
+        // Filter: subject_ids contains registerSubjectId AND year_id = yearId
+        const domain: any[] = [
+            ['subject_ids', 'in', [registerSubjectId]]
+        ];
+
+        // If yearId provided, filter by year. Otherwise fall back to current year.
+        if (yearId) {
+            domain.push(['year_id', '=', yearId]);
+        } else {
+            domain.push(['current', '=', true]);
+        }
+
+        const result = await odooApi.searchRead(
+            'school.professor',
+            domain,
+            ['id', 'name'],
+            100,
+            0,
+            'name asc'
+        );
+
+        if (!result.success || !result.data || result.data.length === 0) {
+            if (__DEV__) {
+                console.log(`⚠️ No hay profesores asignados a materia ${registerSubjectId} en año ${yearId || 'actual'}`);
+            }
+            return [];
+        }
+
+        const professors: ProfessorForSection[] = result.data.map((p: any) => ({
+            professorId: p.id,
+            professorName: p.name || 'Docente',
+        }));
+
+        if (__DEV__) {
+            console.log(`✅ ${professors.length} profesores asignados a materia ${registerSubjectId}`);
+        }
+
+        return professors;
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error cargando profesores para materia:', error);
+        }
+        return [];
+    }
+};;
+
+/**
  * Invalida el caché de secciones inscritas
  */
 export const invalidateEnrolledSectionsCache = (): void => {
     cacheManager.invalidate(CACHE_KEYS.CURRENT);
     cacheManager.invalidate(CACHE_KEYS.ALL);
 };
+
 

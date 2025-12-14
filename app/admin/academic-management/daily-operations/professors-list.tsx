@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EmptyState } from '../../../../components/list';
+import { EditProfessorModal, ViewProfessorModal } from '../../../../components/professor';
 import Colors from '../../../../constants/Colors';
 import { useProfessors } from '../../../../hooks/useProfessors';
 import { Professor } from '../../../../services-odoo/professorService';
@@ -158,6 +159,10 @@ export default function ProfessorsListScreen() {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [showSkeleton, setShowSkeleton] = useState(true);
 
+    // Modal visibility states
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+
     useEffect(() => {
         if (!initialLoading && showSkeleton) {
             Animated.timing(fadeAnim, {
@@ -178,14 +183,22 @@ export default function ProfessorsListScreen() {
 
     const handleView = (professor: Professor) => {
         setSelectedProfessor(professor);
-        // TODO: Show view modal
-        showAlert('Ver Profesor', `${professor.professorName}\n${professor.sectionsCount} secciones asignadas`);
+        setShowViewModal(true);
     };
 
     const handleEdit = (professor: Professor) => {
         setSelectedProfessor(professor);
-        // TODO: Show edit modal
-        showAlert('Editar Profesor', 'Funcionalidad en desarrollo');
+        setShowEditModal(true);
+    };
+
+    const handleModalClose = () => {
+        setShowViewModal(false);
+        setShowEditModal(false);
+    };
+
+    const handleProfessorSaved = () => {
+        onRefresh();
+        handleModalClose();
     };
 
     return (
@@ -226,7 +239,7 @@ export default function ProfessorsListScreen() {
                                     return;
                                 }
                                 if (!showSkeleton) {
-                                    router.push('/admin/academic-management/daily-operations/register-professor' as any);
+                                    router.push('/admin/academic-management/daily-operations/assign-professor' as any);
                                 }
                             }}
                             disabled={isOfflineMode || showSkeleton}
@@ -322,6 +335,26 @@ export default function ProfessorsListScreen() {
                     </View>
                 </View>
             </SafeAreaProvider>
+
+            {/* Modals */}
+            <ViewProfessorModal
+                visible={showViewModal}
+                professor={selectedProfessor}
+                onClose={handleModalClose}
+                onEdit={() => {
+                    setShowViewModal(false);
+                    setShowEditModal(true);
+                }}
+                isOfflineMode={isOfflineMode}
+            />
+
+            <EditProfessorModal
+                visible={showEditModal}
+                professor={selectedProfessor}
+                onClose={handleModalClose}
+                onSaved={handleProfessorSaved}
+                onDeleted={handleProfessorSaved}
+            />
         </>
     );
 }

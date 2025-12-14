@@ -3,6 +3,7 @@
  */
 
 export const EVALUATION_MODEL = 'school.evaluation';
+export const EVALUATION_SCORE_MODEL = 'school.evaluation.score';
 
 export const EVALUATION_FIELDS = [
     'id',
@@ -23,3 +24,21 @@ export const EVALUATION_FIELDS = [
     'invisible_literal',
     'evaluation_score_ids',
 ];
+
+export const EVALUATION_SCORE_FIELDS = [
+    'id',
+    'evaluation_id',
+    'student_id',
+    'section_id',
+    'subject_id',
+    'year_id',
+    'type',
+    'score',
+    'literal_type',
+    'observation',
+    'points_20',
+    'points_100',
+    'state',
+    'state_score',
+];
+

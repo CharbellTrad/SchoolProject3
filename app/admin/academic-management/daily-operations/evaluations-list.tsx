@@ -8,6 +8,11 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+    EditEvaluationModal,
+    EvaluationScoresModal,
+    ViewEvaluationModal,
+} from '../../../../components/evaluation';
 import { EmptyState } from '../../../../components/list';
 import Colors from '../../../../constants/Colors';
 import { useEvaluations } from '../../../../hooks/useEvaluations';
@@ -177,6 +182,11 @@ export default function EvaluationsListScreen() {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [showSkeleton, setShowSkeleton] = useState(true);
 
+    // Modal visibility states
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showScoresModal, setShowScoresModal] = useState(false);
+
     useEffect(() => {
         if (!initialLoading && showSkeleton) {
             Animated.timing(fadeAnim, {
@@ -195,15 +205,37 @@ export default function EvaluationsListScreen() {
         }
     }, [initialLoading, showSkeleton, fadeAnim]);
 
+    // Modal handlers
     const handleView = (evaluation: Evaluation) => {
         setSelectedEvaluation(evaluation);
-        showAlert('Ver Evaluación', `${evaluation.name}\nProfesor: ${evaluation.professorName}\nSección: ${evaluation.sectionName}`);
+        setShowViewModal(true);
     };
 
     const handleEdit = (evaluation: Evaluation) => {
         setSelectedEvaluation(evaluation);
-        showAlert('Editar Evaluación', 'Funcionalidad en desarrollo');
+        setShowEditModal(true);
     };
+
+    const handleGrade = () => {
+        setShowViewModal(false);
+        setShowScoresModal(true);
+    };
+
+    const handleCreate = () => {
+        router.push('/admin/academic-management/daily-operations/create-evaluation');
+    };
+
+    const handleModalClose = () => {
+        setShowViewModal(false);
+        setShowEditModal(false);
+        setShowScoresModal(false);
+    };
+
+    const handleSaved = () => {
+        onRefresh();
+        handleModalClose();
+    };
+
 
     return (
         <>
@@ -233,7 +265,7 @@ export default function EvaluationsListScreen() {
                                     return;
                                 }
                                 if (!showSkeleton) {
-                                    router.push('/admin/academic-management/daily-operations/register-evaluation' as any);
+                                    handleCreate();
                                 }
                             }}
                             disabled={isOfflineMode || showSkeleton}
@@ -299,6 +331,34 @@ export default function EvaluationsListScreen() {
                     </View>
                 </View>
             </SafeAreaProvider>
+
+            {/* Modals */}
+            <ViewEvaluationModal
+                visible={showViewModal}
+                evaluation={selectedEvaluation}
+                onClose={handleModalClose}
+                onEdit={() => {
+                    setShowViewModal(false);
+                    setShowEditModal(true);
+                }}
+                onGrade={handleGrade}
+                isOfflineMode={isOfflineMode}
+            />
+
+            <EditEvaluationModal
+                visible={showEditModal}
+                evaluation={selectedEvaluation}
+                onClose={handleModalClose}
+                onSaved={handleSaved}
+                onDeleted={handleSaved}
+            />
+
+            <EvaluationScoresModal
+                visible={showScoresModal}
+                evaluation={selectedEvaluation}
+                onClose={handleModalClose}
+                onSaved={handleSaved}
+            />
         </>
     );
 }

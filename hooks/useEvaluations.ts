@@ -17,6 +17,8 @@ interface UseEvaluationsResult {
     searchMode: boolean;
     totalEvaluations: number;
     isOfflineMode: boolean;
+    // Año escolar actual
+    currentYear: { id: number; name: string } | null;
     // Conteos por estado
     countByState: { all: number; partial: number; draft: number };
     // Funciones
@@ -37,6 +39,7 @@ export const useEvaluations = (): UseEvaluationsResult => {
     const [isOfflineMode, setIsOfflineMode] = useState(false);
     const [totalEvaluations, setTotalEvaluations] = useState(0);
     const [countByState, setCountByState] = useState({ all: 0, partial: 0, draft: 0 });
+    const [currentYear, setCurrentYear] = useState<{ id: number; name: string } | null>(null);
 
     const loadInitialEvaluations = useCallback(async () => {
         try {
@@ -52,6 +55,12 @@ export const useEvaluations = (): UseEvaluationsResult => {
             setAllEvaluations(evaluationsData);
             setEvaluations(evaluationsData);
             setTotalEvaluations(evaluationsData.length);
+
+            // Extract current year from first evaluation
+            if (evaluationsData.length > 0) {
+                const firstEval = evaluationsData[0];
+                setCurrentYear({ id: firstEval.yearId, name: firstEval.yearName });
+            }
 
             if (!isOffline) {
                 const counts = await evaluationService.getCurrentEvaluationsCountByState();
@@ -174,6 +183,7 @@ export const useEvaluations = (): UseEvaluationsResult => {
         searchMode,
         totalEvaluations,
         isOfflineMode,
+        currentYear,
         countByState,
         setSearchQuery,
         exitSearchMode,

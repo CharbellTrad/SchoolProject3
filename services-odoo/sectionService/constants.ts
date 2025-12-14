@@ -11,6 +11,7 @@ export const MODELS = {
 export const SECTION_FIELDS = [
   'id',
   'name',
+  'display_name',
   'type',
 ];
 

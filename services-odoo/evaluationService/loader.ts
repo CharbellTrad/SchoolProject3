@@ -1,13 +1,13 @@
 /**
  * Funciones de carga y lectura de evaluaciones
- * Operaciones Diarias - school.evaluation
+ * Operaciones Diarias - school.evaluation y school.evaluation.score
  */
 
 import * as odooApi from '../apiService';
 import { cacheManager } from '../cache/cacheManager';
-import { EVALUATION_FIELDS, EVALUATION_MODEL } from './constants';
-import { normalizeEvaluation, normalizeEvaluations } from './normalizer';
-import { Evaluation, EvaluationFilters } from './types';
+import { EVALUATION_FIELDS, EVALUATION_MODEL, EVALUATION_SCORE_FIELDS, EVALUATION_SCORE_MODEL } from './constants';
+import { normalizeEvaluation, normalizeEvaluations, normalizeEvaluationScores } from './normalizer';
+import { Evaluation, EvaluationFilters, EvaluationScore, SelectOption } from './types';
 
 const CACHE_KEYS = {
     CURRENT: 'evaluations_current',
@@ -274,3 +274,240 @@ export const invalidateEvaluationsCache = (): void => {
     cacheManager.invalidate(CACHE_KEYS.CURRENT);
     cacheManager.invalidate(CACHE_KEYS.ALL);
 };
+
+// =====================================================
+// FUNCIONES PARA CALIFICACIONES (school.evaluation.score)
+// =====================================================
+
+/**
+ * Carga las calificaciones de una evaluación específica
+ */
+export const loadEvaluationScores = async (
+    evaluationId: number
+): Promise<EvaluationScore[]> => {
+    try {
+        if (__DEV__) {
+            console.time(`⏱️ loadEvaluationScores #${evaluationId}`);
+        }
+
+        const result = await odooApi.searchRead(
+            EVALUATION_SCORE_MODEL,
+            [['evaluation_id', '=', evaluationId]],
+            EVALUATION_SCORE_FIELDS,
+            500,
+            0,
+            'student_id asc'
+        );
+
+        if (!result.success) {
+            if (__DEV__) {
+                console.error('❌ Error cargando calificaciones:', result.error);
+            }
+            return [];
+        }
+
+        const scores = normalizeEvaluationScores(result.data || []);
+
+        if (__DEV__) {
+            console.timeEnd(`⏱️ loadEvaluationScores #${evaluationId}`);
+            console.log(`✅ ${scores.length} calificaciones cargadas`);
+        }
+
+        return scores;
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en loadEvaluationScores:', error);
+        }
+        return [];
+    }
+};
+
+/**
+ * Carga una calificación por ID
+ */
+export const loadEvaluationScoreById = async (
+    id: number
+): Promise<EvaluationScore | null> => {
+    try {
+        const result = await odooApi.read(
+            EVALUATION_SCORE_MODEL,
+            [id],
+            EVALUATION_SCORE_FIELDS
+        );
+
+        if (!result.success || !result.data || result.data.length === 0) {
+            return null;
+        }
+
+        const scores = normalizeEvaluationScores(result.data);
+        return scores[0] || null;
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en loadEvaluationScoreById:', error);
+        }
+        return null;
+    }
+};
+
+// =====================================================
+// FUNCIONES PARA FORMULARIO DE EVALUACIÓN (CASCADA)
+// =====================================================
+
+const PROFESSOR_MODEL = 'school.professor';
+const SECTION_MODEL = 'school.section';
+const SUBJECT_MODEL = 'school.subject';
+
+/**
+ * Carga profesores del año actual para el selector
+ */
+export const loadProfessorsForYear = async (): Promise<SelectOption[]> => {
+    try {
+        const result = await odooApi.searchRead(
+            PROFESSOR_MODEL,
+            [['current', '=', true]],
+            ['id', 'name', 'professor_id'],
+            500,
+            0,
+            'name asc'
+        );
+
+        if (!result.success) {
+            return [];
+        }
+
+        return (result.data || []).map((record: any) => ({
+            id: record.id,
+            name: record.name || (Array.isArray(record.professor_id) ? record.professor_id[1] : ''),
+        }));
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en loadProfessorsForYear:', error);
+        }
+        return [];
+    }
+};
+
+/**
+ * Carga secciones disponibles para un profesor
+ * Incluye secciones donde está asignado directamente y donde tiene materias
+ */
+export const loadSectionsForProfessor = async (professorId: number): Promise<SelectOption[]> => {
+    try {
+        // Buscar secciones donde el profesor está asignado directamente (pre/primary)
+        const directResult = await odooApi.searchRead(
+            SECTION_MODEL,
+            [
+                ['professor_ids', 'in', [professorId]],
+                ['current', '=', true],
+            ],
+            ['id', 'name'],
+            500,
+            0,
+            'name asc'
+        );
+
+        // Buscar secciones donde el profesor tiene materias (secundary)
+        const subjectResult = await odooApi.searchRead(
+            SUBJECT_MODEL,
+            [
+                ['professor_id', '=', professorId],
+            ],
+            ['id', 'section_id'],
+            500,
+            0
+        );
+
+        // Combinar resultados únicos
+        const sectionsMap = new Map<number, SelectOption>();
+
+        if (directResult.success && directResult.data) {
+            for (const record of directResult.data) {
+                sectionsMap.set(record.id, { id: record.id, name: record.name || '' });
+            }
+        }
+
+        if (subjectResult.success && subjectResult.data) {
+            for (const record of subjectResult.data) {
+                if (Array.isArray(record.section_id) && record.section_id.length >= 2) {
+                    const sectionId = record.section_id[0];
+                    const sectionName = record.section_id[1];
+                    if (!sectionsMap.has(sectionId)) {
+                        sectionsMap.set(sectionId, { id: sectionId, name: sectionName });
+                    }
+                }
+            }
+        }
+
+        return Array.from(sectionsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en loadSectionsForProfessor:', error);
+        }
+        return [];
+    }
+};
+
+/**
+ * Carga materias disponibles para un profesor en una sección
+ */
+export const loadSubjectsForProfessorAndSection = async (
+    professorId: number,
+    sectionId: number
+): Promise<SelectOption[]> => {
+    try {
+        const result = await odooApi.searchRead(
+            SUBJECT_MODEL,
+            [
+                ['professor_id', '=', professorId],
+                ['section_id', '=', sectionId],
+            ],
+            ['id', 'name', 'subject_id'],
+            100,
+            0,
+            'name asc'
+        );
+
+        if (!result.success) {
+            return [];
+        }
+
+        return (result.data || []).map((record: any) => {
+            let name = record.name || '';
+            // Si tiene subject_id (referencia al catálogo), usar ese nombre
+            if (Array.isArray(record.subject_id) && record.subject_id.length >= 2) {
+                name = record.subject_id[1];
+            }
+            return { id: record.id, name };
+        });
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en loadSubjectsForProfessorAndSection:', error);
+        }
+        return [];
+    }
+};
+
+/**
+ * Verifica si una sección es de tipo secundary (tiene materias)
+ */
+export const getSectionType = async (sectionId: number): Promise<'pre' | 'primary' | 'secundary' | null> => {
+    try {
+        const result = await odooApi.read(
+            SECTION_MODEL,
+            [sectionId],
+            ['type']
+        );
+
+        if (!result.success || !result.data || result.data.length === 0) {
+            return null;
+        }
+
+        return result.data[0].type || null;
+    } catch (error) {
+        if (__DEV__) {
+            console.error('❌ Error en getSectionType:', error);
+        }
+        return null;
+    }
+};
+

@@ -2,24 +2,30 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '../../constants/Colors';
 import * as authService from '../../services-odoo/authService';
 import {
+    createSectionSubject,
     deleteEnrolledSection,
+    deleteSectionSubject,
     EnrolledSection,
     loadAvailableProfessors,
+    loadAvailableSubjectsForSection,
     loadProfessorsForSection,
+    loadProfessorsForSubject,
     loadStudentsForSection,
     loadSubjectsForSection,
     ProfessorForSection,
+    RegisterSubject,
     SECTION_TYPE_COLORS,
     SECTION_TYPE_LABELS,
     StudentForSection,
     SubjectWithProfessor,
     updateEnrolledSection,
+    updateSubjectProfessor,
 } from '../../services-odoo/enrolledSectionService';
 import { showAlert } from '../showAlert';
 
@@ -65,14 +71,63 @@ const StudentRow = ({ name, state, index }: { name: string; state: string; index
     );
 };
 
-const SubjectRow = ({ subjectName, professorName, index }: { subjectName: string; professorName: string | null; index: number }) => (
-    <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-        <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{subjectName}</Text>
-        <View style={styles.professorCell}>
-            <Text style={[styles.tableCell, { color: professorName ? Colors.textPrimary : Colors.textTertiary }]} numberOfLines={1}>
-                {professorName || 'Sin asignar'}
-            </Text>
-        </View>
+// Subject Row Component - click to edit professor
+const SubjectRow = ({
+    subjectId,
+    subjectName,
+    professorName,
+    index,
+    onEdit,
+    onDelete,
+    isPendingDelete,
+    disabled,
+}: {
+    subjectId: number;
+    subjectName: string;
+    professorName: string | null;
+    index: number;
+    onEdit: (subjectId: number, subjectName: string) => void;
+    onDelete: (subjectId: number, subjectName: string) => void;
+    isPendingDelete: boolean;
+    disabled: boolean;
+}) => (
+    <View style={[
+        styles.tableRow,
+        index % 2 === 0 && styles.tableRowAlt,
+        isPendingDelete && styles.tableRowPendingDelete
+    ]}>
+        <TouchableOpacity
+            style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => onEdit(subjectId, subjectName)}
+            disabled={disabled || isPendingDelete}
+            activeOpacity={0.7}
+        >
+            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{subjectName}</Text>
+            <View style={styles.professorBadge}>
+                <Text
+                    style={[
+                        styles.professorBadgeText,
+                        professorName ? {} : { color: Colors.textTertiary, fontStyle: 'italic' },
+                    ]}
+                    numberOfLines={1}
+                >
+                    {professorName || 'Sin asignar'}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+            </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+            style={styles.deleteSubjectBtn}
+            onPress={() => onDelete(subjectId, subjectName)}
+            disabled={disabled}
+            activeOpacity={0.7}
+        >
+            {isPendingDelete ? (
+                <Ionicons name="close-circle" size={20} color={Colors.textTertiary} />
+            ) : (
+                <Ionicons name="trash-outline" size={18} color={Colors.error} />
+            )}
+        </TouchableOpacity>
     </View>
 );
 
@@ -117,10 +172,26 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
     const [studentsData, setStudentsData] = useState<StudentForSection[]>([]);
     const [subjectsData, setSubjectsData] = useState<SubjectWithProfessor[]>([]);
     const [professorsData, setProfessorsData] = useState<ProfessorForSection[]>([]);
-    const [allProfessors, setAllProfessors] = useState<ProfessorForSection[]>([]); // All available professors for selection
+    const [allProfessors, setAllProfessors] = useState<ProfessorForSection[]>([]);
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [loadingSubjects, setLoadingSubjects] = useState(false);
     const [loadingProfessors, setLoadingProfessors] = useState(false);
+
+    // Pending subject changes (for save button)
+    const [pendingSubjectDeletions, setPendingSubjectDeletions] = useState<Set<number>>(new Set());
+    const [pendingSubjectEdits, setPendingSubjectEdits] = useState<Map<number, { newProfessorId: number; newProfessorName: string }>>(new Map());
+    const [pendingSubjectAdds, setPendingSubjectAdds] = useState<{ registerSubjectId: number; registerSubjectName: string; professorId: number; professorName: string }[]>([]);
+    const [savingSubjects, setSavingSubjects] = useState(false);
+
+    // Add/Edit subject mode states
+    const [isAddingSubject, setIsAddingSubject] = useState(false);
+    const [editingSubject, setEditingSubject] = useState<SubjectWithProfessor | null>(null); // Subject being edited
+    const [availableSubjects, setAvailableSubjects] = useState<RegisterSubject[]>([]);
+    const [loadingAvailableSubjects, setLoadingAvailableSubjects] = useState(false);
+    const [selectedNewSubject, setSelectedNewSubject] = useState<RegisterSubject | null>(null);
+    const [professorsForSubject, setProfessorsForSubject] = useState<ProfessorForSection[]>([]);
+    const [loadingProfessorsForSubject, setLoadingProfessorsForSubject] = useState(false);
+    const [creatingSubject, setCreatingSubject] = useState(false);
 
     // Determine available tabs based on section type
     const tabs = useMemo<TabConfig[]>(() => {
@@ -154,10 +225,16 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
         }
     }, [visible]);
 
-    // Initialize selected professors from section data
+    // Initialize selected professors from section data and reset pending subject states
     useEffect(() => {
         if (visible && section) {
             setSelectedProfessorIds([...section.professorIds]);
+            // Reset pending subject changes when section changes
+            setPendingSubjectDeletions(new Set());
+            setPendingSubjectEdits(new Map());
+            setPendingSubjectAdds([]);
+            setEditingSubject(null);
+            setIsAddingSubject(false);
         }
     }, [visible, section]);
 
@@ -179,15 +256,19 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
         loadStudents();
     }, [visible, section?.id]);
 
-    // Load subjects for secundary
+    // Load subjects for secundary - and also load all available professors for assignment
     useEffect(() => {
         const loadSubjects = async () => {
             if (!visible || !section || section.type !== 'secundary') return;
 
             setLoadingSubjects(true);
             try {
-                const subjects = await loadSubjectsForSection(section.id);
+                const [subjects, available] = await Promise.all([
+                    loadSubjectsForSection(section.id),
+                    loadAvailableProfessors(),
+                ]);
                 setSubjectsData(subjects);
+                setAllProfessors(available);
             } catch (error) {
                 if (__DEV__) console.error('Error loading subjects:', error);
             } finally {
@@ -229,6 +310,220 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
                 ? prev.filter((id) => id !== professorId)
                 : [...prev, professorId]
         );
+    };
+
+    // Toggle pending deletion for a subject
+    const handleToggleDeleteSubject = (subjectId: number, subjectName: string) => {
+        setPendingSubjectDeletions((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(subjectId)) {
+                newSet.delete(subjectId);
+            } else {
+                newSet.add(subjectId);
+            }
+            return newSet;
+        });
+    };
+
+    // Start edit subject mode - click on a subject row
+    const handleEditSubject = async (subjectId: number, subjectName: string) => {
+        const subject = subjectsData.find((s) => s.subjectId === subjectId);
+        if (!subject) return;
+
+        setEditingSubject(subject);
+        setLoadingProfessorsForSubject(true);
+        setProfessorsForSubject([]);
+
+        try {
+            // Use registerSubjectId and yearId to filter professors exactly like Odoo
+            const professors = await loadProfessorsForSubject(subject.registerSubjectId, section?.yearId);
+            setProfessorsForSubject(professors);
+        } catch (error) {
+            if (__DEV__) console.error('Error loading professors:', error);
+            setProfessorsForSubject([]);
+        } finally {
+            setLoadingProfessorsForSubject(false);
+        }
+    };
+
+    // Select new professor for editing subject (adds to pending edits)
+    const handleSelectProfessorForEdit = (professorId: number, professorName: string) => {
+        if (!editingSubject) return;
+
+        // Add to pending edits
+        setPendingSubjectEdits((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(editingSubject.subjectId, { newProfessorId: professorId, newProfessorName: professorName });
+            return newMap;
+        });
+
+        // Update local display
+        setSubjectsData((prev) =>
+            prev.map((s) =>
+                s.subjectId === editingSubject.subjectId
+                    ? { ...s, professorId: professorId, professorName: professorName }
+                    : s
+            )
+        );
+
+        // Exit edit mode
+        setEditingSubject(null);
+        setProfessorsForSubject([]);
+    };
+
+    // Cancel edit mode
+    const handleCancelEditSubject = () => {
+        setEditingSubject(null);
+        setProfessorsForSubject([]);
+    };
+
+    // Start add subject mode
+    const handleStartAddSubject = async () => {
+        if (!section) return;
+
+        const serverHealth = await authService.checkServerHealth();
+        if (!serverHealth.ok) {
+            showAlert('Sin conexión', 'No se puede agregar sin conexión.');
+            return;
+        }
+
+        setIsAddingSubject(true);
+        setLoadingAvailableSubjects(true);
+        setSelectedNewSubject(null);
+        setProfessorsForSubject([]);
+
+        try {
+            const available = await loadAvailableSubjectsForSection(section.id, section.sectionId);
+            setAvailableSubjects(available);
+        } catch (error) {
+            if (__DEV__) console.error('Error loading available subjects:', error);
+            showAlert('Error', 'No se pudieron cargar las materias disponibles');
+        } finally {
+            setLoadingAvailableSubjects(false);
+        }
+    };
+
+    // Handle selecting a new subject
+    const handleSelectNewSubject = async (subject: RegisterSubject) => {
+        setSelectedNewSubject(subject);
+        setLoadingProfessorsForSubject(true);
+        setProfessorsForSubject([]);
+
+        try {
+            // Pass yearId to filter professors exactly like Odoo school_subject.py
+            const professors = await loadProfessorsForSubject(subject.id, section?.yearId);
+            setProfessorsForSubject(professors);
+        } catch (error) {
+            if (__DEV__) console.error('Error loading professors for subject:', error);
+            setProfessorsForSubject([]);
+        } finally {
+            setLoadingProfessorsForSubject(false);
+        }
+    };
+
+    // Handle adding new subject to pending (not immediate)
+    const handleCreateSubject = (professorId: number) => {
+        if (!selectedNewSubject) return;
+
+        const professor = professorsForSubject.find((p) => p.professorId === professorId);
+
+        // Add to pending adds
+        setPendingSubjectAdds((prev) => [
+            ...prev,
+            {
+                registerSubjectId: selectedNewSubject.id,
+                registerSubjectName: selectedNewSubject.name,
+                professorId,
+                professorName: professor?.professorName || 'Sin asignar',
+            },
+        ]);
+
+        // Remove from available list
+        setAvailableSubjects((prev) => prev.filter((s) => s.id !== selectedNewSubject.id));
+
+        // Reset add mode
+        setIsAddingSubject(false);
+        setSelectedNewSubject(null);
+        setProfessorsForSubject([]);
+    };
+
+    // Cancel add mode
+    const handleCancelAddSubject = () => {
+        setIsAddingSubject(false);
+        setSelectedNewSubject(null);
+        setAvailableSubjects([]);
+        setProfessorsForSubject([]);
+    };
+
+    // Check if there are pending subject changes
+    const hasSubjectChanges = pendingSubjectDeletions.size > 0 || pendingSubjectEdits.size > 0 || pendingSubjectAdds.length > 0;
+
+    // Save all pending subject changes
+    const handleSaveSubjectChanges = async () => {
+        if (!section) return;
+
+        const serverHealth = await authService.checkServerHealth();
+        if (!serverHealth.ok) {
+            showAlert('Sin conexión', 'No se puede guardar sin conexión.');
+            return;
+        }
+
+        setSavingSubjects(true);
+        let hasErrors = false;
+
+        try {
+            // Process pending adds
+            for (const add of pendingSubjectAdds) {
+                const result = await createSectionSubject(section.id, add.registerSubjectId, add.professorId);
+                if (!result.success) {
+                    showAlert('Error', result.message || `Error al agregar ${add.registerSubjectName}`);
+                    hasErrors = true;
+                } else if (result.data) {
+                    // Add to local state
+                    const newSubject: SubjectWithProfessor = {
+                        subjectId: result.data,
+                        registerSubjectId: add.registerSubjectId,
+                        subjectName: add.registerSubjectName,
+                        professorId: add.professorId,
+                        professorName: add.professorName,
+                    };
+                    setSubjectsData((prev) => [...prev, newSubject]);
+                }
+            }
+
+            // Process pending professor edits
+            for (const [subjectId, edit] of pendingSubjectEdits) {
+                const result = await updateSubjectProfessor(subjectId, edit.newProfessorId);
+                if (!result.success) {
+                    showAlert('Error', result.message || `Error al actualizar materia`);
+                    hasErrors = true;
+                }
+            }
+
+            // Process pending deletions
+            for (const subjectId of pendingSubjectDeletions) {
+                const result = await deleteSectionSubject(subjectId);
+                if (!result.success) {
+                    showAlert('Error', result.message || `Error al eliminar materia`);
+                    hasErrors = true;
+                } else {
+                    setSubjectsData((prev) => prev.filter((s) => s.subjectId !== subjectId));
+                }
+            }
+
+            if (!hasErrors) {
+                showAlert('Éxito', 'Cambios guardados correctamente');
+            }
+
+            // Clear pending changes
+            setPendingSubjectDeletions(new Set());
+            setPendingSubjectEdits(new Map());
+            setPendingSubjectAdds([]);
+        } catch (error: any) {
+            showAlert('Error', error.message || 'Error inesperado');
+        } finally {
+            setSavingSubjects(false);
+        }
     };
 
     const handleSave = async () => {
@@ -326,107 +621,312 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
     const hasChanges = canEditProfessors &&
         JSON.stringify([...selectedProfessorIds].sort()) !== JSON.stringify([...section.professorIds].sort());
 
-    // Tab Content Renderers
     const renderStudentsTab = () => (
         <View style={styles.tabContent}>
-            <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Estudiante</Text>
-                <View style={styles.stateBadge}>
-                    <Text style={[styles.tableHeaderText, { textAlign: 'center' }]}>Estado</Text>
+            {/* Table Container */}
+            <View style={styles.tableContainer}>
+                {/* Table Header */}
+                <View style={styles.tableHeader}>
+                    <Text style={[styles.tableHeaderText, { flex: 1 }]}>Estudiante</Text>
+                    <View style={styles.stateBadge}>
+                        <Text style={[styles.tableHeaderText, { textAlign: 'center' }]}>Estado</Text>
+                    </View>
                 </View>
-            </View>
 
-            {loadingStudents ? (
-                <View style={styles.loadingPlaceholder}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.infoText}>Cargando estudiantes...</Text>
-                </View>
-            ) : studentsData.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Ionicons name="people-outline" size={40} color={Colors.textTertiary} />
-                    <Text style={styles.emptyText}>No hay estudiantes inscritos</Text>
-                </View>
-            ) : (
-                <ScrollView style={styles.tableBody} nestedScrollEnabled>
-                    {studentsData.map((student, index) => (
-                        <StudentRow key={student.studentId} name={student.studentName} state={student.state} index={index} />
-                    ))}
-                </ScrollView>
-            )}
+                {/* Table Body */}
+                {loadingStudents ? (
+                    <View style={styles.loadingPlaceholder}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                        <Text style={styles.infoText}>Cargando estudiantes...</Text>
+                    </View>
+                ) : studentsData.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="people-outline" size={40} color={Colors.textTertiary} />
+                        <Text style={styles.emptyText}>No hay estudiantes inscritos</Text>
+                    </View>
+                ) : (
+                    <View style={styles.tableBody}>
+                        <ScrollView style={{ maxHeight: 280 }} nestedScrollEnabled>
+                            {studentsData.map((student, index) => (
+                                <StudentRow key={student.studentId} name={student.studentName} state={student.state} index={index} />
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+            </View>
         </View>
     );
 
     const renderSubjectsTab = () => (
         <View style={styles.tabContent}>
-            <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Materia</Text>
-                <View style={styles.professorCell}>
-                    <Text style={styles.tableHeaderText}>Profesor</Text>
-                </View>
-            </View>
+            {/* Add Subject Mode */}
+            {isAddingSubject ? (
+                <View style={styles.addSubjectContainer}>
+                    {/* Header */}
+                    <View style={styles.addSubjectHeader}>
+                        <Text style={styles.addSubjectTitle}>
+                            {selectedNewSubject ? 'Seleccionar Profesor' : 'Seleccionar Materia'}
+                        </Text>
+                        <TouchableOpacity onPress={handleCancelAddSubject} activeOpacity={0.7}>
+                            <Ionicons name="close-circle" size={24} color={Colors.textTertiary} />
+                        </TouchableOpacity>
+                    </View>
 
-            {loadingSubjects ? (
-                <View style={styles.loadingPlaceholder}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.infoText}>Cargando materias...</Text>
-                </View>
-            ) : subjectsData.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Ionicons name="book-outline" size={40} color={Colors.textTertiary} />
-                    <Text style={styles.emptyText}>No hay materias asignadas</Text>
+                    {/* Step 1: Select Subject */}
+                    {!selectedNewSubject && (
+                        <View style={styles.addSubjectList}>
+                            {loadingAvailableSubjects ? (
+                                <View style={styles.loadingPlaceholder}>
+                                    <ActivityIndicator size="large" color={Colors.primary} />
+                                    <Text style={styles.infoText}>Cargando materias...</Text>
+                                </View>
+                            ) : availableSubjects.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="checkmark-circle" size={40} color={Colors.success} />
+                                    <Text style={styles.emptyText}>Todas las materias están asignadas</Text>
+                                </View>
+                            ) : (
+                                <ScrollView style={{ maxHeight: 250 }} nestedScrollEnabled>
+                                    {availableSubjects.map((subject) => (
+                                        <TouchableOpacity
+                                            key={subject.id}
+                                            style={styles.addSubjectItem}
+                                            onPress={() => handleSelectNewSubject(subject)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons name="book" size={18} color={Colors.primary} />
+                                            <Text style={styles.addSubjectItemText}>{subject.name}</Text>
+                                            <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+                    )}
+
+                    {/* Step 2: Select Professor */}
+                    {selectedNewSubject && (
+                        <View style={styles.addSubjectList}>
+                            <View style={styles.selectedSubjectBadge}>
+                                <Ionicons name="book" size={16} color={Colors.primary} />
+                                <Text style={styles.selectedSubjectText}>{selectedNewSubject.name}</Text>
+                            </View>
+
+                            {loadingProfessorsForSubject ? (
+                                <View style={styles.loadingPlaceholder}>
+                                    <ActivityIndicator size="large" color={Colors.primary} />
+                                    <Text style={styles.infoText}>Cargando profesores...</Text>
+                                </View>
+                            ) : professorsForSubject.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="person-outline" size={40} color={Colors.textTertiary} />
+                                    <Text style={styles.emptyText}>No hay profesores disponibles</Text>
+                                </View>
+                            ) : (
+                                <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                                    {professorsForSubject.map((professor: ProfessorForSection) => (
+                                        <TouchableOpacity
+                                            key={professor.professorId}
+                                            style={styles.addSubjectItem}
+                                            onPress={() => handleCreateSubject(professor.professorId)}
+                                            disabled={creatingSubject}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons name="person" size={18} color={Colors.secondary} />
+                                            <Text style={styles.addSubjectItemText}>{professor.professorName}</Text>
+                                            {creatingSubject ? (
+                                                <ActivityIndicator size="small" color={Colors.primary} />
+                                            ) : (
+                                                <Ionicons name="add-circle" size={20} color={Colors.success} />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+                    )}
                 </View>
             ) : (
-                <ScrollView style={styles.tableBody} nestedScrollEnabled>
-                    {subjectsData.map((subject, index) => (
-                        <SubjectRow key={subject.subjectId} subjectName={subject.subjectName} professorName={subject.professorName} index={index} />
-                    ))}
-                </ScrollView>
-            )}
+                <>
+                    {/* Table Container */}
+                    <View style={styles.tableContainer}>
+                        {/* Table Header */}
+                        <View style={styles.tableHeader}>
+                            <Text style={[styles.tableHeaderText, { flex: 1 }]}>Materia</Text>
+                            <View style={styles.professorHeaderCell}>
+                                <Text style={styles.tableHeaderText}>Profesor</Text>
+                            </View>
+                            <View style={styles.deleteHeaderCell}>
+                                <Text style={styles.tableHeaderText}></Text>
+                            </View>
+                        </View>
 
-            {/* Notice for editing subjects */}
-            <View style={styles.noticeCard}>
-                <Ionicons name="information-circle" size={20} color={Colors.info} />
-                <Text style={styles.noticeText}>
-                    Para agregar o editar materias, use la pantalla de gestión de materias en Odoo.
-                </Text>
-            </View>
+                        {/* Table Body */}
+                        {loadingSubjects ? (
+                            <View style={styles.loadingPlaceholder}>
+                                <ActivityIndicator size="large" color={Colors.primary} />
+                                <Text style={styles.infoText}>Cargando materias...</Text>
+                            </View>
+                        ) : subjectsData.length === 0 && pendingSubjectAdds.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <Ionicons name="book-outline" size={40} color={Colors.textTertiary} />
+                                <Text style={styles.emptyText}>No hay materias asignadas</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.tableBody}>
+                                <ScrollView style={{ maxHeight: 280 }} nestedScrollEnabled>
+                                    {/* Existing subjects */}
+                                    {subjectsData.map((subject, index) => (
+                                        <SubjectRow
+                                            key={subject.subjectId}
+                                            subjectId={subject.subjectId}
+                                            subjectName={subject.subjectName}
+                                            professorName={subject.professorName}
+                                            index={index}
+                                            onEdit={handleEditSubject}
+                                            onDelete={handleToggleDeleteSubject}
+                                            isPendingDelete={pendingSubjectDeletions.has(subject.subjectId)}
+                                            disabled={isLoading || savingSubjects}
+                                        />
+                                    ))}
+                                    {/* Pending adds - shown with green indicator */}
+                                    {pendingSubjectAdds.map((add, index) => (
+                                        <View
+                                            key={`pending-${add.registerSubjectId}`}
+                                            style={[
+                                                styles.tableRow,
+                                                (subjectsData.length + index) % 2 === 0 && styles.tableRowAlt,
+                                                styles.tableRowPendingAdd
+                                            ]}
+                                        >
+                                            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{add.registerSubjectName}</Text>
+                                            <View style={styles.professorBadge}>
+                                                <Text style={styles.professorBadgeText} numberOfLines={1}>{add.professorName}</Text>
+                                            </View>
+                                            <TouchableOpacity
+                                                style={styles.deleteSubjectBtn}
+                                                onPress={() => {
+                                                    setPendingSubjectAdds((prev) => prev.filter((p) => p.registerSubjectId !== add.registerSubjectId));
+                                                    // Re-add to available subjects
+                                                    setAvailableSubjects((prev) => [...prev, { id: add.registerSubjectId, name: add.registerSubjectName }]);
+                                                }}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Ionicons name="close-circle" size={20} color={Colors.textTertiary} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Edit Subject Mode */}
+                    {editingSubject && (
+                        <View style={styles.addSubjectContainer}>
+                            <View style={styles.addSubjectHeader}>
+                                <Text style={styles.addSubjectTitle}>Cambiar Profesor</Text>
+                                <TouchableOpacity onPress={handleCancelEditSubject} activeOpacity={0.7}>
+                                    <Ionicons name="close-circle" size={24} color={Colors.textTertiary} />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.selectedSubjectBadge}>
+                                <Ionicons name="book" size={16} color={Colors.primary} />
+                                <Text style={styles.selectedSubjectText}>{editingSubject.subjectName}</Text>
+                            </View>
+                            {loadingProfessorsForSubject ? (
+                                <View style={styles.loadingPlaceholder}>
+                                    <ActivityIndicator size="large" color={Colors.primary} />
+                                    <Text style={styles.infoText}>Cargando profesores...</Text>
+                                </View>
+                            ) : professorsForSubject.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="person-outline" size={40} color={Colors.textTertiary} />
+                                    <Text style={styles.emptyText}>No hay profesores disponibles</Text>
+                                </View>
+                            ) : (
+                                <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                                    {professorsForSubject.map((professor) => (
+                                        <TouchableOpacity
+                                            key={professor.professorId}
+                                            style={[
+                                                styles.addSubjectItem,
+                                                editingSubject.professorId === professor.professorId && styles.addSubjectItemSelected
+                                            ]}
+                                            onPress={() => handleSelectProfessorForEdit(professor.professorId, professor.professorName)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons name="person" size={18} color={Colors.secondary} />
+                                            <Text style={styles.addSubjectItemText}>{professor.professorName}</Text>
+                                            {editingSubject.professorId === professor.professorId && (
+                                                <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+                    )}
+
+                    {/* Add Subject Button */}
+                    {!editingSubject && (
+                        <TouchableOpacity
+                            style={styles.addSubjectButton}
+                            onPress={handleStartAddSubject}
+                            disabled={isLoading || savingSubjects}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="add-circle" size={20} color={Colors.primary} />
+                            <Text style={styles.addSubjectButtonText}>Agregar Materia</Text>
+                        </TouchableOpacity>
+                    )}
+
+                </>
+            )}
         </View>
     );
 
     const renderProfessorsTab = () => (
         <View style={styles.tabContent}>
-            <View style={styles.tableHeader}>
-                <View style={styles.checkboxCell}>
-                    <Text style={styles.tableHeaderText}></Text>
+            {/* Table Container */}
+            <View style={styles.tableContainer}>
+                {/* Table Header */}
+                <View style={styles.tableHeader}>
+                    <View style={styles.checkboxCell}>
+                        <Text style={styles.tableHeaderText}></Text>
+                    </View>
+                    <Text style={[styles.tableHeaderText, { flex: 1 }]}>Docente</Text>
                 </View>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Docente</Text>
-            </View>
 
-            {loadingProfessors ? (
-                <View style={styles.loadingPlaceholder}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.infoText}>Cargando docentes...</Text>
-                </View>
-            ) : allProfessors.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Ionicons name="person-outline" size={40} color={Colors.textTertiary} />
-                    <Text style={styles.emptyText}>No hay docentes disponibles</Text>
-                    <Text style={styles.emptySubtext}>Registre docentes en Odoo primero</Text>
-                </View>
-            ) : (
-                <ScrollView style={styles.tableBody} nestedScrollEnabled>
-                    {allProfessors.map((professor, index) => (
-                        <ProfessorRow
-                            key={professor.professorId}
-                            name={professor.professorName}
-                            index={index}
-                            isSelected={selectedProfessorIds.includes(professor.professorId)}
-                            onToggle={() => toggleProfessor(professor.professorId)}
-                            disabled={isLoading}
-                        />
-                    ))}
-                </ScrollView>
-            )}
+                {/* Table Body */}
+                {loadingProfessors ? (
+                    <View style={styles.loadingPlaceholder}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                        <Text style={styles.infoText}>Cargando docentes...</Text>
+                    </View>
+                ) : allProfessors.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="person-outline" size={40} color={Colors.textTertiary} />
+                        <Text style={styles.emptyText}>No hay docentes disponibles</Text>
+                        <Text style={styles.emptySubtext}>Registre docentes en Odoo primero</Text>
+                    </View>
+                ) : (
+                    <View style={styles.tableBody}>
+                        <ScrollView style={{ maxHeight: 280 }} nestedScrollEnabled>
+                            {allProfessors.map((professor, index) => (
+                                <ProfessorRow
+                                    key={professor.professorId}
+                                    name={professor.professorName}
+                                    index={index}
+                                    isSelected={selectedProfessorIds.includes(professor.professorId)}
+                                    onToggle={() => toggleProfessor(professor.professorId)}
+                                    disabled={isLoading}
+                                />
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+            </View>
 
             {/* Selected count */}
             <View style={styles.selectionInfo}>
@@ -527,68 +1027,74 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
                 enableHandlePanningGesture={true}
                 enableOverDrag={false}
             >
-                <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.headerLeft}>
-                            <View style={[styles.iconBox, { backgroundColor: typeColor + '15' }]}>
-                                <Ionicons name="create" size={22} color={typeColor} />
-                            </View>
-                            <View style={styles.headerInfo}>
-                                <Text style={styles.headerTitle} numberOfLines={1}>{section.sectionName}</Text>
-                                <View style={[styles.typeBadge, { backgroundColor: typeColor + '20' }]}>
-                                    <Text style={[styles.typeText, { color: typeColor }]}>{typeLabel}</Text>
+                <View style={{ flex: 1, backgroundColor: '#fff', paddingBottom: insets.bottom }}>
+                    <View style={styles.container}>
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <View style={styles.headerLeft}>
+                                <View style={[styles.iconBox, { backgroundColor: typeColor + '15' }]}>
+                                    <Ionicons name="create" size={22} color={typeColor} />
+                                </View>
+                                <View style={styles.headerInfo}>
+                                    <Text style={styles.headerTitle} numberOfLines={1}>{section.sectionName}</Text>
+                                    <View style={[styles.typeBadge, { backgroundColor: typeColor + '20' }]}>
+                                        <Text style={[styles.typeText, { color: typeColor }]}>{typeLabel}</Text>
+                                    </View>
                                 </View>
                             </View>
+                            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+                                <Ionicons name="close-circle" size={28} color={Colors.error} />
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-                            <Ionicons name="close-circle" size={28} color={Colors.textTertiary} />
-                        </TouchableOpacity>
-                    </View>
 
-                    {/* Tabs */}
-                    <View style={styles.tabsContainer}>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-                            {tabs.map((tab) => (
-                                <TouchableOpacity
-                                    key={tab.key}
-                                    style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-                                    onPress={() => setActiveTab(tab.key)}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons
-                                        name={tab.icon as any}
-                                        size={18}
-                                        color={activeTab === tab.key ? Colors.primary : Colors.textTertiary}
-                                    />
-                                    <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
-                                        {tab.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-
-                    {/* Body */}
-                    <BottomSheetScrollView style={{ flex: 1 }} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
-                        {renderActiveTab()}
-                    </BottomSheetScrollView>
-
-                    {/* Footer - only show if there are changes */}
-                    {hasChanges && (
-                        <View style={styles.footer}>
-                            {isLoading ? (
-                                <View style={styles.saveBtn}>
-                                    <ActivityIndicator size="small" color="#fff" />
-                                </View>
-                            ) : (
-                                <TouchableOpacity onPress={handleSave} style={styles.saveBtn} activeOpacity={0.8}>
-                                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                                    <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
-                                </TouchableOpacity>
-                            )}
+                        {/* Tabs */}
+                        <View style={styles.tabsContainer}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
+                                {tabs.map((tab) => (
+                                    <TouchableOpacity
+                                        key={tab.key}
+                                        style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                                        onPress={() => setActiveTab(tab.key)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Ionicons
+                                            name={tab.icon as any}
+                                            size={18}
+                                            color={activeTab === tab.key ? Colors.primary : Colors.textTertiary}
+                                        />
+                                        <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+                                            {tab.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
                         </View>
-                    )}
+
+                        {/* Body */}
+                        <BottomSheetScrollView style={{ flex: 1 }} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+                            {renderActiveTab()}
+                        </BottomSheetScrollView>
+
+                        {/* Footer - only show if there are changes */}
+                        {(hasChanges || (hasSubjectChanges && !editingSubject)) && (
+                            <View style={styles.footer}>
+                                {isLoading || savingSubjects ? (
+                                    <View style={styles.saveBtn}>
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={hasSubjectChanges ? handleSaveSubjectChanges : handleSave}
+                                        style={styles.saveBtn}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                                        <Text style={styles.saveBtnLabel}>Guardar Cambios</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        )}
+                    </View>
                 </View>
             </BottomSheetModal>
         </>
@@ -691,14 +1197,29 @@ const styles = StyleSheet.create({
     tabContent: {
         gap: 16,
     },
+    tableContainer: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: Colors.border,
+        backgroundColor: '#fff',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+            }
+        }),
+    },
     tableHeader: {
         flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
         backgroundColor: '#f1f5f9',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.border,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
     },
     tableHeaderText: {
         fontSize: 13,
@@ -708,10 +1229,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
     tableBody: {
-        maxHeight: 280,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.border,
         backgroundColor: '#fff',
     },
     tableRow: {
@@ -752,6 +1269,67 @@ const styles = StyleSheet.create({
     professorCell: {
         width: 120,
         alignItems: 'flex-start',
+    },
+    professorHeaderCell: {
+        width: 140,
+        alignItems: 'flex-start',
+    },
+    professorDropdown: {
+        width: 140,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#f8fafc',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    professorDropdownText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+        flex: 1,
+    },
+    professorDropdownList: {
+        position: 'absolute',
+        top: '100%',
+        right: 16,
+        width: 200,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        marginTop: 4,
+        zIndex: 100,
+        maxHeight: 200,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
+    },
+    professorDropdownItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    professorDropdownItemText: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+        flex: 1,
     },
     checkboxCell: {
         width: 36,
@@ -913,5 +1491,139 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#fff',
         letterSpacing: 0.1,
+    },
+    // Delete subject button
+    deleteSubjectBtn: {
+        width: 36,
+        height: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 8,
+    },
+    deleteHeaderCell: {
+        width: 44,
+    },
+    // Add subject button
+    addSubjectButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        backgroundColor: Colors.primary + '10',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.primary + '30',
+        borderStyle: 'dashed',
+        gap: 8,
+    },
+    addSubjectButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.primary,
+    },
+    // Add subject mode
+    addSubjectContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        padding: 16,
+    },
+    addSubjectHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    addSubjectTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+    },
+    addSubjectList: {
+        minHeight: 100,
+    },
+    addSubjectItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        backgroundColor: '#f8fafc',
+        borderRadius: 10,
+        marginBottom: 8,
+        gap: 12,
+    },
+    addSubjectItemText: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+    },
+    selectedSubjectBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.primary + '15',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginBottom: 12,
+        gap: 8,
+    },
+    selectedSubjectText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.primary,
+    },
+    // Pending delete row style
+    tableRowPendingDelete: {
+        backgroundColor: Colors.error + '10',
+        opacity: 0.7,
+    },
+    // Pending add row style
+    tableRowPendingAdd: {
+        backgroundColor: Colors.success + '10',
+        borderLeftWidth: 3,
+        borderLeftColor: Colors.success,
+    },
+    // Professor badge
+    professorBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f1f5f9',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 6,
+        width: 140,
+    },
+    professorBadgeText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+        flex: 1,
+    },
+    // Selected item style
+    addSubjectItemSelected: {
+        backgroundColor: Colors.primary + '15',
+        borderWidth: 1,
+        borderColor: Colors.primary + '30',
+    },
+    // Save subjects button
+    saveSubjectsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        gap: 8,
+        marginTop: 8,
+    },
+    saveSubjectsButtonText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#fff',
     },
 });

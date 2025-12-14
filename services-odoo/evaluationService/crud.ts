@@ -163,3 +163,119 @@ export const deleteEvaluation = async (
         };
     }
 };
+
+// =====================================================
+// OPERACIONES CRUD PARA CALIFICACIONES (school.evaluation.score)
+// =====================================================
+
+import { EVALUATION_SCORE_MODEL } from './constants';
+import { UpdateScoreData } from './types';
+
+/**
+ * Actualiza una calificación individual
+ */
+export const updateEvaluationScore = async (
+    id: number,
+    data: UpdateScoreData
+): Promise<EvaluationServiceResult> => {
+    try {
+        const updateData: any = {};
+
+        if (data.score !== undefined) {
+            updateData.score = data.score;
+        }
+        if (data.literalType !== undefined) {
+            updateData.literal_type = data.literalType;
+        }
+        if (data.observation !== undefined) {
+            updateData.observation = data.observation;
+        }
+
+        const result = await odooApi.update(EVALUATION_SCORE_MODEL, [id], updateData);
+
+        if (!result.success) {
+            if (result.error?.includes('Session expired') ||
+                result.error?.includes('Odoo Session Expired')) {
+                return { success: false, message: result.error };
+            }
+            return {
+                success: false,
+                message: result.error || 'Error al actualizar la calificación',
+            };
+        }
+
+        // Invalidar cache porque las calif afectan promedios
+        invalidateEvaluationsCache();
+
+        return {
+            success: true,
+            message: 'Calificación actualizada exitosamente',
+        };
+    } catch (error: any) {
+        if (__DEV__) {
+            console.error('❌ Error en updateEvaluationScore:', error);
+        }
+        return {
+            success: false,
+            message: error?.message || 'Error al actualizar la calificación',
+        };
+    }
+};
+
+/**
+ * Actualiza múltiples calificaciones de una evaluación
+ */
+export const updateEvaluationScoresBatch = async (
+    updates: Array<{ id: number } & UpdateScoreData>
+): Promise<EvaluationServiceResult<{ updated: number; errors: number }>> => {
+    try {
+        let updated = 0;
+        let errors = 0;
+
+        // Procesar en lotes para evitar sobrecargar el servidor
+        const batchSize = 10;
+        for (let i = 0; i < updates.length; i += batchSize) {
+            const batch = updates.slice(i, i + batchSize);
+
+            const promises = batch.map(async ({ id, ...data }) => {
+                const updateData: any = {};
+                if (data.score !== undefined) updateData.score = data.score;
+                if (data.literalType !== undefined) updateData.literal_type = data.literalType;
+                if (data.observation !== undefined) updateData.observation = data.observation;
+
+                const result = await odooApi.update(EVALUATION_SCORE_MODEL, [id], updateData);
+                return result.success;
+            });
+
+            const results = await Promise.all(promises);
+            updated += results.filter(Boolean).length;
+            errors += results.filter(r => !r).length;
+        }
+
+        // Invalidar cache
+        invalidateEvaluationsCache();
+
+        if (errors > 0) {
+            return {
+                success: true,
+                data: { updated, errors },
+                message: `Actualizadas ${updated} calificaciones, ${errors} errores`,
+            };
+        }
+
+        return {
+            success: true,
+            data: { updated, errors: 0 },
+            message: `Todas las calificaciones actualizadas (${updated})`,
+        };
+    } catch (error: any) {
+        if (__DEV__) {
+            console.error('❌ Error en updateEvaluationScoresBatch:', error);
+        }
+        return {
+            success: false,
+            message: error?.message || 'Error al actualizar las calificaciones',
+        };
+    }
+};
+

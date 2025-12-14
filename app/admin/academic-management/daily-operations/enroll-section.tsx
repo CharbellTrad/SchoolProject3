@@ -9,6 +9,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Platform,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
@@ -23,9 +24,13 @@ import Colors from '../../../../constants/Colors';
 import { useEnrolledSections } from '../../../../hooks/useEnrolledSections';
 import * as authService from '../../../../services-odoo/authService';
 import {
+    createSectionSubject,
     enrollSection,
     loadAvailableProfessors,
+    loadAvailableSubjectsForSection,
+    loadProfessorsForSubject,
     ProfessorForSection,
+    RegisterSubject,
     SECTION_TYPE_COLORS,
     SECTION_TYPE_LABELS
 } from '../../../../services-odoo/enrolledSectionService';
@@ -73,6 +78,20 @@ export default function EnrollSectionScreen() {
     const [availableProfessors, setAvailableProfessors] = useState<ProfessorForSection[]>([]);
     const [selectedProfessorIds, setSelectedProfessorIds] = useState<number[]>([]);
     const [loadingProfessors, setLoadingProfessors] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+
+    // Subject selection for secundary (Media General)
+    const [availableSubjects, setAvailableSubjects] = useState<RegisterSubject[]>([]);
+    const [selectedSubjects, setSelectedSubjects] = useState<{
+        registerSubjectId: number;
+        registerSubjectName: string;
+        professorId: number;
+        professorName: string;
+    }[]>([]);
+    const [loadingSubjects, setLoadingSubjects] = useState(false);
+    const [professorsForSubject, setProfessorsForSubject] = useState<ProfessorForSection[]>([]);
+    const [selectingSubject, setSelectingSubject] = useState<RegisterSubject | null>(null);
+    const [loadingProfessorsForSubject, setLoadingProfessorsForSubject] = useState(false);
 
     // Load available sections
     useEffect(() => {
@@ -92,6 +111,22 @@ export default function EnrollSectionScreen() {
 
         fetchSections();
     }, []);
+
+    // Pull to refresh handler
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            const sections = await loadSections(true);
+            setBaseSections(sections);
+            await refreshEnrolledSections();
+        } catch (error) {
+            if (__DEV__) {
+                console.error('Error refreshing sections:', error);
+            }
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     // Load professors when a pre/primary section is selected
     useEffect(() => {
@@ -116,6 +151,34 @@ export default function EnrollSectionScreen() {
         };
 
         fetchProfessors();
+    }, [selectedSection?.id, selectedSection?.type]);
+
+    // Load subjects when a secundary (Media General) section is selected
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            if (!selectedSection || selectedSection.type !== 'secundary') {
+                setAvailableSubjects([]);
+                setSelectedSubjects([]);
+                setSelectingSubject(null);
+                setProfessorsForSubject([]);
+                return;
+            }
+
+            setLoadingSubjects(true);
+            try {
+                // Load subjects from catalog that apply to this section
+                const subjects = await loadAvailableSubjectsForSection(0, selectedSection.id);
+                setAvailableSubjects(subjects);
+            } catch (error) {
+                if (__DEV__) {
+                    console.error('Error loading subjects:', error);
+                }
+            } finally {
+                setLoadingSubjects(false);
+            }
+        };
+
+        fetchSubjects();
     }, [selectedSection?.id, selectedSection?.type]);
 
     // Filter out already enrolled sections
@@ -153,10 +216,72 @@ export default function EnrollSectionScreen() {
         if (selectedSection?.id === section.id) {
             setSelectedSection(null);
             setSelectedProfessorIds([]);
+            setSelectedSubjects([]);
+            setSelectingSubject(null);
+            setProfessorsForSubject([]);
         } else {
             setSelectedSection(section);
             setSelectedProfessorIds([]);
+            setSelectedSubjects([]);
+            setSelectingSubject(null);
+            setProfessorsForSubject([]);
         }
+    };
+
+    // Select a subject from catalog - start selecting professor
+    const handleSelectSubject = async (subject: RegisterSubject) => {
+        setSelectingSubject(subject);
+        setLoadingProfessorsForSubject(true);
+        setProfessorsForSubject([]);
+
+        try {
+            // Load professors assigned to this subject (using year ID 0 for current year)
+            const professors = await loadProfessorsForSubject(subject.id);
+            setProfessorsForSubject(professors);
+        } catch (error) {
+            if (__DEV__) console.error('Error loading professors for subject:', error);
+            setProfessorsForSubject([]);
+        } finally {
+            setLoadingProfessorsForSubject(false);
+        }
+    };
+
+    // Select professor for the currently selecting subject
+    const handleSelectProfessorForSubject = (professorId: number, professorName: string) => {
+        if (!selectingSubject) return;
+
+        // Add to selected subjects
+        setSelectedSubjects((prev) => [
+            ...prev,
+            {
+                registerSubjectId: selectingSubject.id,
+                registerSubjectName: selectingSubject.name,
+                professorId,
+                professorName,
+            },
+        ]);
+
+        // Remove from available subjects
+        setAvailableSubjects((prev) => prev.filter((s) => s.id !== selectingSubject.id));
+
+        // Reset selecting state
+        setSelectingSubject(null);
+        setProfessorsForSubject([]);
+    };
+
+    // Cancel subject selection
+    const handleCancelSelectSubject = () => {
+        setSelectingSubject(null);
+        setProfessorsForSubject([]);
+    };
+
+    // Remove a selected subject
+    const handleRemoveSubject = (registerSubjectId: number, registerSubjectName: string) => {
+        // Remove from selected
+        setSelectedSubjects((prev) => prev.filter((s) => s.registerSubjectId !== registerSubjectId));
+
+        // Add back to available
+        setAvailableSubjects((prev) => [...prev, { id: registerSubjectId, name: registerSubjectName }]);
     };
 
     const handleSubmit = async () => {
@@ -192,11 +317,45 @@ export default function EnrollSectionScreen() {
                 professorIds: selectedProfessorIds.length > 0 ? selectedProfessorIds : undefined,
             });
 
-            if (result.success) {
+            if (result.success && result.data) {
+                const enrolledSectionId = result.data;
+
+                // For secundary sections, create subject assignments
+                if (selectedSection.type === 'secundary' && selectedSubjects.length > 0) {
+                    let subjectErrors = 0;
+                    for (const subject of selectedSubjects) {
+                        const subjectResult = await createSectionSubject(
+                            enrolledSectionId,
+                            subject.registerSubjectId,
+                            subject.professorId
+                        );
+                        if (!subjectResult.success) {
+                            subjectErrors++;
+                            if (__DEV__) {
+                                console.error(`Error creating subject ${subject.registerSubjectName}:`, subjectResult.message);
+                            }
+                        }
+                    }
+
+                    if (subjectErrors > 0) {
+                        showAlert(
+                            '⚠️ Sección Inscrita con Advertencias',
+                            `La sección fue inscrita pero ${subjectErrors} materia(s) no pudieron ser asignadas.`,
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                    } else {
+                        showAlert('✅ Sección Inscrita',
+                            `La sección ha sido inscrita con ${selectedSubjects.length} materia(s) asignada(s).`,
+                            [{ text: 'OK', onPress: () => router.back() }]
+                        );
+                    }
+                } else {
+                    showAlert('✅ Sección Inscrita', 'La sección ha sido inscrita exitosamente', [
+                        { text: 'OK', onPress: () => router.back() },
+                    ]);
+                }
+
                 await refreshEnrolledSections();
-                showAlert('✅ Sección Inscrita', 'La sección ha sido inscrita exitosamente', [
-                    { text: 'OK', onPress: () => router.back() },
-                ]);
             } else {
                 showAlert('❌ Error', result.message || 'No se pudo inscribir la sección');
             }
@@ -328,13 +487,115 @@ export default function EnrollSectionScreen() {
                     </View>
                 )}
 
-                {/* Notice for Secundary */}
+                {/* Subject Assignment for Secundary (Media General) */}
                 {!isProfessorSection && (
-                    <View style={styles.noticeCard}>
-                        <Ionicons name="information-circle" size={20} color={Colors.info} />
-                        <Text style={styles.noticeText}>
-                            Las materias y profesores se asignan después de inscribir la sección.
-                        </Text>
+                    <View style={styles.detailSection}>
+                        <View style={styles.detailSectionHeader}>
+                            <Ionicons name="book" size={18} color={Colors.textSecondary} />
+                            <Text style={styles.detailSectionTitle}>Asignar Materias (Opcional)</Text>
+                            <View style={styles.countBadge}>
+                                <Text style={styles.countBadgeText}>{selectedSubjects.length}</Text>
+                            </View>
+                        </View>
+
+                        {loadingSubjects ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="small" color={Colors.primary} />
+                                <Text style={styles.loadingText}>Cargando materias...</Text>
+                            </View>
+                        ) : selectingSubject ? (
+                            // Selecting professor for a subject
+                            <View style={styles.professorSelectionContainer}>
+                                <View style={styles.selectingSubjectHeader}>
+                                    <Text style={styles.selectingSubjectTitle}>{selectingSubject.name}</Text>
+                                    <TouchableOpacity onPress={handleCancelSelectSubject} activeOpacity={0.7}>
+                                        <Ionicons name="close-circle" size={22} color={Colors.textTertiary} />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={styles.selectingSubjectHint}>Seleccionar Profesor:</Text>
+
+                                {loadingProfessorsForSubject ? (
+                                    <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 10 }} />
+                                ) : professorsForSubject.length === 0 ? (
+                                    <View style={styles.emptyProfessors}>
+                                        <Ionicons name="alert-circle-outline" size={20} color={Colors.warning} />
+                                        <Text style={styles.emptyProfessorsText}>
+                                            No hay profesores asignados a esta materia
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled>
+                                        {professorsForSubject.map((professor, index) => (
+                                            <TouchableOpacity
+                                                key={professor.professorId}
+                                                style={[styles.professorOption, index % 2 === 0 && styles.tableRowAlt]}
+                                                onPress={() => handleSelectProfessorForSubject(professor.professorId, professor.professorName)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Ionicons name="person" size={16} color={Colors.secondary} />
+                                                <Text style={styles.professorOptionText}>{professor.professorName}</Text>
+                                                <Ionicons name="arrow-forward-circle" size={18} color={Colors.primary} />
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                )}
+                            </View>
+                        ) : (
+                            <>
+                                {/* Available subjects to add */}
+                                {availableSubjects.length > 0 && (
+                                    <View style={styles.availableSubjectsContainer}>
+                                        <Text style={styles.availableSubjectsLabel}>Materias Disponibles:</Text>
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subjectChipsScroll}>
+                                            {availableSubjects.map((subject) => (
+                                                <TouchableOpacity
+                                                    key={subject.id}
+                                                    style={styles.subjectChip}
+                                                    onPress={() => handleSelectSubject(subject)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Ionicons name="add-circle" size={16} color={Colors.primary} />
+                                                    <Text style={styles.subjectChipText}>{subject.name}</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
+
+                                {/* Selected subjects list */}
+                                {selectedSubjects.length > 0 && (
+                                    <View style={styles.selectedSubjectsContainer}>
+                                        <Text style={styles.selectedSubjectsLabel}>Materias Asignadas:</Text>
+                                        <View style={styles.selectedSubjectsTable}>
+                                            {selectedSubjects.map((subject, index) => (
+                                                <View key={subject.registerSubjectId} style={[styles.selectedSubjectRow, index % 2 === 0 && styles.tableRowAlt]}>
+                                                    <View style={styles.selectedSubjectInfo}>
+                                                        <Text style={styles.selectedSubjectName} numberOfLines={1}>{subject.registerSubjectName}</Text>
+                                                        <Text style={styles.selectedSubjectProfessor} numberOfLines={1}>{subject.professorName}</Text>
+                                                    </View>
+                                                    <TouchableOpacity
+                                                        onPress={() => handleRemoveSubject(subject.registerSubjectId, subject.registerSubjectName)}
+                                                        activeOpacity={0.7}
+                                                        style={styles.removeSubjectBtn}
+                                                    >
+                                                        <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+
+                                {availableSubjects.length === 0 && selectedSubjects.length === 0 && (
+                                    <View style={styles.noticeCard}>
+                                        <Ionicons name="information-circle" size={20} color={Colors.info} />
+                                        <Text style={styles.noticeText}>
+                                            No hay materias disponibles para esta sección.
+                                        </Text>
+                                    </View>
+                                )}
+                            </>
+                        )}
                     </View>
                 )}
             </View>
@@ -374,6 +635,14 @@ export default function EnrollSectionScreen() {
                                 style={styles.content}
                                 showsVerticalScrollIndicator={false}
                                 contentContainerStyle={styles.scrollContent}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={handleRefresh}
+                                        colors={[Colors.primary]}
+                                        tintColor={Colors.primary}
+                                    />
+                                }
                             >
                                 {/* Instruction Card */}
                                 <View style={styles.instructionCard}>
@@ -803,4 +1072,122 @@ const styles = StyleSheet.create({
         color: Colors.textSecondary,
         lineHeight: 20,
     },
+    // Subject selection styles
+    professorSelectionContainer: {
+        backgroundColor: Colors.background,
+        borderRadius: 10,
+        padding: 12,
+        marginTop: 8,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    selectingSubjectHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    selectingSubjectTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+        flex: 1,
+    },
+    selectingSubjectHint: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+        marginBottom: 8,
+    },
+    professorOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        gap: 10,
+        borderRadius: 8,
+    },
+    professorOptionText: {
+        flex: 1,
+        fontSize: 14,
+        color: Colors.textPrimary,
+    },
+    emptyProfessors: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+    },
+    emptyProfessorsText: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+        flex: 1,
+    },
+    availableSubjectsContainer: {
+        marginTop: 8,
+    },
+    availableSubjectsLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.textSecondary,
+        marginBottom: 8,
+    },
+    subjectChipsScroll: {
+        flexDirection: 'row',
+    },
+    subjectChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.primary + '10',
+        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        gap: 6,
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: Colors.primary + '30',
+    },
+    subjectChipText: {
+        fontSize: 13,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    selectedSubjectsContainer: {
+        marginTop: 12,
+    },
+    selectedSubjectsLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.textSecondary,
+        marginBottom: 8,
+    },
+    selectedSubjectsTable: {
+        borderRadius: 10,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    selectedSubjectRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        backgroundColor: '#fff',
+    },
+    selectedSubjectInfo: {
+        flex: 1,
+        gap: 2,
+    },
+    selectedSubjectName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.textPrimary,
+    },
+    selectedSubjectProfessor: {
+        fontSize: 12,
+        color: Colors.textSecondary,
+    },
+    removeSubjectBtn: {
+        padding: 6,
+    }
 });

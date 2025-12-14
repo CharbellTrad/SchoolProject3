@@ -10,7 +10,7 @@ import { Section } from './types';
 export const normalizeSection = (record: any): Section => {
   return {
     id: record.id,
-    name: record.name || '',
+    name: record.display_name || record.name || '',
     type: record.type || 'primary',
   };
 };

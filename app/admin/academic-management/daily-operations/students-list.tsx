@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EmptyState } from '../../../../components/list';
+import { MentionEnrollmentWizardModal, UnenrollmentWizardModal } from '../../../../components/studentEnrollment';
 import Colors from '../../../../constants/Colors';
 import { useStudentEnrollments } from '../../../../hooks/useStudentEnrollments';
 import { ENROLLMENT_STATE_COLORS, ENROLLMENT_STATE_LABELS, StudentEnrollment } from '../../../../services-odoo/studentEnrollmentService';
@@ -62,6 +63,8 @@ const StudentCard = ({
     onView,
     onEdit,
     onConfirm,
+    onUnenroll,
+    onMention,
     isOfflineMode
 }: {
     enrollment: StudentEnrollment;
@@ -69,6 +72,8 @@ const StudentCard = ({
     onView: () => void;
     onEdit: () => void;
     onConfirm: () => void;
+    onUnenroll: () => void;
+    onMention: () => void;
     isOfflineMode: boolean;
 }) => (
     <TouchableOpacity style={styles.card} onPress={onView} activeOpacity={0.7}>
@@ -91,6 +96,32 @@ const StudentCard = ({
                         disabled={isOfflineMode}
                     >
                         <Ionicons name="checkmark" size={18} color={isOfflineMode ? '#9ca3af' : '#10b981'} />
+                    </TouchableOpacity>
+                )}
+                {/* Unenroll button - only for done state */}
+                {enrollment.state === 'done' && (
+                    <TouchableOpacity
+                        style={[styles.unenrollButton, isOfflineMode && styles.disabledEditButton]}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            if (!isOfflineMode) onUnenroll();
+                        }}
+                        disabled={isOfflineMode}
+                    >
+                        <Ionicons name="exit-outline" size={18} color={isOfflineMode ? '#9ca3af' : Colors.error} />
+                    </TouchableOpacity>
+                )}
+                {/* Mention button - only for secundary without mention */}
+                {enrollment.type === 'secundary' && enrollment.mentionState !== 'enrolled' && enrollment.state === 'done' && (
+                    <TouchableOpacity
+                        style={[styles.mentionButton, isOfflineMode && styles.disabledEditButton]}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            if (!isOfflineMode) onMention();
+                        }}
+                        disabled={isOfflineMode}
+                    >
+                        <Ionicons name="school-outline" size={18} color={isOfflineMode ? '#9ca3af' : '#8b5cf6'} />
                     </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -119,6 +150,15 @@ const StudentCard = ({
                 <View style={styles.statBadge}>
                     <Ionicons name="people-outline" size={14} color={Colors.secondary} />
                     <Text style={styles.statText} numberOfLines={1}>{enrollment.parentName}</Text>
+                </View>
+            )}
+            {/* Mention badge for secundary students */}
+            {enrollment.type === 'secundary' && enrollment.mentionName && (
+                <View style={[styles.statBadge, { backgroundColor: '#8b5cf6' + '20' }]}>
+                    <Ionicons name="school" size={14} color="#8b5cf6" />
+                    <Text style={[styles.statText, { color: '#8b5cf6' }]} numberOfLines={1}>
+                        {enrollment.mentionName}
+                    </Text>
                 </View>
             )}
         </View>
@@ -190,6 +230,11 @@ export default function StudentsListScreen() {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [showSkeleton, setShowSkeleton] = useState(true);
 
+    // Modal state
+    const [selectedEnrollment, setSelectedEnrollment] = useState<StudentEnrollment | null>(null);
+    const [showUnenrollModal, setShowUnenrollModal] = useState(false);
+    const [showMentionModal, setShowMentionModal] = useState(false);
+
     useEffect(() => {
         if (!initialLoading && showSkeleton) {
             Animated.timing(fadeAnim, {
@@ -214,6 +259,26 @@ export default function StudentsListScreen() {
 
     const handleEdit = (enrollment: StudentEnrollment) => {
         showAlert('Editar Inscripción', 'Funcionalidad en desarrollo');
+    };
+
+    const handleUnenroll = (enrollment: StudentEnrollment) => {
+        setSelectedEnrollment(enrollment);
+        setShowUnenrollModal(true);
+    };
+
+    const handleMention = (enrollment: StudentEnrollment) => {
+        setSelectedEnrollment(enrollment);
+        setShowMentionModal(true);
+    };
+
+    const handleModalClose = () => {
+        setShowUnenrollModal(false);
+        setShowMentionModal(false);
+    };
+
+    const handleWizardComplete = () => {
+        onRefresh();
+        handleModalClose();
     };
 
     const onConfirm = async (enrollment: StudentEnrollment) => {
@@ -309,6 +374,8 @@ export default function StudentsListScreen() {
                                                 onView={() => handleView(enrollment)}
                                                 onEdit={() => handleEdit(enrollment)}
                                                 onConfirm={() => onConfirm(enrollment)}
+                                                onUnenroll={() => handleUnenroll(enrollment)}
+                                                onMention={() => handleMention(enrollment)}
                                                 isOfflineMode={isOfflineMode}
                                             />
                                         ))
@@ -320,6 +387,21 @@ export default function StudentsListScreen() {
                     </View>
                 </View>
             </SafeAreaProvider>
+
+            {/* Modals */}
+            <UnenrollmentWizardModal
+                visible={showUnenrollModal}
+                enrollment={selectedEnrollment}
+                onClose={handleModalClose}
+                onUnenrolled={handleWizardComplete}
+            />
+
+            <MentionEnrollmentWizardModal
+                visible={showMentionModal}
+                enrollment={selectedEnrollment}
+                onClose={handleModalClose}
+                onEnrolled={handleWizardComplete}
+            />
         </>
     );
 }
@@ -368,4 +450,6 @@ const styles = StyleSheet.create({
     stateText: { fontSize: 12, fontWeight: '700' },
     statBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, gap: 6 },
     statText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600', maxWidth: 100 },
+    unenrollButton: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#ef444420', justifyContent: 'center', alignItems: 'center' },
+    mentionButton: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#8b5cf620', justifyContent: 'center', alignItems: 'center' },
 });

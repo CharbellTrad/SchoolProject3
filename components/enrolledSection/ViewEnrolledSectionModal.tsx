@@ -60,7 +60,6 @@ const SubjectRow = ({ subjectName, professorName, index }: { subjectName: string
 // Table Row Component for Professors
 const ProfessorRow = ({ name, index }: { name: string; index: number }) => (
     <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-        <Ionicons name="person" size={18} color={Colors.secondary} style={{ marginRight: 10 }} />
         <Text style={styles.tableCell} numberOfLines={1}>{name}</Text>
     </View>
 );
