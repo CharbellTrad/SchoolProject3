@@ -9,7 +9,9 @@
             <form string="">
                 <sheet>
                     <field name="available_section_ids" invisible="1"/>
+                    <field name="available_mention_section_ids" invisible="1"/>
                     <field name="available_subject_ids" invisible="1"/>
+                    <field name="is_mention_evaluation" invisible="1"/>
                     <div class="mb8">
                         <div class="d-flex gap-3">
                             <div class="d-flex flex-column flex-grow-1">
@@ -18,13 +20,31 @@
                                 </h1>
                             </div>
                         </div>
+                        <div class="mt-2" invisible="not is_mention_evaluation">
+                            <span class="badge text-bg-info">Evaluación de Mención Técnica</span>
+                        </div>
                     </div>
                     <group>
                         <group>
                             <field name="year_id" readonly="1"/>
+                            <field name="lapso" readonly="1"/>
                             <field name="professor_id" readonly="not year_id" placeholder="Julio Perez.." options="{'no_create': 1}"/>
-                            <field name="section_id" readonly="not professor_id" placeholder="4to Año.." options="{'no_create': 1}"/>
-                            <field name="subject_id" invisible="not available_subject_ids" placeholder="Matemáticas.." required="available_subject_ids" readonly="not section_id" options="{'no_create': 1}"/>
+                            <field name="section_id" 
+                                   readonly="not professor_id or mention_section_id" 
+                                   invisible="mention_section_id"
+                                   placeholder="4to Año.." 
+                                   options="{'no_create': 1}"/>
+                            <field name="mention_section_id" 
+                                   readonly="not professor_id or section_id" 
+                                   invisible="section_id"
+                                   placeholder="Informática, Electricidad.." 
+                                   options="{'no_create': 1}"/>
+                            <field name="subject_id" 
+                                   invisible="not available_subject_ids" 
+                                   placeholder="Matemáticas.." 
+                                   required="available_subject_ids" 
+                                   readonly="not section_id and not mention_section_id" 
+                                   options="{'no_create': 1}"/>
                             <field name="evaluation_date" required="1"/>
                         </group>
                         <group>
@@ -117,16 +137,17 @@
             <list>
                 <field name="available_section_ids" column_invisible="1"/>
                 <field name="available_subject_ids" column_invisible="1"/>
+                <field name="is_mention_evaluation" column_invisible="1"/>
                 <field name="name"/>
                 <field name="year_id"/>
+                <field name="lapso"/>
                 <field name="professor_id"/>
-                <field name="section_id"/>
+                <field name="section_id" optional="show"/>
+                <field name="mention_section_id" optional="show" string="Mención"/>
                 <field name="subject_id"/>
                 <field name="state" />
                 <field name="state_score" />
                 <field name="score_average"/>
-                <!-- <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'all'" decoration-wanring="state == 'partial'" /> -->
-                <!-- <field name="state_score" widget="badge" decoration-danger="state_score != 'approve'" decoration-success="state_score == 'approve'"/> -->
             </list>
         </field>
     </record>
@@ -144,6 +165,20 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('current', '!=', False)]</field>
     </record>
+    
+    <!-- Search view for evaluations -->
+    <record id="school_evaluation_view_search" model="ir.ui.view">
+        <field name="name">school.evaluation.search</field>
+        <field name="model">school.evaluation</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Evaluaciones">
+                <field name="name"/>
+                <field name="professor_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+            </search>
+        </field>
+    </record>
 
     <record id="school_evaluation_score_view_tree" model="ir.ui.view">
         <field name="name">school.evaluation.score.view.list</field>
@@ -152,6 +187,7 @@
             <list string="Evaluciones" create="0" edit="0" editable="top">
                 <field name="evaluation_id"/>
                 <field name="year_id"/>
+                <field name="lapso"/>
                 <field name="section_id"/>
                 <field name="subject_id"/>
                 <field name="literal_type"/>

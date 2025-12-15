@@ -21,6 +21,11 @@
                             <field name="type"/>
                             <field name="letter_id"/>
                         </group>
+                        <group>
+                            <field name="has_medio_tecnico" 
+                                   widget="boolean_toggle"
+                                   invisible="type != 'secundary'"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -35,6 +40,7 @@
                 <field name="name"/>
                 <field name="type"/>
                 <field name="letter_id"/>
+                <field name="has_medio_tecnico" string="Medio Técnico"/>
             </list>
         </field>
     </record>

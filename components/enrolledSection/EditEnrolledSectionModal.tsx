@@ -61,7 +61,7 @@ const StudentRow = ({ name, state, index }: { name: string; state: string; index
 
     return (
         <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={2}>{name}</Text>
             <View style={styles.stateBadge}>
                 <View style={[styles.stateBadgeInner, { backgroundColor: stateStyle.bg }]}>
                     <Text style={[styles.stateBadgeText, { color: stateStyle.color }]}>{stateStyle.label}</Text>
@@ -102,14 +102,14 @@ const SubjectRow = ({
             disabled={disabled || isPendingDelete}
             activeOpacity={0.7}
         >
-            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{subjectName}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={2}>{subjectName}</Text>
             <View style={styles.professorBadge}>
                 <Text
                     style={[
                         styles.professorBadgeText,
                         professorName ? {} : { color: Colors.textTertiary, fontStyle: 'italic' },
                     ]}
-                    numberOfLines={1}
+                    numberOfLines={2}
                 >
                     {professorName || 'Sin asignar'}
                 </Text>
@@ -149,7 +149,7 @@ const ProfessorRow = ({ name, index, isSelected, onToggle, disabled }: {
                 {isSelected && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
         </View>
-        <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={2}>{name}</Text>
     </TouchableOpacity>
 );
 
@@ -513,6 +513,8 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
 
             if (!hasErrors) {
                 showAlert('Éxito', 'Cambios guardados correctamente');
+                onSave(); // Refresh the list
+                onClose(); // Close the modal
             }
 
             // Clear pending changes

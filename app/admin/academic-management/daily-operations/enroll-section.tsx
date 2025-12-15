@@ -2,10 +2,10 @@ import { showAlert } from '@/components/showAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Platform,
@@ -93,24 +93,46 @@ export default function EnrollSectionScreen() {
     const [selectingSubject, setSelectingSubject] = useState<RegisterSubject | null>(null);
     const [loadingProfessorsForSubject, setLoadingProfessorsForSubject] = useState(false);
 
-    // Load available sections
-    useEffect(() => {
-        const fetchSections = async () => {
-            setIsLoading(true);
-            try {
-                const sections = await loadSections(true);
-                setBaseSections(sections);
-            } catch (error) {
-                if (__DEV__) {
-                    console.error('Error loading sections:', error);
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    // Accordion state for section types
+    const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
 
-        fetchSections();
-    }, []);
+    // Accordion state for subjects list
+    const [subjectsExpanded, setSubjectsExpanded] = useState(false);
+
+    // Reset state when screen comes into focus (fresh start each time)
+    useFocusEffect(
+        useCallback(() => {
+            // Reset all selection state
+            setSelectedSection(null);
+            setSelectedProfessorIds([]);
+            setAvailableProfessors([]);
+            setSelectedSubjects([]);
+            setAvailableSubjects([]);
+            setSelectingSubject(null);
+            setProfessorsForSubject([]);
+            setExpandedTypes(new Set());
+            setSubjectsExpanded(false);
+
+            // Fetch fresh data
+            const fetchData = async () => {
+                setIsLoading(true);
+                try {
+                    const sections = await loadSections(true); // force reload, no cache
+                    setBaseSections(sections);
+                    await refreshEnrolledSections();
+                } catch (error) {
+                    if (__DEV__) {
+                        console.error('Error loading sections:', error);
+                    }
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchData();
+        }, [])
+    );
+
 
     // Pull to refresh handler
     const handleRefresh = async () => {
@@ -366,57 +388,99 @@ export default function EnrollSectionScreen() {
         }
     };
 
+    const toggleAccordion = (type: string) => {
+        setExpandedTypes(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(type)) {
+                newSet.delete(type);
+            } else {
+                newSet.add(type);
+            }
+            return newSet;
+        });
+    };
+
     const renderSectionGroup = (type: 'pre' | 'primary' | 'secundary', sections: Section[]) => {
         if (sections.length === 0) return null;
 
         const typeColor = SECTION_TYPE_COLORS[type];
         const typeLabel = SECTION_TYPE_LABELS[type];
+        const isExpanded = expandedTypes.has(type);
+        const hasSelected = sections.some(s => s.id === selectedSection?.id);
 
         return (
-            <View style={styles.sectionGroup} key={type}>
-                <View style={styles.sectionGroupHeader}>
-                    <View style={[styles.typeIndicator, { backgroundColor: typeColor }]} />
-                    <Text style={styles.sectionGroupTitle}>{typeLabel}</Text>
-                    <View style={[styles.countBadge, { backgroundColor: typeColor + '20' }]}>
-                        <Text style={[styles.countBadgeText, { color: typeColor }]}>
-                            {sections.length}
+            <View style={styles.accordionContainer} key={type}>
+                {/* Accordion Header - clickable */}
+                <TouchableOpacity
+                    style={[
+                        styles.accordionHeader,
+                        hasSelected && { borderLeftColor: typeColor, borderLeftWidth: 4 }
+                    ]}
+                    onPress={() => toggleAccordion(type)}
+                    activeOpacity={0.7}
+                >
+                    <View style={[styles.accordionIcon, { backgroundColor: typeColor + '15' }]}>
+                        <Ionicons name="folder" size={20} color={typeColor} />
+                    </View>
+                    <View style={styles.accordionTitleContainer}>
+                        <Text style={styles.accordionTitle}>{typeLabel}</Text>
+                        <Text style={[styles.accordionCount, { color: typeColor }]}>
+                            {sections.length} sección{sections.length !== 1 ? 'es' : ''}
                         </Text>
                     </View>
-                </View>
+                    {hasSelected && (
+                        <View style={[styles.accordionSelectedBadge, { backgroundColor: typeColor }]}>
+                            <Ionicons name="checkmark" size={12} color="#fff" />
+                        </View>
+                    )}
+                    <Ionicons
+                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={22}
+                        color={Colors.textSecondary}
+                    />
+                </TouchableOpacity>
 
-                <View style={styles.sectionsGrid}>
-                    {sections.map((section) => {
-                        const isSelected = selectedSection?.id === section.id;
-                        return (
-                            <TouchableOpacity
-                                key={section.id}
-                                style={[
-                                    styles.sectionChip,
-                                    isSelected && styles.sectionChipSelected,
-                                    isSelected && { borderColor: typeColor },
-                                ]}
-                                onPress={() => handleSelectSection(section)}
-                                activeOpacity={0.7}
-                                disabled={isSaving}
-                            >
-                                <Ionicons
-                                    name={isSelected ? 'checkmark-circle' : 'folder-outline'}
-                                    size={18}
-                                    color={isSelected ? typeColor : Colors.textSecondary}
-                                />
-                                <Text
+                {/* Accordion Content - collapsible sections list */}
+                {isExpanded && (
+                    <View style={styles.accordionContent}>
+                        {sections.map((section, index) => {
+                            const isSelected = selectedSection?.id === section.id;
+                            return (
+                                <TouchableOpacity
+                                    key={section.id}
                                     style={[
-                                        styles.sectionChipText,
-                                        isSelected && { color: typeColor, fontWeight: '700' },
+                                        styles.sectionListItem,
+                                        index === 0 && { borderTopWidth: 0 },
+                                        isSelected && styles.sectionListItemSelected,
+                                        isSelected && { backgroundColor: typeColor + '08', borderLeftColor: typeColor },
                                     ]}
-                                    numberOfLines={1}
+                                    onPress={() => handleSelectSection(section)}
+                                    activeOpacity={0.7}
+                                    disabled={isSaving}
                                 >
-                                    {section.name}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                                    <View style={[
+                                        styles.radioButton,
+                                        isSelected && { borderColor: typeColor, backgroundColor: typeColor }
+                                    ]}>
+                                        {isSelected && <View style={styles.radioButtonInner} />}
+                                    </View>
+                                    <Text
+                                        style={[
+                                            styles.sectionListItemText,
+                                            isSelected && { color: typeColor, fontWeight: '700' },
+                                        ]}
+                                        numberOfLines={2}
+                                    >
+                                        {section.name}
+                                    </Text>
+                                    {isSelected && (
+                                        <Ionicons name="checkmark-circle" size={20} color={typeColor} />
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                )}
             </View>
         );
     };
@@ -542,23 +606,53 @@ export default function EnrollSectionScreen() {
                             </View>
                         ) : (
                             <>
-                                {/* Available subjects to add */}
+                                {/* Available subjects to add - collapsible */}
                                 {availableSubjects.length > 0 && (
-                                    <View style={styles.availableSubjectsContainer}>
-                                        <Text style={styles.availableSubjectsLabel}>Materias Disponibles:</Text>
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subjectChipsScroll}>
-                                            {availableSubjects.map((subject) => (
-                                                <TouchableOpacity
-                                                    key={subject.id}
-                                                    style={styles.subjectChip}
-                                                    onPress={() => handleSelectSubject(subject)}
-                                                    activeOpacity={0.7}
-                                                >
-                                                    <Ionicons name="add-circle" size={16} color={Colors.primary} />
-                                                    <Text style={styles.subjectChipText}>{subject.name}</Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
+                                    <View style={styles.subjectAccordionContainer}>
+                                        <TouchableOpacity
+                                            style={styles.subjectAccordionHeader}
+                                            onPress={() => setSubjectsExpanded(!subjectsExpanded)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={styles.subjectAccordionIcon}>
+                                                <Ionicons name="book" size={18} color={Colors.secondary} />
+                                            </View>
+                                            <View style={styles.accordionTitleContainer}>
+                                                <Text style={styles.subjectAccordionTitle}>Materias Disponibles</Text>
+                                                <Text style={styles.subjectAccordionCount}>
+                                                    {availableSubjects.length} materia{availableSubjects.length !== 1 ? 's' : ''}
+                                                </Text>
+                                            </View>
+                                            <Ionicons
+                                                name={subjectsExpanded ? 'chevron-up' : 'chevron-down'}
+                                                size={20}
+                                                color={Colors.textSecondary}
+                                            />
+                                        </TouchableOpacity>
+
+                                        {subjectsExpanded && (
+                                            <View style={styles.subjectAccordionContent}>
+                                                <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                                                    {availableSubjects.map((subject, index) => (
+                                                        <TouchableOpacity
+                                                            key={subject.id}
+                                                            style={[
+                                                                styles.subjectListItem,
+                                                                index === 0 && { borderTopWidth: 0 }
+                                                            ]}
+                                                            onPress={() => handleSelectSubject(subject)}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <View style={styles.subjectListIcon}>
+                                                                <Ionicons name="book-outline" size={18} color={Colors.secondary} />
+                                                            </View>
+                                                            <Text style={styles.subjectListItemText} numberOfLines={1}>{subject.name}</Text>
+                                                            <Ionicons name="add-circle" size={22} color={Colors.primary} />
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </ScrollView>
+                                            </View>
+                                        )}
                                     </View>
                                 )}
 
@@ -822,7 +916,7 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
     formContainer: {
-        gap: 20,
+        gap: 2,
     },
     fieldLabel: {
         fontSize: 14,
@@ -830,6 +924,102 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         letterSpacing: 0.2,
         marginBottom: 4,
+    },
+    // Accordion styles
+    accordionContainer: {
+        marginBottom: 12,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: Colors.border,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 6,
+            },
+            android: {
+                elevation: 2,
+            },
+        }),
+    },
+    accordionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        gap: 12,
+        backgroundColor: '#fff',
+    },
+    accordionIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    accordionTitleContainer: {
+        flex: 1,
+    },
+    accordionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+    },
+    accordionCount: {
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 2,
+    },
+    accordionSelectedBadge: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 4,
+    },
+    accordionContent: {
+        backgroundColor: '#f8fafc',
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+    },
+    sectionListItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        paddingLeft: 16,
+        gap: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#e8ecf0',
+    },
+    sectionListItemSelected: {
+        borderLeftWidth: 4,
+    },
+    sectionListItemText: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+        lineHeight: 20,
+    },
+    radioButton: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: Colors.border,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    radioButtonInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#fff',
     },
     sectionGroup: {
         backgroundColor: '#fff',
@@ -879,8 +1069,64 @@ const styles = StyleSheet.create({
     sectionsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        gap: 12,
     },
+    sectionCard: {
+        width: '47%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingVertical: 14,
+        paddingHorizontal: 14,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: Colors.border,
+        minHeight: 70,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04,
+                shadowRadius: 6,
+            },
+            android: {
+                elevation: 1,
+            },
+        }),
+    },
+    sectionCardSelected: {
+        borderWidth: 2,
+        ...Platform.select({
+            ios: {
+                shadowOpacity: 0.12,
+                shadowRadius: 10,
+            },
+            android: {
+                elevation: 4,
+            },
+        }),
+    },
+    sectionCardIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sectionCardText: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.textPrimary,
+        lineHeight: 18,
+    },
+    sectionCardCheck: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+    },
+    // Keep old styles for backwards compatibility
     sectionChip: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1189,5 +1435,95 @@ const styles = StyleSheet.create({
     },
     removeSubjectBtn: {
         padding: 6,
-    }
+    },
+    // Subject list styles (vertical)
+    subjectListContainer: {
+        marginTop: 8,
+    },
+    subjectListLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.textSecondary,
+        marginBottom: 8,
+    },
+    subjectListBox: {
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+    },
+    subjectListItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        gap: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#e8ecf0',
+    },
+    subjectListIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: Colors.secondary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    subjectListItemText: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.textPrimary,
+    },
+    // Subject accordion styles
+    subjectAccordionContainer: {
+        borderRadius: 14,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: Colors.border,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04,
+                shadowRadius: 6,
+            },
+            android: {
+                elevation: 1,
+            },
+        }),
+    },
+    subjectAccordionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        gap: 10,
+        backgroundColor: '#fff',
+    },
+    subjectAccordionIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: Colors.secondary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    subjectAccordionTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+    },
+    subjectAccordionCount: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: Colors.secondary,
+        marginTop: 2,
+    },
+    subjectAccordionContent: {
+        backgroundColor: '#f8fafc',
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+    },
 });

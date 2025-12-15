@@ -10,6 +10,17 @@ class SchoolEvaluationScore(models.Model):
     evaluation_id = fields.Many2one(comodel_name='school.evaluation', string='Evaluación', required=True)
 
     year_id = fields.Many2one(comodel_name='school.year', string='Año escolar', related='evaluation_id.year_id', store=True)
+    
+    lapso = fields.Selection(
+        selection=[
+            ('1', 'Primer Lapso'),
+            ('2', 'Segundo Lapso'),
+            ('3', 'Tercer Lapso')
+        ],
+        string='Lapso',
+        related='evaluation_id.lapso',
+        store=True
+    )
 
     section_id = fields.Many2one(comodel_name='school.section', string='Sección', related='evaluation_id.section_id', store=True)
 
@@ -20,6 +31,19 @@ class SchoolEvaluationScore(models.Model):
 
 
     subject_id = fields.Many2one(comodel_name='school.subject', string='Materia', related='evaluation_id.subject_id', store=True)
+    
+    mention_section_id = fields.Many2one(
+        comodel_name='school.mention.section', 
+        string='Mención', 
+        related='evaluation_id.mention_section_id', 
+        store=True
+    )
+    
+    is_mention_score = fields.Boolean(
+        string='Es Nota de Mención',
+        related='evaluation_id.is_mention_evaluation',
+        store=True
+    )
 
     student_id = fields.Many2one(comodel_name='school.student', string='Estudiante', required=True)
 
@@ -35,26 +59,17 @@ class SchoolEvaluationScore(models.Model):
 
     score = fields.Float(string='Puntaje')
 
-    points_20 = fields.Float(string='Puntaje a 20', compute='_compute_points', store=True)
+    points_20 = fields.Float(string='Puntaje (Base 20)', compute='_compute_points', store=True)
 
-    points_100 = fields.Float(string='Puntaje a 100', compute='_compute_points', store=True)
-
-    @api.depends('score')
+    @api.depends('score', 'type')
     def _compute_points(self):
+        """Compute points normalized to base 20"""
         for record in self:
-            if not record.evaluation_id.invisible_score:
-                if record.type == 'secundary':
-                    if record.evaluation_id.year_id.evalution_type_secundary.type_evaluation == '20':
-                        record.points_20 = record.score
-                        record.points_100 = record.score * 100 / 20
-                    elif record.evaluation_id.year_id.evalution_type_secundary.type_evaluation == '100':
-                        record.points_100 = record.score
-                        record.points_20 = record.score * 20 / 100
-
-                elif record.type == 'primary':
-                    if record.evaluation_id.year_id.evalution_type_primary.type_evaluation == '20':
-                        record.points_20 = record.score
-                        record.points_100 = record.score * 100 / 20
+            if record.type in ['secundary', 'primary']:
+                # All numeric scores are now base 20
+                record.points_20 = record.score
+            else:
+                record.points_20 = 0.0
            
     state = fields.Selection(string='Estado', selection=[('draft', 'No calificado'), ('qualified', 'Calificado')], compute="_compute_state", store=True)
 

@@ -23,7 +23,8 @@ export class YearPerformanceOverview extends Component {
         const classes = {
             'pre': 'info',
             'primary': 'success',
-            'secundary': 'warning'
+            'secundary': 'warning',
+            'tecnico': 'primary'
         };
         return classes[type] || 'secondary';
     }
@@ -32,7 +33,8 @@ export class YearPerformanceOverview extends Component {
         const icons = {
             'pre': 'fa-child',
             'primary': 'fa-graduation-cap',
-            'secundary': 'fa-university'
+            'secundary': 'fa-university',
+            'tecnico': 'fa-cogs'
         };
         return icons[type] || 'fa-school';
     }

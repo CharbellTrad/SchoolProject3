@@ -31,13 +31,27 @@ class SchoolSchedule(models.Model):
             else:
                 record.display_name = f'{day_name} {start}-{end}' if day_name else 'Horario'
 
-    # Campos principales
+    # Campos principales - Either section_id OR mention_section_id must be set
     section_id = fields.Many2one(
         comodel_name='school.section',
         string='Sección',
-        required=True,
         ondelete='cascade',
-        index=True
+        index=True,
+        help='Sección a la que pertenece este horario'
+    )
+    
+    mention_section_id = fields.Many2one(
+        comodel_name='school.mention.section',
+        string='Mención',
+        ondelete='cascade',
+        index=True,
+        help='Mención técnica a la que pertenece este horario'
+    )
+    
+    is_mention_schedule = fields.Boolean(
+        string='Es Horario de Mención',
+        compute='_compute_is_mention_schedule',
+        store=True
     )
 
     # Para Media General: por materia
@@ -75,18 +89,25 @@ class SchoolSchedule(models.Model):
         string='Profesores Disponibles'
     )
     
-    @api.depends('section_id')
+    @api.depends('mention_section_id')
+    def _compute_is_mention_schedule(self):
+        for record in self:
+            record.is_mention_schedule = bool(record.mention_section_id)
+    
+    @api.depends('section_id', 'mention_section_id')
     def _compute_available_professors(self):
-        """Obtiene los profesores de la sección"""
+        """Obtiene los profesores de la sección o mención"""
         for record in self:
             if record.section_id:
                 professors = []
                 if record.section_id.type == 'secundary':
-                    # Obtener profesores de las materias de la sección
                     professors = record.section_id.subject_ids.mapped('professor_id.id')
                 elif record.section_id.type in ['primary', 'pre']:
                     professors = record.section_id.professor_ids.ids
-                
+                record.available_professor_ids = professors
+            elif record.mention_section_id:
+                # Get professors from mention subjects
+                professors = record.mention_section_id.subject_ids.mapped('professor_id.id')
                 record.available_professor_ids = professors
             else:
                 record.available_professor_ids = False
@@ -130,10 +151,20 @@ class SchoolSchedule(models.Model):
     year_id = fields.Many2one(
         comodel_name='school.year',
         string='Año Escolar',
-        related='section_id.year_id',
+        compute='_compute_year_id',
         store=True,
         readonly=True
     )
+    
+    @api.depends('section_id', 'section_id.year_id', 'mention_section_id', 'mention_section_id.year_id')
+    def _compute_year_id(self):
+        for record in self:
+            if record.section_id:
+                record.year_id = record.section_id.year_id
+            elif record.mention_section_id:
+                record.year_id = record.mention_section_id.year_id
+            else:
+                record.year_id = False
 
     education_level = fields.Selection(
         string='Nivel Educativo',
@@ -264,6 +295,82 @@ class SchoolSchedule(models.Model):
                         f"de {self._float_to_time_string(schedule.start_time)} a "
                         f"{self._float_to_time_string(schedule.end_time)}"
                     )
+    
+    @api.constrains('section_id', 'mention_section_id')
+    def _check_section_or_mention(self):
+        """Validate that either section_id or mention_section_id is set, but not both"""
+        for record in self:
+            if not record.section_id and not record.mention_section_id:
+                raise exceptions.ValidationError(
+                    "Debe especificar una Sección o una Mención para el horario."
+                )
+            if record.section_id and record.mention_section_id:
+                raise exceptions.ValidationError(
+                    "El horario solo puede pertenecer a una Sección o a una Mención, no a ambas."
+                )
+    
+    @api.constrains('section_id', 'mention_section_id', 'day_of_week', 'start_time', 'end_time')
+    def _check_student_mention_overlap(self):
+        """Validate no overlap between section and mention schedules for same students"""
+        for record in self:
+            if not record.active:
+                continue
+            
+            # Check cross-schedule conflicts only for sections that can have mentions
+            if record.section_id and record.section_id.section_id.has_medio_tecnico:
+                # Get all students in this section who have a mention
+                students_with_mentions = record.section_id.student_ids.filtered(
+                    lambda s: s.mention_section_id and s.current and s.state == 'done'
+                )
+                
+                for student in students_with_mentions:
+                    # Get this student's mention schedules
+                    mention_schedules = self.search([
+                        ('mention_section_id', '=', student.mention_section_id.id),
+                        ('day_of_week', '=', record.day_of_week),
+                        ('active', '=', True)
+                    ])
+                    
+                    for m_schedule in mention_schedules:
+                        if self._times_overlap(
+                            record.start_time, record.end_time,
+                            m_schedule.start_time, m_schedule.end_time
+                        ):
+                            raise exceptions.ValidationError(
+                                f"Conflicto de horario para el estudiante {student.student_id.name}: "
+                                f"El horario de la sección {record.section_id.section_id.name} "
+                                f"({self._float_to_time_string(record.start_time)}-{self._float_to_time_string(record.end_time)}) "
+                                f"se solapa con el horario de su mención "
+                                f"({self._float_to_time_string(m_schedule.start_time)}-{self._float_to_time_string(m_schedule.end_time)}) "
+                                f"el {dict(record._fields['day_of_week'].selection)[record.day_of_week]}."
+                            )
+            
+            # If this is a mention schedule, check against all sections with students in this mention
+            elif record.mention_section_id:
+                students_in_mention = record.mention_section_id.student_ids.filtered(
+                    lambda s: s.section_id and s.current and s.state == 'done'
+                )
+                
+                for student in students_in_mention:
+                    # Get this student's section schedules
+                    section_schedules = self.search([
+                        ('section_id', '=', student.section_id.id),
+                        ('day_of_week', '=', record.day_of_week),
+                        ('active', '=', True)
+                    ])
+                    
+                    for s_schedule in section_schedules:
+                        if self._times_overlap(
+                            record.start_time, record.end_time,
+                            s_schedule.start_time, s_schedule.end_time
+                        ):
+                            raise exceptions.ValidationError(
+                                f"Conflicto de horario para el estudiante {student.student_id.name}: "
+                                f"El horario de la mención ({self._float_to_time_string(record.start_time)}-{self._float_to_time_string(record.end_time)}) "
+                                f"se solapa con el horario de su sección {student.section_id.section_id.name} "
+                                f"({self._float_to_time_string(s_schedule.start_time)}-{self._float_to_time_string(s_schedule.end_time)}) "
+                                f"el {dict(record._fields['day_of_week'].selection)[record.day_of_week]}."
+                            )
 
     @api.constrains('professor_id', 'professor_ids', 'day_of_week', 'start_time', 'end_time')
     def _check_professor_overlap(self):

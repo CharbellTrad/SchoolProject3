@@ -87,6 +87,67 @@ export const loadCurrentEnrolledSections = async (
 };
 
 /**
+ * Carga secciones inscritas del año actual con paginación del servidor
+ * @param page Página actual (1-based)
+ * @param pageSize Número de items por página
+ * @param typeFilter Filtro opcional por tipo (pre, primary, secundary)
+ */
+export const loadEnrolledSectionsPaginated = async (
+    page: number = 1,
+    pageSize: number = 5,
+    typeFilter?: 'pre' | 'primary' | 'secundary' | 'all'
+): Promise<{ sections: EnrolledSection[]; total: number; page: number; pageSize: number }> => {
+    try {
+        const offset = (page - 1) * pageSize;
+
+        // Build domain based on filter
+        const baseDomain: any[] = [['current', '=', true]];
+        const domain = typeFilter && typeFilter !== 'all'
+            ? [...baseDomain, ['type', '=', typeFilter]]
+            : baseDomain;
+
+        if (__DEV__) {
+            console.time(`⏱️ loadEnrolledSectionsPaginated page:${page}`);
+        }
+
+        // Get total count for pagination
+        const countResult = await odooApi.searchCount(ENROLLED_SECTION_MODEL, domain);
+        const total = countResult.success ? (countResult.data || 0) : 0;
+
+        // Get paginated data
+        const result = await odooApi.searchRead(
+            ENROLLED_SECTION_MODEL,
+            domain,
+            ENROLLED_SECTION_FIELDS,
+            pageSize,
+            offset,
+            'id asc'
+        );
+
+        if (!result.success) {
+            if (__DEV__) {
+                console.error('❌ Error cargando secciones paginadas:', result.error);
+            }
+            return { sections: [], total: 0, page, pageSize };
+        }
+
+        const sections = normalizeEnrolledSections(result.data || []);
+
+        if (__DEV__) {
+            console.timeEnd(`⏱️ loadEnrolledSectionsPaginated page:${page}`);
+            console.log(`✅ Página ${page}: ${sections.length}/${total} secciones (filter: ${typeFilter || 'all'})`);
+        }
+
+        return { sections, total, page, pageSize };
+    } catch (error: any) {
+        if (__DEV__) {
+            console.error('❌ Error en loadEnrolledSectionsPaginated:', error);
+        }
+        return { sections: [], total: 0, page, pageSize };
+    }
+};
+
+/**
  * Carga todas las secciones inscritas (todos los años)
  */
 export const loadAllEnrolledSections = async (

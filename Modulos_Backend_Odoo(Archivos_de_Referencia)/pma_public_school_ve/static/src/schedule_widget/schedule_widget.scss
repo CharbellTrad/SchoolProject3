@@ -1,343 +1,335 @@
-.schedule-widget-container {
-    max-width: 1600px;
-    margin: 0 auto;
+// Schedule Widget Styles - Calendar Grid View
+
+.o_schedule_widget {
+    background-color: #fff;
+}
+
+// ========== Calendar Container ==========
+.schedule-calendar-container {
+    padding: 0;
+}
+
+// ========== Calendar Grid ==========
+.schedule-calendar-grid {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+// ========== Header Row (Days) ==========
+.schedule-header-row {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
     background-color: #f8f9fa;
-    min-height: 100vh;
+    border-bottom: 1px solid #dadce0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-    .schedule-header {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.schedule-time-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    border-right: 1px solid #dadce0;
+    background-color: #fff;
+    font-size: 11px;
+    color: #70757a;
+}
 
-        h2 {
-            color: #2c3e50;
-            font-weight: 600;
+.schedule-day-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    border-right: 1px solid #e8eaed;
+    text-align: center;
+    min-height: 60px;
 
-            i {
-                color: #3498db;
-            }
+    &:last-child {
+        border-right: none;
+    }
+
+    .day-abbrev {
+        font-size: 11px;
+        font-weight: 500;
+        color: #70757a;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .day-number {
+        font-size: 26px;
+        font-weight: 400;
+        color: #3c4043;
+        margin-top: 4px;
+
+        &.today {
+            background-color: #1a73e8;
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+}
+
+// ========== Grid Body ==========
+.schedule-grid-body {
+    display: flex;
+    flex-direction: column;
+}
+
+// ========== Time Row ==========
+.schedule-time-row {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
+    min-height: 60px;
+    border-bottom: 1px solid #e8eaed;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+// ========== Time Label ==========
+.schedule-time-label {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 4px 8px 0 0;
+    border-right: 1px solid #dadce0;
+    font-size: 10px;
+    color: #70757a;
+    background-color: #fff;
+    position: relative;
+
+    span {
+        transform: translateY(-50%);
+        white-space: nowrap;
+    }
+}
+
+// ========== Day Cell ==========
+.schedule-cell {
+    position: relative;
+    border-right: 1px solid #e8eaed;
+    min-height: 60px;
+    background-color: #fff;
+
+    &:last-child {
+        border-right: none;
+    }
+
+    &:hover {
+        background-color: #f8f9fa;
+    }
+}
+
+// ========== Schedule Block ==========
+.schedule-block {
+    display: flex;
+    flex-direction: column;
+    transition: all 0.15s ease;
+
+    &:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+        z-index: 5 !important;
+    }
+
+    .block-title {
+        font-weight: 500;
+        font-size: 11px;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .block-time {
+        font-size: 10px;
+        opacity: 0.9;
+        margin-top: 2px;
+    }
+
+    .block-info {
+        font-size: 10px;
+        opacity: 0.85;
+        margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+// ========== Legend ==========
+.schedule-legend {
+    .legend-color {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+}
+
+// ========== Empty States ==========
+.o_view_nocontent {
+    padding: 60px 20px;
+    text-align: center;
+
+    .o_view_nocontent_smiling_face::before {
+        font-family: 'FontAwesome';
+        content: '\f118';
+        font-size: 64px;
+        color: #7c7bad;
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .o_view_nocontent_neutral_face::before {
+        font-family: 'FontAwesome';
+        content: '\f11a';
+        font-size: 64px;
+        color: #adb5bd;
+        display: block;
+        margin-bottom: 20px;
+    }
+}
+
+// ========== Print Styles ==========
+@media print {
+    .o_schedule_widget {
+        .schedule-calendar-grid {
+            border: 1px solid #000;
+        }
+
+        .schedule-header-row,
+        .schedule-time-row {
+            border-color: #000;
+        }
+
+        .schedule-block {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
         }
     }
 
-    // Calendar Grid View
+    // Hide control panel when printing
+    .o_control_panel {
+        display: none !important;
+    }
+}
+
+// ========== Dark Mode Support ==========
+.o_dark {
+    .o_schedule_widget {
+        background-color: #1f1f1f;
+    }
+
     .schedule-calendar-grid {
-        background-color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
-        overflow-x: auto;
+        background-color: #2d2d2d;
+        border-color: #3c4043;
+    }
 
-        .calendar-wrapper {
-            min-width: 1200px;
+    .schedule-header-row {
+        background-color: #2d2d2d;
+        border-color: #3c4043;
+    }
+
+    .schedule-time-header,
+    .schedule-time-label {
+        background-color: #2d2d2d;
+        border-color: #3c4043;
+        color: #9aa0a6;
+    }
+
+    .schedule-day-header {
+        border-color: #3c4043;
+
+        .day-abbrev {
+            color: #9aa0a6;
         }
 
-        .calendar-grid {
-            display: table;
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .calendar-header-row {
-            display: table-row;
-
-            .time-header-cell,
-            .day-header-cell {
-                display: table-cell;
-                background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-                color: white;
-                font-weight: 600;
-                text-align: center;
-                padding: 1rem;
-                border: 1px solid #2980b9;
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
-
-            .time-header-cell {
-                width: 80px;
-            }
-
-            .day-header-cell {
-                min-width: 140px;
-            }
-        }
-
-        .calendar-time-row {
-            display: table-row;
-
-            .time-label-cell {
-                display: table-cell;
-                width: 80px;
-                background-color: #ecf0f1;
-                text-align: center;
-                vertical-align: top;
-                padding: 0.5rem;
-                border: 1px solid #dee2e6;
-                font-weight: 500;
-                color: #2c3e50;
-                position: relative;
-
-                .time-label {
-                    font-size: 0.875rem;
-                }
-            }
-
-            .day-time-cell {
-                display: table-cell;
-                min-width: 140px;
-                height: 80px; // 1 hour = 80px
-                border: 1px solid #dee2e6;
-                position: relative;
-                vertical-align: top;
-                background-color: #fafafa;
-
-                &:hover {
-                    background-color: #f0f0f0;
-                }
-
-                .half-hour-line {
-                    position: absolute;
-                    top: 50%;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background-color: #e0e0e0;
-                    z-index: 0;
-                }
-
-                .schedule-block {
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-                    &:hover {
-                        transform: scale(1.02);
-                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
-                        z-index: 2 !important;
-                    }
-
-                    .schedule-block-content {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 2px;
-                        height: 100%;
-
-                        .schedule-title {
-                            font-weight: 600;
-                            font-size: 0.8rem;
-                            line-height: 1.2;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        }
-
-                        .schedule-time-range,
-                        .schedule-classroom,
-                        .schedule-professor {
-                            font-size: 0.7rem;
-                            opacity: 0.95;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-
-                            i {
-                                margin-right: 3px;
-                                font-size: 0.65rem;
-                            }
-                        }
-                    }
-                }
-            }
+        .day-number {
+            color: #e8eaed;
         }
     }
 
-    .alert {
-        border-radius: 0.5rem;
-        border: none;
+    .schedule-time-row {
+        border-color: #3c4043;
+    }
 
-        &.alert-info {
-            background-color: #e3f2fd;
-            color: #1976d2;
+    .schedule-cell {
+        border-color: #3c4043;
+        background-color: #2d2d2d;
 
-            i {
-                color: #1976d2;
-            }
-        }
-
-        &.alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-
-            i {
-                color: #856404;
-            }
+        &:hover {
+            background-color: #3c4043;
         }
     }
 
-    .spinner-border {
-        width: 3rem;
-        height: 3rem;
+    .schedule-legend {
+        background-color: #2d2d2d !important;
+        color: #e8eaed;
     }
 }
 
-// Responsive adjustments
-@media (max-width: 1200px) {
-    .schedule-widget-container {
-        .schedule-calendar-grid {
-            .calendar-time-row {
-                .day-time-cell {
-                    .schedule-block {
-                        .schedule-block-content {
-
-                            .schedule-professor,
-                            .schedule-classroom {
-                                display: none;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
+// ========== Responsive ==========
 @media (max-width: 768px) {
-    .schedule-widget-container {
-        padding: 1rem !important;
+    .schedule-header-row,
+    .schedule-time-row {
+        grid-template-columns: 50px repeat(7, 1fr);
+    }
 
-        .schedule-header {
-            padding: 1rem;
+    .schedule-day-header {
+        padding: 8px 4px;
 
-            h2 {
-                font-size: 1.5rem;
-            }
+        .day-abbrev {
+            font-size: 9px;
+        }
+    }
 
-            .btn {
-                font-size: 0.875rem;
-                padding: 0.5rem 0.75rem;
-            }
+    .schedule-time-label {
+        font-size: 9px;
+        padding: 4px 4px 0 0;
+    }
+
+    .schedule-block {
+        .block-title {
+            font-size: 9px;
         }
 
-        .schedule-calendar-grid {
-            .calendar-wrapper {
-                min-width: 800px;
-            }
-
-            .calendar-header-row {
-
-                .time-header-cell,
-                .day-header-cell {
-                    padding: 0.75rem 0.5rem;
-                    font-size: 0.875rem;
-                }
-            }
-
-            .calendar-time-row {
-                .day-time-cell {
-                    min-width: 100px;
-
-                    .schedule-block {
-                        .schedule-block-content {
-                            .schedule-title {
-                                font-size: 0.7rem;
-                            }
-
-                            .schedule-time-range {
-                                font-size: 0.65rem;
-                            }
-                        }
-                    }
-                }
-            }
+        .block-time,
+        .block-info {
+            font-size: 8px;
         }
     }
 }
 
 @media (max-width: 576px) {
-    .schedule-widget-container {
-        .schedule-header {
-            .btn {
-                i {
-                    display: none;
-                }
-            }
+    .schedule-header-row,
+    .schedule-time-row {
+        grid-template-columns: 40px repeat(7, 1fr);
+    }
+
+    .schedule-day-header {
+        .day-abbrev {
+            font-size: 8px;
         }
     }
-}
 
-// Print styles
-@media print {
-    .schedule-widget-container {
-        background-color: white;
-        padding: 0 !important;
-
-        .schedule-header {
-            box-shadow: none;
-            border-bottom: 2px solid #dee2e6;
-
-            .btn {
-                display: none;
-            }
-        }
-
-        .schedule-calendar-grid {
-            box-shadow: none;
-            page-break-inside: avoid;
-
-            .calendar-time-row {
-                .day-time-cell {
-                    .schedule-block {
-                        box-shadow: none !important;
-                        border: 1px solid rgba(0, 0, 0, 0.2);
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-    .schedule-widget-container {
-        background-color: #1a1a1a;
-
-        .schedule-header,
-        .schedule-calendar-grid {
-            background-color: #2d2d2d;
-            color: #e0e0e0;
-        }
-
-        h2 {
-            color: #e0e0e0;
-        }
-
-        .calendar-time-row {
-            .time-label-cell {
-                background-color: #3a3a3a;
-                color: #e0e0e0;
-                border-color: #404040;
-            }
-
-            .day-time-cell {
-                background-color: #2d2d2d;
-                border-color: #404040;
-
-                &:hover {
-                    background-color: #3a3a3a;
-                }
-
-                .half-hour-line {
-                    background-color: #404040;
-                }
-            }
-        }
-
-        .calendar-header-row {
-
-            .time-header-cell,
-            .day-header-cell {
-                border-color: #404040;
-            }
-        }
+    .schedule-cell {
+        min-height: 50px;
     }
 }

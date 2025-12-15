@@ -13,6 +13,12 @@ class SchoolRegisterSection(models.Model):
                                     ('primary', 'Primaria'), 
                                     ('pre', 'Preescolar')], required=True)
 
+    has_medio_tecnico = fields.Boolean(
+        string='Extiende a Medio Técnico',
+        default=False,
+        help='Si está activo, los estudiantes de esta sección pueden inscribirse en menciones técnicas'
+    )
+
     letter_id = fields.Many2one('school.section.letter', string='Letra', help='Letra de la sección (A, B, C, etc.)')
 
     display_name = fields.Char(string='Nombre Completo', compute='_compute_display_name', store=True)

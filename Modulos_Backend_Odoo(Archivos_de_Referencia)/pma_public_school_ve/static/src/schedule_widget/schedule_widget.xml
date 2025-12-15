@@ -2,165 +2,157 @@
 <templates xml:space="preserve">
 
     <t t-name="pma_public_school_ve.ScheduleWidget">
-        <div class="schedule-widget-container p-3">
-            <!-- Header -->
-            <div class="schedule-header mb-4">
-                <h2 class="mb-3">
-                    <i class="fa fa-calendar"/> Horario de Clases
-                </h2>
-                
-                <!-- Controls Row -->
-                <div class="row g-3 mb-3">
-                    <!-- Section Selector -->
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Sección</label>
-                        <select class="form-select" t-on-change="onSectionChange" t-att-disabled="state.loading">
-                            <option value="">Seleccionar sección...</option>
-                            <t t-foreach="state.sections" t-as="section" t-key="section.id">
-                                <option t-att-value="section.id" 
-                                        t-att-selected="state.selectedSection and state.selectedSection.id === section.id">
-                                    <t t-esc="section.section_id[1]"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
+        <div class="o_action">
+            <Layout display="{ controlPanel: {} }">
+                <!-- Control Panel Buttons -->
+                <t t-set-slot="control-panel-always-buttons">
+                    <button t-on-click="printSchedule" 
+                            t-att-disabled="!state.selectedSection or !hasScheduleData()"
+                            class="btn btn-secondary" title="Imprimir">
+                        <i class="fa fa-print"/> Imprimir
+                    </button>
+                    <button t-on-click="exportToPDF" 
+                            t-att-disabled="!state.selectedSection or !hasScheduleData()"
+                            class="btn btn-primary" title="Exportar PDF">
+                        <i class="fa fa-file-pdf-o"/> PDF
+                    </button>
+                </t>
 
-                    <!-- Actions -->
-                    <div class="col-12 col-md-6 d-flex gap-2 align-items-end justify-content-md-end">
-                        <button class="btn btn-outline-primary" 
-                                t-on-click="printSchedule"
-                                t-att-disabled="!state.selectedSection or !hasScheduleData()">
-                            <i class="fa fa-print"/> Imprimir
-                        </button>
-                        <button class="btn btn-outline-success" 
-                                t-on-click="exportToPDF"
-                                t-att-disabled="!state.selectedSection or !hasScheduleData()">
-                            <i class="fa fa-file-pdf-o"/> Exportar PDF
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Loading Spinner -->
-            <div t-if="state.loading" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-            </div>
-
-            <!-- No Section Selected -->
-            <div t-if="!state.loading and !state.selectedSection" class="alert alert-info text-center">
-                <i class="fa fa-info-circle fa-2x mb-2"/>
-                <p class="mb-0">Seleccione una sección para ver su horario</p>
-            </div>
-
-            <!-- No Schedule Data -->
-            <div t-if="!state.loading and state.selectedSection and !hasScheduleData()" class="alert alert-warning text-center">
-                <i class="fa fa-exclamation-triangle fa-2x mb-2"/>
-                <p class="mb-0">No hay horarios configurados para esta sección</p>
-            </div>
-
-            <!-- Schedule Content with Scroll -->
-            <div t-if="!state.loading and state.selectedSection and hasScheduleData()" 
-                 class="schedule-content-wrapper" 
-                 style="max-height: 70vh; overflow-y: auto;">
-                
-                <!-- Day Cards -->
-                <t t-foreach="days" t-as="day" t-key="day.key">
-                    <div class="card mb-3">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><t t-esc="day.label"/></h5>
-                        </div>
-                        <div class="card-body">
-                            <t t-set="daySchedules" t-value="getScheduleForDay(day.key)"/>
-                            <t t-if="daySchedules.length === 0">
-                                <div class="alert alert-light text-center mb-0">
-                                    <small class="text-muted">Sin clases programadas</small>
-                                </div>
-                            </t>
-                            <t t-else="">
-                                <t t-foreach="daySchedules" t-as="schedule" t-key="schedule.id">
-                                    <div class="card mb-2" 
-                                         t-att-style="'border-left: 4px solid ' + getColorClass(schedule.color)">
-                                        <div class="card-body p-3">
-                                            <!-- Title: Subject or Professors -->
-                                            <h6 class="card-title mb-2">
-                                                <t t-if="isSubjectBasedSchedule()">
-                                                    <t t-esc="schedule.subject_name"/>
-                                                </t>
-                                                <t t-if="isTeacherBasedSchedule()">
-                                                    <t t-esc="schedule.professors_names"/>
-                                                </t>
-                                            </h6>
-                                            
-                                            <!-- Time -->
-                                            <div class="mb-1">
-                                                <i class="fa fa-clock-o text-primary"/> 
-                                                <strong><t t-esc="schedule.start_time_str"/> - <t t-esc="schedule.end_time_str"/></strong>
-                                                <span class="badge bg-secondary ms-2">
-                                                    <t t-esc="Math.round(schedule.duration * 60)"/> min
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- Professor (for subject-based) -->
-                                            <div t-if="isSubjectBasedSchedule() and schedule.professor_name" class="mb-1">
-                                                <i class="fa fa-user text-success"/> 
-                                                <t t-esc="schedule.professor_name"/>
-                                            </div>
-                                            
-                                            <!-- Professor count (for teacher-based) -->
-                                            <div t-if="isTeacherBasedSchedule() and schedule.professor_count &gt; 1" class="mb-1">
-                                                <i class="fa fa-users text-success"/> 
-                                                <t t-esc="schedule.professor_count"/> profesores
-                                            </div>
-                                            
-                                            <!-- Classroom -->
-                                            <div t-if="schedule.classroom" class="mb-0">
-                                                <i class="fa fa-building text-warning"/> 
-                                                <t t-esc="schedule.classroom"/>
-                                            </div>
-                                        </div>
-                                    </div>
+                <!-- Layout Actions (Filters) -->
+                <t t-set-slot="layout-actions">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="input-group" style="width: auto; min-width: 280px;">
+                            <span class="input-group-text fw-bold">
+                                <i class="fa fa-graduation-cap"/> Sección
+                            </span>
+                            <select class="form-select" t-on-change="onSectionChange" t-att-disabled="state.loading">
+                                <option value="">Seleccionar...</option>
+                                <t t-foreach="state.sections" t-as="section" t-key="section.id">
+                                    <option t-att-value="section.id" 
+                                            t-att-selected="state.selectedSection and state.selectedSection.id === section.id">
+                                        <t t-esc="section.section_id[1]"/>
+                                    </option>
                                 </t>
-                            </t>
+                            </select>
                         </div>
                     </div>
                 </t>
 
-                <!-- Legend -->
-                <div class="card mt-4" t-if="state.scheduleData and state.scheduleData.schedules">
-                    <div class="card-header">
-                        <h5 class="mb-0">Leyenda</h5>
+                <!-- Main Content -->
+                <div class="o_schedule_widget">
+                    <!-- Loading Spinner -->
+                    <div t-if="state.loading" class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-2">
-                            <t t-set="uniqueItems" t-value="{}"/>
-                            <t t-foreach="Object.values(state.scheduleData.schedules)" t-as="daySchedules" t-key="daySchedules_index">
-                                <t t-foreach="daySchedules" t-as="schedule" t-key="schedule.id">
-                                    <!-- For media general: use subject_name -->
-                                    <t t-if="isSubjectBasedSchedule() and schedule.subject_name">
-                                        <t t-set="uniqueItems[schedule.subject_name]" t-value="schedule.color"/>
-                                    </t>
-                                    <!-- For primary/preschool: use professors_names -->
-                                    <t t-if="isTeacherBasedSchedule() and schedule.professors_names">
-                                        <t t-set="uniqueItems[schedule.professors_names]" t-value="schedule.color"/>
+
+                    <!-- Empty State: No Section Selected -->
+                    <div t-if="!state.loading and !state.selectedSection" class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_smiling_face">
+                                Seleccione una sección
+                            </p>
+                            <p class="text-muted">
+                                Elija una sección para visualizar su horario semanal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Empty State: No Schedule Data -->
+                    <div t-if="!state.loading and state.selectedSection and !hasScheduleData()" class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_neutral_face">
+                                Sin horarios configurados
+                            </p>
+                            <p class="text-muted">
+                                No hay horarios asignados para esta sección.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Grid View -->
+                    <div t-if="!state.loading and state.selectedSection and hasScheduleData()" 
+                         class="schedule-calendar-container">
+                        
+                        <!-- Calendar Grid -->
+                        <div class="schedule-calendar-grid">
+                            <!-- Header Row: Days -->
+                            <div class="schedule-header-row">
+                                <!-- Time column header -->
+                                <div class="schedule-time-header">
+                                    <span class="text-muted small">GMT-04</span>
+                                </div>
+                                <!-- Day headers -->
+                                <t t-foreach="days" t-as="day" t-key="day.key">
+                                    <div class="schedule-day-header">
+                                        <span class="day-abbrev"><t t-esc="day.label"/></span>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- Time Grid Container with scroll -->
+                            <div class="schedule-grid-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                                <!-- Time rows -->
+                                <t t-foreach="timeSlots" t-as="slot" t-key="slot.hour">
+                                    <div class="schedule-time-row">
+                                        <!-- Time label -->
+                                        <div class="schedule-time-label">
+                                            <span><t t-esc="formatHourLabel(slot.hour)"/></span>
+                                        </div>
+                                        <!-- Day cells -->
+                                        <t t-foreach="days" t-as="day" t-key="day.key">
+                                            <div class="schedule-cell" t-att-data-day="day.key" t-att-data-hour="slot.hour">
+                                                <!-- Schedule blocks that start in this hour -->
+                                                <t t-foreach="getSchedulesForCell(day.key, slot.hour)" t-as="schedule" t-key="schedule.id">
+                                                    <div class="schedule-block"
+                                                         t-att-style="getBlockStyle(schedule)"
+                                                         t-att-title="getBlockTooltip(schedule)">
+                                                        <div class="block-title">
+                                                            <t t-esc="getBlockTitle(schedule)"/>
+                                                        </div>
+                                                        <div class="block-time" t-if="schedule.duration >= 0.5">
+                                                            <t t-esc="formatTime(schedule.start_time)"/> - <t t-esc="formatTime(schedule.end_time)"/>
+                                                        </div>
+                                                        <div class="block-info" t-if="schedule.duration >= 1 and schedule.professor_name">
+                                                            <t t-esc="schedule.professor_name"/>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="schedule-legend mt-3 p-3 bg-light rounded" t-if="state.scheduleData">
+                            <h6 class="mb-2"><i class="fa fa-info-circle me-1"/> Leyenda</h6>
+                            <div class="d-flex flex-wrap gap-3">
+                                <t t-set="uniqueItems" t-value="{}"/>
+                                <t t-foreach="Object.values(state.scheduleData.schedules)" t-as="daySchedules" t-key="daySchedules_index">
+                                    <t t-foreach="daySchedules" t-as="schedule" t-key="schedule.id">
+                                        <t t-if="isSubjectBasedSchedule() and schedule.subject_name">
+                                            <t t-set="uniqueItems[schedule.subject_name]" t-value="schedule.color"/>
+                                        </t>
+                                        <t t-if="!isSubjectBasedSchedule() and schedule.professors_names">
+                                            <t t-set="uniqueItems[schedule.professors_names]" t-value="schedule.color"/>
+                                        </t>
                                     </t>
                                 </t>
-                            </t>
-                            <t t-foreach="Object.keys(uniqueItems)" t-as="itemLabel" t-key="itemLabel">
-                                <div class="col-6 col-md-4 col-lg-3">
+                                <t t-foreach="Object.keys(uniqueItems)" t-as="itemLabel" t-key="itemLabel">
                                     <div class="d-flex align-items-center">
-                                        <span class="d-inline-block me-2" 
-                                              style="width: 20px; height: 20px; border-radius: 3px;"
-                                              t-att-style="'background-color: ' + getColorClass(uniqueItems[itemLabel])"/>
-                                        <span><t t-esc="itemLabel"/></span>
+                                        <span class="legend-color me-2" 
+                                              t-att-style="'background-color: ' + getBlockColor(uniqueItems[itemLabel])"/>
+                                        <span class="small"><t t-esc="itemLabel"/></span>
                                     </div>
-                                </div>
-                            </t>
+                                </t>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </Layout>
         </div>
     </t>
 

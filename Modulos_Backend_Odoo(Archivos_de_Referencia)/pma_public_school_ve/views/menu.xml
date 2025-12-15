@@ -13,17 +13,19 @@
         <!-- Operaciones Diarias -->
         <menuitem id="academic_operations_categ" name="Operaciones Diarias" parent="academic_management_root_menu" sequence="10"/>
             <menuitem id="current_school_sections_menu" name="Secciones Activas" action="current_school_section_action" parent="academic_operations_categ" sequence="10"/>
-            <menuitem id="current_school_students_menu" name="Estudiantes del Año" action="current_school_students_action" parent="academic_operations_categ" sequence="20"/>
-            <menuitem id="current_school_professor_menu" name="Docentes Asignados" action="current_school_professor_action" parent="academic_operations_categ" sequence="30"/>
-            <menuitem id="current_school_evaluation_menu" name="Evaluaciones en Curso" action="current_school_evaluation_action" parent="academic_operations_categ" sequence="40"/>
+            <menuitem id="menu_school_mention_section" name="Menciones Activas" action="school_mention_section_action" parent="academic_operations_categ" sequence="20"/>
+            <menuitem id="current_school_students_menu" name="Estudiantes del Año" action="current_school_students_action" parent="academic_operations_categ" sequence="30"/>
+            <menuitem id="current_school_professor_menu" name="Docentes Asignados" action="current_school_professor_action" parent="academic_operations_categ" sequence="40"/>
+            <menuitem id="current_school_evaluation_menu" name="Evaluaciones en Curso" action="current_school_evaluation_action" parent="academic_operations_categ" sequence="50"/>
 
         <!-- Registros Históricos -->
         <menuitem id="historical_menu_categ" name="Registros Históricos" parent="academic_management_root_menu" sequence="20"/>
             <menuitem id="school_year_menu" name="Años Escolares Pasados" action="school_year_action" parent="historical_menu_categ" sequence="10"/>
             <menuitem id="school_sections_menu" name="Historial de Secciones" action="school_section_action" parent="historical_menu_categ" sequence="20"/>
-            <menuitem id="school_students_menu" name="Historial de Estudiantes" action="school_students_action" parent="historical_menu_categ" sequence="30"/>
-            <menuitem id="school_professor_menu" name="Historial de Docentes" action="school_professor_action" parent="historical_menu_categ" sequence="40"/>
-            <menuitem id="school_evaluation_menu" name="Historial de Evaluaciones" action="school_evaluation_action" parent="historical_menu_categ" sequence="50"/>
+            <menuitem id="menu_school_mention_section_history" name="Historial de Menciones Inscritas" parent="historical_menu_categ" action="school_mention_section_action_history" sequence="30"/>
+            <menuitem id="school_students_menu" name="Historial de Estudiantes" action="school_students_action" parent="historical_menu_categ" sequence="40"/>
+            <menuitem id="school_professor_menu" name="Historial de Docentes" action="school_professor_action" parent="historical_menu_categ" sequence="50"/>
+            <menuitem id="school_evaluation_menu" name="Historial de Evaluaciones" action="school_evaluation_action" parent="historical_menu_categ" sequence="60"/>
 
     <!-- Control de Asistencia -->
     <menuitem id="attendance_root_menu" name="Asistencias" parent="school_menu_root" sequence="30"/>
@@ -50,5 +52,4 @@
             <menuitem id="school_section_letter_menu" name="Letras de Sección" action="school_section_letter_action" parent="school_config_menu_categ" sequence="15"/>
             <menuitem id="school_register_subject_menu" name="Catálogo de Materias" action="school_register_subject_action" parent="school_config_menu_categ" sequence="20"/>
             <menuitem id="school_mention_menu" name="Menciones Técnicas" action="school_mention_action" parent="school_config_menu_categ" sequence="25"/>
-
 </odoo>

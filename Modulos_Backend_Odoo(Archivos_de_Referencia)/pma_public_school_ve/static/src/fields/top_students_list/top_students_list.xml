@@ -2,47 +2,76 @@
 <templates id="template" xml:space="preserve">
     <t t-name="school.TopStudentsList">
         <div class="o_top_students_list">
-            <t t-if="topStudents.length > 0">
-                <div class="list-group">
-                    <t t-foreach="topStudents" t-as="student" t-key="student.student_id">
-                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center cursor-pointer"
-                             t-on-click="() => this.onStudentClick(student.student_id)">
-                            <div class="d-flex align-items-center flex-grow-1">
-                                <div class="me-3" style="min-width: 40px; text-align: center;">
-                                    <h4 class="mb-0" t-att-class="getMedalClass(student_index)">
-                                        <t t-esc="getMedalIcon(student_index)"/>
-                                    </h4>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">
-                                        <t t-esc="student.student_name"/>
-                                    </h6>
-                                    <small class="text-muted">
-                                        <i class="fa fa-graduation-cap me-1"/>
-                                        <t t-esc="student.section"/>
-                                    </small>
-                                </div>
+            <!-- Nueva estructura: 3 columnas por nivel -->
+            <t t-if="isNewStructure">
+                <div class="row">
+                    <!-- Primaria -->
+                    <div class="col-lg-4 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-graduation-cap me-2"/>Primaria
+                                </h6>
                             </div>
-                            <div class="text-end">
-                                <t t-if="student.use_literal">
-                                    <h4 class="mb-0" t-att-class="student.state === 'approve' ? 'text-success' : 'text-danger'">
-                                        <t t-esc="student.literal_average"/>
-                                    </h4>
-                                    <small class="text-muted">Literal</small>
+                            <div class="card-body p-0">
+                                <t t-if="topPrimary.length > 0">
+                                    <t t-call="school.TopStudentsListItems">
+                                        <t t-set="students" t-value="topPrimary"/>
+                                    </t>
                                 </t>
-                                <t t-else="">
-                                    <h4 class="mb-0" t-att-class="student.average >= 10 ? 'text-success' : 'text-danger'">
-                                        <t t-esc="student.average"/>
-                                    </h4>
-                                    <small class="text-muted">Promedio</small>
-                                </t>
-                            </div>
-                            <div class="ms-3">
-                                <span t-att-class="getStateClass(student.state)" t-esc="getStateLabel(student.state)"/>
+                                <div t-else="" class="p-3 text-muted text-center">
+                                    <small>Sin datos</small>
+                                </div>
                             </div>
                         </div>
-                    </t>
+                    </div>
+                    <!-- Media General -->
+                    <div class="col-lg-4 mb-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-university me-2"/>Media General
+                                </h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <t t-if="topSecundary.length > 0">
+                                    <t t-call="school.TopStudentsListItems">
+                                        <t t-set="students" t-value="topSecundary"/>
+                                    </t>
+                                </t>
+                                <div t-else="" class="p-3 text-muted text-center">
+                                    <small>Sin datos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Medio Técnico -->
+                    <div class="col-lg-4 mb-3">
+                        <div class="card border-info h-100">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-cogs me-2"/>Medio Técnico
+                                </h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <t t-if="topTecnico.length > 0">
+                                    <t t-call="school.TopStudentsListItems">
+                                        <t t-set="students" t-value="topTecnico"/>
+                                    </t>
+                                </t>
+                                <div t-else="" class="p-3 text-muted text-center">
+                                    <small>Sin datos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </t>
+            <!-- Estructura legacy -->
+            <t t-elif="topStudents.length > 0">
+                <t t-call="school.TopStudentsListItems">
+                    <t t-set="students" t-value="topStudents"/>
+                </t>
             </t>
             <div t-else="" class="alert alert-info text-center">
                 <i class="fa fa-info-circle me-2"/>
@@ -50,4 +79,43 @@
             </div>
         </div>
     </t>
+
+    <!-- Sub-template para lista de estudiantes -->
+    <t t-name="school.TopStudentsListItems">
+        <div class="list-group list-group-flush">
+            <t t-foreach="students" t-as="student" t-key="student.student_id">
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center cursor-pointer py-2"
+                     t-on-click="() => this.onStudentClick(student.student_id)">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="me-2" style="min-width: 30px; text-align: center;">
+                            <span t-att-class="getMedalClass(student_index)" style="font-size: 1.2rem;">
+                                <t t-esc="getMedalIcon(student_index)"/>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">
+                                <t t-esc="student.student_name"/>
+                            </div>
+                            <small class="text-muted">
+                                <t t-esc="student.section"/>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <t t-if="student.use_literal">
+                            <span class="fs-5 fw-bold" t-att-class="student.state === 'approve' ? 'text-success' : 'text-danger'">
+                                <t t-esc="student.literal_average"/>
+                            </span>
+                        </t>
+                        <t t-else="">
+                            <span class="fs-5 fw-bold" t-att-class="student.average >= 10 ? 'text-success' : 'text-danger'">
+                                <t t-esc="student.average"/>
+                            </span>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
 </templates>
+

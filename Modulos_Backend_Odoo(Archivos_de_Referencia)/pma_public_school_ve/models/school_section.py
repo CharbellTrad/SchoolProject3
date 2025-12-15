@@ -6,6 +6,7 @@ from odoo.exceptions import UserError
 class SchoolSection(models.Model):
     _name = 'school.section'
     _description = 'School Section'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     def _default_year(self):
         year_id = self.env['school.year'].search([('current', '=', True)], limit=1)
@@ -19,9 +20,9 @@ class SchoolSection(models.Model):
         for record in self:
             record.name = f"{record.section_id.name} - {record.year_id.name}" if record.section_id and record.year_id else ''
 
-    year_id = fields.Many2one(comodel_name='school.year', string='Año Escolar', default=_default_year, required=True)
+    year_id = fields.Many2one(comodel_name='school.year', string='Año Escolar', default=_default_year, required=True, tracking=True)
 
-    section_id = fields.Many2one(comodel_name='school.register.section', string='Sección', domain="[('id', 'not in', used_section_ids)]")
+    section_id = fields.Many2one(comodel_name='school.register.section', string='Sección', domain="[('id', 'not in', used_section_ids)]", tracking=True)
 
     used_section_ids = fields.Many2many(comodel_name='school.register.section', string='Secciones utilizadas', compute='_compute_used_section_ids')
 
@@ -46,6 +47,17 @@ class SchoolSection(models.Model):
     student_ids = fields.One2many(comodel_name='school.student', inverse_name='section_id', string='Estudiantes', readonly=True)
 
     current = fields.Boolean(string='Actual', related='year_id.current', store=True)
+    
+    lapso_inscripcion = fields.Selection(
+        selection=[
+            ('1', 'Primer Lapso'),
+            ('2', 'Segundo Lapso'),
+            ('3', 'Tercer Lapso')
+        ],
+        string='Lapso de Inscripción',
+        readonly=True,
+        help='Lapso en el que se inscribió la sección'
+    )
 
     # Campos JSON para gráficos de rendimiento
     subjects_average_json = fields.Json(
@@ -68,7 +80,6 @@ class SchoolSection(models.Model):
 
     @api.depends('subject_ids', 'student_ids', 'student_ids.evaluation_score_ids', 
                  'student_ids.evaluation_score_ids.points_20', 
-                 'student_ids.evaluation_score_ids.points_100',
                  'student_ids.evaluation_score_ids.state_score',
                  'type', 'year_id')
     def _compute_subjects_average_json(self):
@@ -103,11 +114,8 @@ class SchoolSection(models.Model):
                     
                     student_id = student.student_id.id
                     
-                    # Agregar el puntaje según el tipo de evaluación
-                    if evaluation_type == '20':
-                        score_value = score.points_20
-                    else:  # '100'
-                        score_value = score.points_100
+                    # Agregar el puntaje (siempre base 20)
+                    score_value = score.points_20
                     
                     subjects_data[subject_id]['scores'].append(score_value)
                     
@@ -281,6 +289,14 @@ class SchoolSection(models.Model):
             }
             
             record.top_students_json = result
+    
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'year_id' in vals and 'lapso_inscripcion' not in vals:
+                year = self.env['school.year'].browse(vals['year_id'])
+                vals['lapso_inscripcion'] = year.current_lapso or '1'
+        return super().create(vals_list)
     
     def unlink(self):
         """Prevent deletion of enrolled sections with related records or in finished years"""

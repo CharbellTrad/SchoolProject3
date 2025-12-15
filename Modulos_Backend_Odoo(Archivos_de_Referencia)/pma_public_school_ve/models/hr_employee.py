@@ -1,4 +1,10 @@
+import json
+import logging
+import os
+
 from odoo import _, api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class HrEmployee(models.Model):
@@ -144,3 +150,39 @@ class HrEmployee(models.Model):
             self.active = False
         else:
             self.active = True
+
+    # =====================================================
+    # MÉTODO PARA CRON - IMPORTAR PERSONAL DESDE JSON
+    # =====================================================
+    @api.model
+    def _cron_import_personal_from_json(self):
+        """
+        Método llamado por el cron para importar personal desde el archivo JSON.
+        Busca el archivo personal.json en el directorio models del módulo.
+        """
+        # Obtener la ruta del módulo
+        module_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        json_path = os.path.join(module_path, 'models', 'personal.json')
+        
+        if not os.path.exists(json_path):
+            _logger.warning(f"Archivo JSON no encontrado: {json_path}")
+            return {'error': 'Archivo JSON no encontrado', 'path': json_path}
+        
+        _logger.info(f"Iniciando importación de personal desde: {json_path}")
+        
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
+        except Exception as e:
+            _logger.error(f"Error al leer el archivo JSON: {str(e)}")
+            return {'error': f'Error al leer JSON: {str(e)}'}
+        
+        # Importar la función de carga
+        from odoo.addons.pma_public_school_ve.scripts.load_personal_from_json import load_personal_from_json
+        
+        # Ejecutar la carga
+        result = load_personal_from_json(self.env, json_data=json_data)
+        
+        _logger.info(f"Importación completada: {result}")
+        
+        return result

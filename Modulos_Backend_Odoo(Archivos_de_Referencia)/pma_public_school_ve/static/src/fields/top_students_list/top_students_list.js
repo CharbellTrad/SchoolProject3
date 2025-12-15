@@ -16,8 +16,26 @@ export class TopStudentsList extends Component {
         this.data = this.props.record.data[this.props.name];
     }
 
+    // Support both old and new structures
+    get topPrimary() {
+        return this.data?.top_primary || [];
+    }
+
+    get topSecundary() {
+        return this.data?.top_secundary || [];
+    }
+
+    get topTecnico() {
+        return this.data?.top_tecnico || [];
+    }
+
+    // Legacy support
     get topStudents() {
         return this.data?.top_students || [];
+    }
+
+    get isNewStructure() {
+        return this.data && ('top_primary' in this.data || 'top_secundary' in this.data);
     }
 
     getMedalIcon(index) {

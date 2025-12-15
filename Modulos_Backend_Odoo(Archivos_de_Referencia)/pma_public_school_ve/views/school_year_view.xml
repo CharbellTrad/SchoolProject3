@@ -80,11 +80,17 @@
                             confirm="¿Está seguro de iniciar este año escolar? Esta acción marcará el año como activo."
                             invisible="state != 'draft'"
                             class="btn-success"/>
+                    <button string="Siguiente Lapso" 
+                            name="action_next_lapso" 
+                            type="object"
+                            confirm="¿Está seguro de avanzar al siguiente lapso?"
+                            invisible="state != 'active' or current_lapso == '3'"
+                            class="btn-primary"/>
                     <button string="Finalizar Año Escolar" 
                             name="action_finish_year" 
                             type="object"
                             confirm="¿Está seguro de finalizar este año escolar? Esta acción bloqueará todas las inscripciones, evaluaciones y demás registros. No se podrán crear ni eliminar registros relacionados."
-                            invisible="state != 'active'"
+                            invisible="state != 'active' or current_lapso != '3'"
                             class="btn-danger"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,active,finished"/>
                 </header>
@@ -120,6 +126,13 @@
                                            placeholder="e.g. 2025-2026"
                                            readonly="state == 'finished'"/>
                                 </h1>
+                                <!-- Lapso Display -->
+                                <div class="o_row mt-2" invisible="state != 'active'">
+                                    <span class="badge text-bg-info fs-6">
+                                        <field name="lapso_display"/>
+                                    </span>
+                                    <field name="current_lapso" invisible="1"/>
+                                </div>
                                 <div class="o_row mt-2" invisible="state == 'finished'">
                                     <field name="current" widget="boolean_toggle" readonly="state == 'finished'"/>
                                     <label for="current" string="Año Actual"/>
@@ -217,13 +230,13 @@
                             </group>
 
                             <group>
-                                <group string="Comparativa de Secciones" colspan="2">
+                                <group string="Mejor Sección por Nivel" colspan="2">
                                     <field name="sections_comparison_json" 
                                         widget="sections_comparison_chart" 
                                         nolabel="1" colspan="2"/>
                                 </group>
 
-                                <group string="Top 10 Mejores Estudiantes del Año" colspan="2">
+                                <group string="Top 9 Mejores Estudiantes (3 por Nivel)" colspan="2">
                                     <field name="top_students_year_json" 
                                         widget="top_students_list" 
                                         nolabel="1" colspan="2"/>
@@ -239,34 +252,24 @@
                             </group>
 
                             <group name="secundary" col="3">
-                                <group name="sections" string="Secciones">
+                                <group name="students_count" string="N° de Estudiantes">
                                     <field name="students_secundary_count" nolabel="1" readonly="1"/>
                                     <label for="students_secundary_count" string="Total Estudiantes"/>
                                 </group>
-                                <group name="students" string="Estudiantes">
+                                <group name="approved_count" string="N° de Aprobados">
                                     <field name="approved_secundary_count" nolabel="1" readonly="1"/>
                                     <label for="approved_secundary_count" string="Aprobados"/>
                                 </group>
-                                <group name="subjects" string="Materias">
-                                    <field name="sections_secundary_count" nolabel="1" readonly="1"/>
-                                    <label for="sections_secundary_count" string="Secciones Activas"/>
+                                <group name="subjects_count" string="N° de Materias">
+                                    <field name="subjects_secundary_count" nolabel="1" readonly="1"/>
+                                    <label for="subjects_secundary_count" string="Total Materias"/>
                                 </group>
                             </group>
 
-                            <separator string="Secciones de Media General"/>
-                            <field name="section_ids"
-                                    readonly="1" 
-                                   domain="[('type', '=', 'secundary')]"
-                                   >
-                                   <!-- context="{'default_year_id': active_id, 'default_type': 'secundary'}" -->
-                                <list decoration-info="type == 'secundary'">
-                                    <field name="section_id"/>
-                                    <field name="type" invisible="1"/>
-                                    <field name="student_ids" widget="badge" decoration-info="1"/>
-                                    <field name="subject_ids" widget="badge" decoration-success="1"/>
-                                    <field name="professor_ids" widget="many2many_tags"/>
-                                </list>
-                            </field>
+                            <separator string="Grados de Media General"/>
+                            <field name="sections_secundary_ids" 
+                                   widget="many2many_tags"
+                                   readonly="1"/>
 
                             <group string="Rendimiento de Media General">
                                 <field name="secundary_performance_json" 
@@ -292,41 +295,34 @@
                             </group>
 
                             <group name="secundary_tecnico" col="3">
-                                <group name="students" string="Estudiantes">
+                                <group name="students_count" string="N° de Estudiantes">
                                     <field name="students_tecnico_count" nolabel="1" readonly="1"/>
                                     <label for="students_tecnico_count" string="Total Estudiantes"/>
                                 </group>
-                                <group name="approved" string="Aprobados">
+                                <group name="approved_count" string="N° de Aprobados">
                                     <field name="approved_tecnico_count" nolabel="1" readonly="1"/>
                                     <label for="approved_tecnico_count" string="Aprobados"/>
                                 </group>
-                                <group name="sections" string="Secciones">
-                                    <field name="sections_secundary_count" nolabel="1" readonly="1"/>
-                                    <label for="sections_secundary_count" string="Secciones Activas"/>
+                                <group name="mentions_count" string="N° de Menciones">
+                                    <field name="mentions_count" nolabel="1" readonly="1"/>
+                                    <label for="mentions_count" string="Total Menciones"/>
                                 </group>
                             </group>
 
-                            <separator string="Estudiantes con Mención Inscrita"/>
-                            <field name="students_secundary_tecnico_ids" 
-                                    readonly="1">
-                                <list decoration-info="mention_state == 'enrolled'">
-                                    <field name="student_id"/>
-                                    <field name="section_id"/>
-                                    <field name="mention_id"/>
-                                    <field name="mention_state" widget="badge" 
-                                           decoration-success="mention_state == 'enrolled'"/>
-                                </list>
-                            </field>
+                            <separator string="Menciones de Técnico Medio"/>
+                            <field name="mentions_ids" 
+                                   widget="many2many_tags"
+                                   readonly="1"/>
 
                             <group string="Rendimiento de Técnico Medio">
-                                <field name="secundary_performance_json" 
+                                <field name="tecnico_performance_json" 
                                        widget="general_performance_graph"
                                        colspan="2" 
                                        nolabel="1"/>
                             </group>
                             
-                            <!-- Dashboard con Top 3 estudiantes por sección -->
-                            <group string="Top 3 Estudiantes por Sección">
+                            <!-- Dashboard con Top 3 estudiantes por Mención -->
+                            <group string="Top 3 Estudiantes por Mención">
                                 <field name="secundary_tecnico_dashboard_json" 
                                        widget="level_dashboard" 
                                        colspan="2"
@@ -342,34 +338,24 @@
                             </group>
 
                             <group name="primary" col="3">
-                                <group name="sections" string="Secciones">
+                                <group name="students_count" string="N° de Estudiantes">
                                     <field name="students_primary_count" nolabel="1" readonly="1"/>
                                     <label for="students_primary_count" string="Total Estudiantes"/>
                                 </group>
-                                <group name="students" string="Estudiantes">
+                                <group name="approved_count" string="N° de Aprobados">
                                     <field name="approved_primary_count" nolabel="1" readonly="1"/>
                                     <label for="approved_primary_count" string="Aprobados"/>
                                 </group>
-                                <group name="professors" string="Docentes">
-                                    <field name="sections_primary_count" nolabel="1" readonly="1"/>
-                                    <label for="sections_primary_count" string="Secciones Activas"/>
+                                <group name="professors_count" string="N° de Docentes">
+                                    <field name="professors_primary_count" nolabel="1" readonly="1"/>
+                                    <label for="professors_primary_count" string="Total Docentes"/>
                                 </group>
                             </group>
 
-                            <separator string="Secciones de Primaria"/>
-                            <field name="section_ids" 
-                                    readonly="1" 
-                                   domain="[('type', '=', 'primary')]"
-                                   >
-                                   <!-- context="{'default_year_id': active_id, 'default_type': 'primary'}" -->
-                                <list decoration-success="type == 'primary'">
-                                    <field name="section_id"/>
-                                    <field name="type" invisible="1"/>
-                                    <field name="student_ids" widget="badge" decoration-info="1"/>
-                                    <field name="subject_ids" widget="badge" decoration-success="1"/>
-                                    <field name="professor_ids" widget="many2many_tags"/>
-                                </list>
-                            </field>
+                            <separator string="Grados de Primaria"/>
+                            <field name="sections_primary_ids_m2m" 
+                                   widget="many2many_tags"
+                                   readonly="1"/>
 
                             <group string="Rendimiento de Primaria">
                                 <field name="primary_performance_json" 
@@ -395,48 +381,24 @@
                             </group>
 
                             <group name="pre" col="3">
-                                <group name="sections" string="Secciones">
+                                <group name="students_count" string="N° de Estudiantes">
                                     <field name="students_pre_count" nolabel="1" readonly="1"/>
                                     <label for="students_pre_count" string="Total Estudiantes"/>
                                 </group>
-                                <group name="students" string="Estudiantes">
+                                <group name="approved_count" string="N° de Aprobados">
                                     <field name="approved_pre_count" nolabel="1" readonly="1"/>
                                     <label for="approved_pre_count" string="Aprobados"/>
                                 </group>
-                                <group name="professors" string="Docentes">
-                                    <field name="sections_pre_count" nolabel="1" readonly="1"/>
-                                    <label for="sections_pre_count" string="Secciones Activas"/>
+                                <group name="professors_count" string="N° de Docentes">
+                                    <field name="professors_pre_count" nolabel="1" readonly="1"/>
+                                    <label for="professors_pre_count" string="Total Docentes"/>
                                 </group>
                             </group>
 
-                            <separator string="Secciones de Preescolar"/>
-                            <field name="section_ids" 
-                                    readonly="1" 
-                                   domain="[('type', '=', 'pre')]"
-                                   >
-                                   <!-- context="{'default_year_id': active_id, 'default_type': 'pre'}" -->
-                                <list decoration-info="type == 'pre'">
-                                    <field name="section_id"/>
-                                    <field name="type" invisible="1"/>
-                                    <field name="student_ids" widget="badge" decoration-info="1"/>
-                                    <field name="professor_ids" widget="many2many_tags"/>
-                                </list>
-                            </field>
-
-                            <group string="Rendimiento de Preescolar">
-                                <field name="pre_performance_json" 
-                                       widget="general_performance_graph" 
-                                       colspan="2"
-                                       nolabel="1"/>
-                            </group>
-                            
-                            <!-- Dashboard con Top 3 estudiantes por sección -->
-                            <group string="Top 3 Estudiantes por Sección">
-                                <field name="pre_dashboard_json" 
-                                       widget="level_dashboard" 
-                                       colspan="2"
-                                       nolabel="1"/>
-                            </group>
+                            <separator string="Grados de Preescolar"/>
+                            <field name="sections_pre_ids_m2m" 
+                                   widget="many2many_tags"
+                                   readonly="1"/>
                         </page>
 
                         <!-- TAB 5: Todos los Estudiantes -->
@@ -489,13 +451,6 @@
                             <group string="Estadísticas de Evaluaciones">
                                 <field name="evaluations_stats_json" 
                                        widget="evaluations_stats_widget"
-                                       colspan="2"
-                                       nolabel="1"/>
-                            </group>
-                            
-                            <group string="Evaluaciones Recientes">
-                                <field name="recent_evaluations_json" 
-                                       widget="evaluations_timeline" 
                                        colspan="2"
                                        nolabel="1"/>
                             </group>

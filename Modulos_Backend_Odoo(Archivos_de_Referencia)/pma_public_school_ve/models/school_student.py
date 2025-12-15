@@ -4,6 +4,7 @@ import json
 class SchoolStudent(models.Model):
     _name = 'school.student'
     _description = 'School Student'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     _order = 'inscription_date DESC, student_id DESC'
 
@@ -20,17 +21,82 @@ class SchoolStudent(models.Model):
                 record.name = f"Estudiante {record.student_id.name}"
             else:
                 record.name = 'Estudiante'
-    state = fields.Selection(string='Estado', selection=[('draft', 'Por inscribir'), ('done', 'Inscrito'), ('cancel', 'Desinscrito')], default="draft", readonly=True)
+    state = fields.Selection(string='Estado', selection=[('draft', 'Por inscribir'), ('done', 'Inscrito'), ('cancel', 'Desinscrito')], default="draft", readonly=True, tracking=True)
 
-    year_id = fields.Many2one(comodel_name='school.year', string='Año escolar', default=_default_year, required=True)
+    year_id = fields.Many2one(comodel_name='school.year', string='Año escolar', default=_default_year, required=True, tracking=True)
 
-    section_id = fields.Many2one(comodel_name='school.section', string='Sección', domain="[('year_id', '=', year_id)]", required=True)
+    section_id = fields.Many2one(comodel_name='school.section', string='Sección', domain="[('year_id', '=', year_id)]", required=True, tracking=True)
 
-    student_id = fields.Many2one(comodel_name='res.partner', string='Estudiante', domain="[('is_enrollment', '=', True), ('parents_ids', '!=', False)]", required=True)
+    student_id = fields.Many2one(
+        comodel_name='res.partner', 
+        string='Estudiante', 
+        domain="[('id', 'in', available_student_ids), ('is_enrollment', '=', True), ('parents_ids', '!=', False)]", 
+        required=True, 
+        tracking=True
+    )
+    
+    available_student_ids = fields.Many2many(
+        comodel_name='res.partner',
+        string='Estudiantes Disponibles',
+        compute='_compute_available_student_ids',
+        store=False,
+        help='Estudiantes que pueden inscribirse: no inscritos o desinscritos en este año'
+    )
+    
+    @api.depends('year_id', 'section_id')
+    def _compute_available_student_ids(self):
+        """Calcula los estudiantes disponibles para inscripción.
+        
+        Incluye:
+        - Estudiantes sin inscripción en el año
+        - Estudiantes con inscripción cancelada (desinscritos)
+        - El estudiante actual (para no excluirlo cuando edita)
+        """
+        for record in self:
+            if not record.year_id:
+                record.available_student_ids = []
+                continue
+            
+            # Obtener todos los estudiantes elegibles (is_enrollment=True y tienen representantes)
+            all_students = self.env['res.partner'].search([
+                ('is_enrollment', '=', True),
+                ('parents_ids', '!=', False),
+                ('type_enrollment', '=', 'student')
+            ])
+            
+            # Obtener estudiantes ya inscritos (NO cancelados) en este año
+            enrolled_records = self.env['school.student'].search([
+                ('year_id', '=', record.year_id.id),
+                ('state', '!=', 'cancel'),
+                ('id', '!=', record.id)  # Excluir el registro actual
+            ])
+            enrolled_student_ids = enrolled_records.mapped('student_id.id')
+            
+            # Filtrar: estudiantes no inscritos o el estudiante actual
+            available_ids = []
+            for student in all_students:
+                if student.id not in enrolled_student_ids:
+                    available_ids.append(student.id)
+                elif record.student_id and student.id == record.student_id.id:
+                    # Incluir el estudiante actual para que no desaparezca del campo
+                    available_ids.append(student.id)
+            
+            record.available_student_ids = available_ids
 
     current = fields.Boolean(string='Actual', related='year_id.current', store=True)
 
     inscription_date = fields.Date(string="Fecha de inscripción")
+    
+    lapso_inscripcion = fields.Selection(
+        selection=[
+            ('1', 'Primer Lapso'),
+            ('2', 'Segundo Lapso'),
+            ('3', 'Tercer Lapso')
+        ],
+        string='Lapso de Inscripción',
+        readonly=True,
+        help='Lapso en el que se inscribió el estudiante'
+    )
 
     uninscription_date = fields.Date(string="Fecha de Desinscripción")
     
@@ -72,6 +138,13 @@ class SchoolStudent(models.Model):
         compute='_compute_evaluation_scores_json',
         store=True,
     )
+    
+    mention_scores_json = fields.Json(
+        string='Notas de Mención (JSON)',
+        compute='_compute_mention_scores_json',
+        store=True,
+        help='Notas de las materias de la mención técnica'
+    )
 
     type = fields.Selection(string='Tipo', selection=[
                 ('secundary', 'Media general'), 
@@ -81,23 +154,65 @@ class SchoolStudent(models.Model):
     mention_id = fields.Many2one(
         comodel_name='school.mention',
         string='Mención',
+        compute='_compute_mention_id',
+        store=True,
+        readonly=True,
         help='Mención técnica en la que está inscrito el estudiante (solo Media General)'
     )
     
+    mention_section_id = fields.Many2one(
+        comodel_name='school.mention.section',
+        string='Mención Inscrita',
+        domain="[('year_id', '=', year_id)]",
+        help='Mención técnica inscrita en la que está el estudiante'
+    )
+    
+    @api.depends('mention_section_id', 'mention_section_id.mention_id')
+    def _compute_mention_id(self):
+        """Compute mention_id from mention_section_id"""
+        for record in self:
+            if record.mention_section_id:
+                record.mention_id = record.mention_section_id.mention_id
+            else:
+                record.mention_id = False
+    
     mention_domain_ids = fields.Many2many(
-        comodel_name='school.mention',
+        comodel_name='school.mention.section',
         string='Menciones Disponibles',
         compute='_compute_mention_domain_ids',
         store=False,
-        help='Menciones disponibles para este estudiante'
+        help='Menciones inscritas disponibles para este estudiante'
     )
     
-    @api.depends('section_id', 'section_id.type')
-    def _compute_mention_domain_ids(self):
-        """Solo estudiantes de Media General pueden tener menciones"""
+    can_enroll_mention = fields.Boolean(
+        string='Puede Inscribirse en Mención',
+        compute='_compute_can_enroll_mention',
+        store=False,
+        help='Indica si el estudiante puede inscribirse en una mención técnica'
+    )
+    
+    @api.depends('section_id', 'section_id.section_id', 'section_id.section_id.has_medio_tecnico')
+    def _compute_can_enroll_mention(self):
+        """Only students in sections with has_medio_tecnico can enroll in mentions"""
         for record in self:
-            if record.section_id and record.section_id.type == 'secundary':
-                mentions = self.env['school.mention'].search([('active', '=', True)])
+            if record.section_id and record.section_id.section_id:
+                record.can_enroll_mention = record.section_id.section_id.has_medio_tecnico
+            else:
+                record.can_enroll_mention = False
+    
+    @api.depends('section_id', 'section_id.type', 'section_id.section_id.has_medio_tecnico', 'year_id')
+    def _compute_mention_domain_ids(self):
+        """Show enrolled mentions for the current year only if section allows it"""
+        for record in self:
+            if (record.section_id and 
+                record.section_id.type == 'secundary' and
+                record.section_id.section_id.has_medio_tecnico and
+                record.year_id):
+                # Get mentions enrolled in the same year
+                mentions = self.env['school.mention.section'].search([
+                    ('year_id', '=', record.year_id.id),
+                    ('active', '=', True)
+                ])
                 record.mention_domain_ids = mentions.ids
             else:
                 record.mention_domain_ids = []
@@ -137,7 +252,7 @@ class SchoolStudent(models.Model):
     )
 
 
-    @api.depends('evaluation_score_ids.points_20', 'evaluation_score_ids.points_100', 
+    @api.depends('evaluation_score_ids.points_20', 
                  'evaluation_score_ids.state_score', 'evaluation_score_ids.subject_id',
                  'section_id.type', 'year_id.evalution_type_secundary')
     def _compute_evaluation_scores_json(self):
@@ -149,7 +264,7 @@ class SchoolStudent(models.Model):
                 
             # Obtener el tipo de evaluación configurado
             evaluation_type = record.year_id.evalution_type_secundary.type_evaluation if record.year_id.evalution_type_secundary else '20'
-            min_score = 10 if evaluation_type == '20' else 50
+            min_score = 10  # Siempre base 20
             
             # Agrupar notas por materia
             subjects_data = {}
@@ -168,8 +283,8 @@ class SchoolStudent(models.Model):
                         'states': []
                     }
                 
-                # Agregar el puntaje según el tipo de evaluación
-                score_value = score.points_20 if evaluation_type == '20' else score.points_100
+                # Agregar el puntaje (siempre base 20)
+                score_value = score.points_20
                 subjects_data[subject_id]['scores'].append(score_value)
                 subjects_data[subject_id]['states'].append(score.state_score)
             
@@ -211,6 +326,83 @@ class SchoolStudent(models.Model):
                 result['general_state'] = 'approve' if all_approved and result['general_average'] >= min_score else 'failed'
             
             record.evaluation_scores_json = result
+    
+    @api.depends('evaluation_score_ids.points_20', 
+                 'evaluation_score_ids.state_score', 'evaluation_score_ids.subject_id',
+                 'evaluation_score_ids.is_mention_score', 'mention_section_id')
+    def _compute_mention_scores_json(self):
+        """Calcula los promedios por materia de la mención técnica."""
+        for record in self:
+            # Solo calcular si el estudiante tiene mención inscrita
+            if not record.mention_section_id or record.mention_state != 'enrolled':
+                record.mention_scores_json = {}
+                continue
+            
+            min_score = 10  # Base 20
+            
+            # Agrupar notas por materia de mención
+            subjects_data = {}
+            
+            # Filtrar solo notas de mención
+            mention_scores = record.evaluation_score_ids.filtered(
+                lambda s: s.is_mention_score and s.mention_section_id == record.mention_section_id
+            )
+            
+            for score in mention_scores:
+                if not score.subject_id or score.evaluation_id.invisible_score:
+                    continue
+                    
+                subject_id = score.subject_id.id
+                
+                if subject_id not in subjects_data:
+                    subjects_data[subject_id] = {
+                        'subject_id': subject_id,
+                        'subject_name': score.subject_id.subject_id.name,
+                        'scores': [],
+                        'states': []
+                    }
+                
+                score_value = score.points_20
+                subjects_data[subject_id]['scores'].append(score_value)
+                subjects_data[subject_id]['states'].append(score.state_score)
+            
+            # Calcular promedios y estado
+            result = {
+                'evaluation_type': '20',
+                'mention_name': record.mention_section_id.mention_id.name if record.mention_section_id else '',
+                'subjects': [],
+                'general_average': 0.0,
+                'general_state': 'approve'
+            }
+            
+            total_average = 0.0
+            subject_count = 0
+            all_approved = True
+            
+            for subject_data in subjects_data.values():
+                if subject_data['scores']:
+                    subject_average = sum(subject_data['scores']) / len(subject_data['scores'])
+                    subject_approved = subject_average >= min_score and 'failed' not in subject_data['states']
+                    
+                    result['subjects'].append({
+                        'subject_id': subject_data['subject_id'],
+                        'subject_name': subject_data['subject_name'],
+                        'average': round(subject_average, 2),
+                        'state': 'approve' if subject_approved else 'failed',
+                        'num_evaluations': len(subject_data['scores'])
+                    })
+                    
+                    total_average += subject_average
+                    subject_count += 1
+                    
+                    if not subject_approved:
+                        all_approved = False
+            
+            if subject_count > 0:
+                result['general_average'] = round(total_average / subject_count, 2)
+                result['general_state'] = 'approve' if all_approved and result['general_average'] >= min_score else 'failed'
+            
+            record.mention_scores_json = result
 
     general_performance_json = fields.Json(
         string='Rendimiento General (JSON)',
@@ -219,7 +411,7 @@ class SchoolStudent(models.Model):
         readonly=True,
     )
     
-    @api.depends('evaluation_score_ids', 'evaluation_score_ids.points_20', 'evaluation_score_ids.points_100',
+    @api.depends('evaluation_score_ids', 'evaluation_score_ids.points_20',
                  'evaluation_score_ids.literal_type', 'evaluation_score_ids.state_score', 
                  'evaluation_score_ids.subject_id', 'section_id.type', 'year_id')
     def _compute_general_performance_json(self):
@@ -255,12 +447,9 @@ class SchoolStudent(models.Model):
                         'states': []
                     }
                 
-                # Agregar datos según el tipo de evaluación
+                # Agregar datos según el tipo de evaluación (siempre base 20)
                 if not score.evaluation_id.invisible_score:
-                    if evaluation_type == '20':
-                        subjects_data[subject_id]['scores_20'].append(score.points_20)
-                    else:  # '100'
-                        subjects_data[subject_id]['scores_100'].append(score.points_100)
+                    subjects_data[subject_id]['scores_20'].append(score.points_20)
                 
                 if not score.evaluation_id.invisible_literal:
                     if score.literal_type:
@@ -454,6 +643,10 @@ class SchoolStudent(models.Model):
 
         self.state = 'done'
         self.inscription_date = fields.Datetime.now()
+        
+        # Asignar lapso de inscripción actual
+        if self.year_id and self.year_id.current_lapso:
+            self.lapso_inscripcion = self.year_id.current_lapso
     
     def action_open_uninscription_wizard(self):
         """Abre el wizard de desinscripción"""
@@ -524,6 +717,43 @@ class SchoolStudent(models.Model):
         self.write({
             'mention_state': 'withdrawn',
             # Mantener mention_id para historial
+        })
+    
+    def action_reinscribe(self):
+        """Reinscribe a un estudiante que fue desinscrito (estado cancel).
+        
+        Limpia los datos de desinscripción y pone el registro en borrador para
+        que pueda volver a inscribirse.
+        """
+        self.ensure_one()
+        
+        if self.state != 'cancel':
+            raise exceptions.UserError(
+                "Solo se pueden reinscribir estudiantes que estén desinscritos."
+            )
+        
+        # Verificar que el año escolar no esté finalizado
+        if self.year_id and self.year_id.state == 'finished':
+            raise exceptions.UserError(
+                f"No se puede reinscribir en el año escolar '{self.year_id.name}' porque está finalizado."
+            )
+        
+        self.write({
+            'state': 'draft',
+            'inscription_date': False,
+            'uninscription_date': False,
+            'uninscription_reason': False,
+            'uninscription_document_1': False,
+            'uninscription_document_1_filename': False,
+            'uninscription_document_2': False,
+            'uninscription_document_2_filename': False,
+            'uninscription_document_3': False,
+            'uninscription_document_3_filename': False,
+            'lapso_inscripcion': False,
+            # Limpiar también datos de representante para nueva inscripción
+            'parent_id': False,
+            'parent_singnature': False,
+            'parent_siganture_date': False,
         })
 
 

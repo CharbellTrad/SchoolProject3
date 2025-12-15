@@ -5,6 +5,7 @@ from . import (
                 school_register_section,
                 school_section_letter,
                 school_mention,
+                school_mention_section,
                 school_register_subject,
                 school_section,
                 school_student,

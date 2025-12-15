@@ -7,16 +7,31 @@
         <field name="arch" type="xml">
             <form string="Inscribir en Mención">
                 <field name="student_id" invisible="1"/>
+                <field name="year_id" invisible="1"/>
+                <field name="can_enroll" invisible="1"/>
                 <sheet>
-                    <group string="Seleccionar Mención">
-                        <field name="mention_id" options="{'no_create': 1}"/>
+                    <!-- Warning if section doesn't support mentions -->
+                    <div class="alert alert-warning" role="alert" invisible="can_enroll">
+                        <i class="fa fa-exclamation-triangle"/> 
+                        <strong>Advertencia:</strong> La sección del estudiante no tiene habilitado 
+                        'Extiende a Medio Técnico'. No puede inscribirse en menciones.
+                    </div>
+                    
+                    <group string="Seleccionar Mención Inscrita">
+                        <field name="mention_section_id" 
+                               options="{'no_create': 1}"
+                               readonly="not can_enroll"/>
+                        <field name="mention_name" invisible="1"/>
                     </group>
                     <group>
                         <group>
-                            <field name="parent_id" options="{'no_create': 1}" domain="[('parent', '=', True)]"/>
+                            <field name="parent_id" 
+                                   options="{'no_create': 1}" 
+                                   domain="[('parent', '=', True)]"
+                                   readonly="not can_enroll"/>
                         </group>
                         <group>
-                            <field name="parent_signature_date"/>
+                            <field name="parent_signature_date" readonly="not can_enroll"/>
                         </group>
                     </group>
                     <group string="Firma del Representante">
@@ -24,19 +39,22 @@
                         <field name="parent_signature" 
                                widget="image" 
                                nolabel="1"
-                               options="{'size': [0, 120]}"/>
+                               options="{'size': [0, 120]}"
+                               readonly="not can_enroll"/>
                     </group>
                     <group string="Observaciones (Opcional)">
                         <field name="observations" 
                                nolabel="1"
-                               placeholder="Observaciones adicionales sobre la inscripción en esta mención técnica..."/>
+                               placeholder="Observaciones adicionales sobre la inscripción en esta mención técnica..."
+                               readonly="not can_enroll"/>
                     </group>
                 </sheet>
                 <footer>
                     <button string="Confirmar Inscripción" 
                             type="object" 
                             name="action_confirm_inscription" 
-                            class="btn-success"/>
+                            class="btn-success"
+                            invisible="not can_enroll"/>
                     <button string="Cancelar" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>

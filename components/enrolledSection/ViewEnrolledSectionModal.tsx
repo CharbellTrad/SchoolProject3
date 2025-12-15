@@ -35,7 +35,7 @@ const StudentRow = ({ name, state, index }: { name: string; state?: string; inde
 
     return (
         <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={2}>{name}</Text>
             <View style={styles.stateBadge}>
                 <View style={[styles.stateBadgeInner, { backgroundColor: stateStyle.bg }]}>
                     <Text style={[styles.stateBadgeText, { color: stateStyle.text }]}>{stateStyle.label}</Text>
@@ -45,22 +45,23 @@ const StudentRow = ({ name, state, index }: { name: string; state?: string; inde
     );
 };
 
-// Table Row Component for Subjects with Professor
+// Table Row Component for Subjects with Professor (50/50 split)
 const SubjectRow = ({ subjectName, professorName, index }: { subjectName: string; professorName: string | null; index: number }) => (
     <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-        <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={1}>{subjectName}</Text>
-        <View style={styles.professorCell}>
-            <Text style={[styles.tableCell, { color: professorName ? Colors.textPrimary : Colors.textTertiary }]} numberOfLines={1}>
-                {professorName || 'Sin asignar'}
-            </Text>
-        </View>
+        <Text style={[styles.tableCell, { flex: 1 }]} numberOfLines={2}>{subjectName}</Text>
+        <Text
+            style={[styles.tableCell, { flex: 1, color: professorName ? Colors.textPrimary : Colors.textTertiary }]}
+            numberOfLines={2}
+        >
+            {professorName || 'Sin asignar'}
+        </Text>
     </View>
 );
 
 // Table Row Component for Professors
 const ProfessorRow = ({ name, index }: { name: string; index: number }) => (
     <View style={[styles.tableRow, index % 2 === 0 && styles.tableRowAlt]}>
-        <Text style={styles.tableCell} numberOfLines={1}>{name}</Text>
+        <Text style={styles.tableCell} numberOfLines={2}>{name}</Text>
     </View>
 );
 
@@ -248,9 +249,7 @@ export const ViewEnrolledSectionModal: React.FC<ViewEnrolledSectionModalProps> =
             {/* Table Header */}
             <View style={styles.tableHeader}>
                 <Text style={[styles.tableHeaderText, { flex: 1 }]}>Materia</Text>
-                <View style={styles.professorCell}>
-                    <Text style={styles.tableHeaderText}>Profesor</Text>
-                </View>
+                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Profesor</Text>
             </View>
 
             {/* Table Content */}

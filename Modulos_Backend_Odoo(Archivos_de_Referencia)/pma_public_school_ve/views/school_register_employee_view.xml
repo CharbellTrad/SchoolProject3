@@ -204,7 +204,6 @@
                             <group string="Para Media General y Técnica">
                                 <group>
                                     <field name="especialidad_docente"/>
-                                    <field name="ano_que_imparte"/>
                                     <field name="secciones_que_imparte"/>
                                 </group>
                             </group>

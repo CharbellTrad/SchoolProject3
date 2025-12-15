@@ -15,6 +15,23 @@ class SchoolEvaluation(models.Model):
     year_id = fields.Many2one(comodel_name='school.year', string='Año escolar', default=_default_year, required=True)
 
     current = fields.Boolean(string='Año actual', related='year_id.current', store=True)
+    
+    lapso = fields.Selection(
+        selection=[
+            ('1', 'Primer Lapso'),
+            ('2', 'Segundo Lapso'),
+            ('3', 'Tercer Lapso')
+        ],
+        string='Lapso',
+        required=True,
+        default=lambda self: self._default_lapso(),
+        help='Lapso al que pertenece esta evaluación'
+    )
+    
+    def _default_lapso(self):
+        """Returns current lapso from active year"""
+        year = self.env['school.year'].search([('current', '=', True)], limit=1)
+        return year.current_lapso if year else '1'
 
     name = fields.Char(string='Nombre', required=True)
 
@@ -22,12 +39,60 @@ class SchoolEvaluation(models.Model):
 
     professor_id = fields.Many2one(comodel_name='school.professor', string='Profesor', required=True, domain="[('year_id', '=', year_id)]")
 
-    section_id = fields.Many2one(comodel_name='school.section', string='Sección', required=True, domain="[('id', '=', available_section_ids)]")
+    # Evaluación puede ser para una sección regular O para una mención
+    section_id = fields.Many2one(
+        comodel_name='school.section', 
+        string='Sección', 
+        domain="[('id', 'in', available_section_ids)]",
+        help='Sección regular para la evaluación'
+    )
+    
+    mention_section_id = fields.Many2one(
+        comodel_name='school.mention.section',
+        string='Mención',
+        domain="[('id', 'in', available_mention_section_ids)]",
+        help='Mención técnica para la evaluación'
+    )
+    
+    is_mention_evaluation = fields.Boolean(
+        string='Es Evaluación de Mención',
+        compute='_compute_is_mention_evaluation',
+        store=True,
+        help='Indica si esta evaluación es para una mención técnica'
+    )
+    
+    @api.depends('mention_section_id')
+    def _compute_is_mention_evaluation(self):
+        for rec in self:
+            rec.is_mention_evaluation = bool(rec.mention_section_id)
+    
+    @api.constrains('section_id', 'mention_section_id')
+    def _check_section_or_mention(self):
+        for rec in self:
+            if not rec.section_id and not rec.mention_section_id:
+                raise exceptions.ValidationError(
+                    "Debe especificar una Sección o una Mención para la evaluación."
+                )
+            if rec.section_id and rec.mention_section_id:
+                raise exceptions.ValidationError(
+                    "La evaluación solo puede ser para una Sección o una Mención, no ambas."
+                )
 
     type = fields.Selection(string='Tipo', selection=[
                                     ('secundary', 'Media general'), 
                                     ('primary', 'Primaria'), 
-                                    ('pre', 'Preescolar')], related='section_id.type', store=True)
+                                    ('pre', 'Preescolar')], compute='_compute_type', store=True)
+    
+    @api.depends('section_id', 'section_id.type', 'mention_section_id')
+    def _compute_type(self):
+        for rec in self:
+            if rec.mention_section_id:
+                # Menciones siempre son Media General (secundary)
+                rec.type = 'secundary'
+            elif rec.section_id:
+                rec.type = rec.section_id.type
+            else:
+                rec.type = False
 
     available_section_ids = fields.Many2many(comodel_name='school.section', string='Secciones disponibles', compute="_compute_available_section_ids")
 
@@ -41,10 +106,11 @@ class SchoolEvaluation(models.Model):
                     ('year_id', '=', rec.year_id.id)
                 ]).ids
                 
-                # Secciones donde el profesor tiene materias asignadas
+                # Secciones donde el profesor tiene materias asignadas (solo de sección, no mención)
                 subject_sections = self.env['school.subject'].search([
                     ('professor_id', '=', rec.professor_id.id),
-                    ('year_id', '=', rec.year_id.id)
+                    ('year_id', '=', rec.year_id.id),
+                    ('section_id', '!=', False)
                 ]).mapped('section_id.id')
                 
                 # Combinar y eliminar duplicados
@@ -53,20 +119,52 @@ class SchoolEvaluation(models.Model):
                 section_ids = []
             
             rec.available_section_ids = section_ids
+    
+    available_mention_section_ids = fields.Many2many(
+        comodel_name='school.mention.section', 
+        string='Menciones disponibles', 
+        compute='_compute_available_mention_section_ids'
+    )
+    
+    @api.depends('professor_id', 'year_id')
+    def _compute_available_mention_section_ids(self):
+        """Calcula las menciones donde el profesor tiene materias asignadas"""
+        for rec in self:
+            if rec.year_id and rec.professor_id:
+                # Menciones donde el profesor tiene materias asignadas
+                mention_sections = self.env['school.subject'].search([
+                    ('professor_id', '=', rec.professor_id.id),
+                    ('year_id', '=', rec.year_id.id),
+                    ('mention_section_id', '!=', False)
+                ]).mapped('mention_section_id')
+                rec.available_mention_section_ids = mention_sections.ids
+            else:
+                rec.available_mention_section_ids = []
 
     subject_id = fields.Many2one(comodel_name='school.subject', string='Materia', domain="[('id','in', available_subject_ids)]")
     
     available_subject_ids = fields.Many2many(comodel_name='school.subject', string='Materias disponibles', compute="_compute_available_subject_ids")
 
-    @api.depends('section_id', 'professor_id', 'year_id')
+    @api.depends('section_id', 'mention_section_id', 'professor_id', 'year_id')
     def _compute_available_subject_ids(self):
         for rec in self:
-            if rec.year_id and rec.section_id and rec.professor_id:
-                rec.available_subject_ids = self.env['school.subject'].search([
-                    ('professor_id', '=', rec.professor_id.id),
-                    ('section_id', '=', rec.section_id.id),
-                    ('year_id', '=', rec.year_id.id)
-                ]).ids
+            if rec.year_id and rec.professor_id:
+                if rec.section_id:
+                    # Materias de la sección regular
+                    rec.available_subject_ids = self.env['school.subject'].search([
+                        ('professor_id', '=', rec.professor_id.id),
+                        ('section_id', '=', rec.section_id.id),
+                        ('year_id', '=', rec.year_id.id)
+                    ]).ids
+                elif rec.mention_section_id:
+                    # Materias de la mención
+                    rec.available_subject_ids = self.env['school.subject'].search([
+                        ('professor_id', '=', rec.professor_id.id),
+                        ('mention_section_id', '=', rec.mention_section_id.id),
+                        ('year_id', '=', rec.year_id.id)
+                    ]).ids
+                else:
+                    rec.available_subject_ids = []
             else:
                 rec.available_subject_ids = []
 
@@ -78,14 +176,15 @@ class SchoolEvaluation(models.Model):
 
     invisible_literal = fields.Boolean(compute="_compute_invisible_calification")
 
-    @api.depends('type', 'year_id.evalution_type_primary')
+    @api.depends('type', 'year_id.evalution_type_primary', 'is_mention_evaluation')
     def _compute_invisible_calification(self):
         for rec in self:
             invisible_score = True
             invisible_observation = True
             invisible_literal = True
 
-            if rec.type == 'secundary':
+            if rec.is_mention_evaluation or rec.type == 'secundary':
+                # Menciones y secundaria usan notas numéricas
                 invisible_score = False
             elif rec.type == 'primary':
                 if rec.year_id.evalution_type_primary.type_evaluation == 'literal':
@@ -112,9 +211,25 @@ class SchoolEvaluation(models.Model):
         
         res = super().create(vals)
         for rec in res:
-            rec.evaluation_score_ids.create([{
-                'evaluation_id': rec.id,'student_id':st.id
-            } for st in rec.section_id.student_ids.filtered(lambda s: s.current and s.state == 'done')])
+            # Crear líneas de calificación para estudiantes
+            if rec.section_id:
+                # Estudiantes de la sección regular
+                students = rec.section_id.student_ids.filtered(
+                    lambda s: s.current and s.state == 'done'
+                )
+            elif rec.mention_section_id:
+                # Estudiantes inscritos en la mención
+                students = rec.mention_section_id.student_ids.filtered(
+                    lambda s: s.current and s.state == 'done' and s.mention_state == 'enrolled'
+                )
+            else:
+                students = self.env['school.student']
+            
+            # if students:
+            #     rec.evaluation_score_ids.create([{
+            #         'evaluation_id': rec.id,
+            #         'student_id': st.id
+            #     } for st in students])
         return res
 
 
@@ -136,26 +251,26 @@ class SchoolEvaluation(models.Model):
             students = []
             for scores in rec.evaluation_score_ids:
                 if rec.type == 'secundary':
-                    if rec.year_id.evalution_type_secundary.type_evaluation == '20':
-                        if scores.score > 20:
-                            raise exceptions.UserError("La nota debe ser igual o menor a 20")
-                        elif scores.score < 0:
-                            raise exceptions.UserError("La nota no puede tener valores negativos")
-
-                    else:
-                        if scores.score > 100:
-                            raise exceptions.UserError("La nota debe ser igual o menor a 100")
-                        elif scores.score < 0:
-                            raise exceptions.UserError("La nota no puede tener valores negativos")
+                    # Solo validar base 20 para secundaria
+                    if scores.score > 20:
+                        raise exceptions.UserError("La nota debe ser igual o menor a 20")
+                    elif scores.score < 0:
+                        raise exceptions.UserError("La nota no puede tener valores negativos")
 
                 elif rec.type == 'primary':
                     if rec.year_id.evalution_type_primary.type_evaluation == 'literal':
                         if not scores.literal_type:
                             raise exceptions.UserError("Debe tener un literal el estudiante")
+                    else:
+                        # Primaria con notas numéricas (base 20)
+                        if scores.score > 20:
+                            raise exceptions.UserError("La nota debe ser igual o menor a 20")
+                        elif scores.score < 0:
+                            raise exceptions.UserError("La nota no puede tener valores negativos")
 
                 elif rec.type == 'pre':
                     if not scores.observation:
-                            raise exceptions.UserError("Debe tener un observación el estudiante")
+                            raise exceptions.UserError("Debe tener una observación el estudiante")
                             
                 if scores.student_id in students:
                     raise exceptions.UserError(f"El {scores.student_id.name} está duplicado")

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
+import Colors from '../../constants/Colors';
 
 // Skeleton para StatsCards
 export const StatsCardsSkeleton: React.FC = () => {
@@ -55,7 +56,7 @@ export const SearchBarSkeleton: React.FC = () => {
   );
 };
 
-// Skeleton para Pagination - Replica la estructura real
+// Skeleton para Pagination - Replica la estructura real con fondo blanco y borde
 export const PaginationSkeleton: React.FC = () => {
   const shimmerAnimation = useRef(new Animated.Value(0)).current;
 
@@ -72,25 +73,39 @@ export const PaginationSkeleton: React.FC = () => {
 
   const opacity = shimmerAnimation.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 0.7, 0.3],
+    outputRange: [0.4, 0.7, 0.4],
   });
 
   return (
     <View style={styles.paginationContainer}>
       {/* Flecha izquierda */}
-      <Animated.View style={[styles.paginationArrow, { opacity }]} />
+      <View style={styles.paginationArrow}>
+        <Animated.View style={[styles.arrowInner, { opacity }]} />
+      </View>
 
-      {/* Botones de páginas (6 como en tu diseño) */}
+      {/* Botones de páginas */}
       <View style={styles.paginationPages}>
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
-        <Animated.View style={[styles.paginationButton, { opacity }]} />
+        <View style={styles.paginationButton}>
+          <Animated.View style={[styles.buttonInner, { opacity }]} />
+        </View>
+        <View style={styles.paginationButton}>
+          <Animated.View style={[styles.buttonInner, { opacity }]} />
+        </View>
+        <View style={styles.paginationButton}>
+          <Animated.View style={[styles.buttonInner, { opacity }]} />
+        </View>
+        <View style={styles.paginationButton}>
+          <Animated.View style={[styles.buttonInner, { opacity }]} />
+        </View>
+        <View style={styles.paginationButton}>
+          <Animated.View style={[styles.buttonInner, { opacity }]} />
+        </View>
       </View>
 
       {/* Flecha derecha */}
-      <Animated.View style={[styles.paginationArrow, { opacity }]} />
+      <View style={styles.paginationArrow}>
+        <Animated.View style={[styles.arrowInner, { opacity }]} />
+      </View>
     </View>
   );
 };
@@ -102,7 +117,7 @@ const styles = StyleSheet.create({
   statsCard: {
     height: 90,
     borderRadius: 16,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#e2e8f0',
   },
   searchContainer: {
     marginBottom: 10,
@@ -110,12 +125,12 @@ const styles = StyleSheet.create({
   searchBar: {
     height: 50,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#e2e8f0',
   },
   paginationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     gap: 8,
     marginBottom: 8,
   },
@@ -123,7 +138,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -132,17 +151,29 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       }
     }),
+  },
+  arrowInner: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: '#e2e8f0',
   },
   paginationPages: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 8,
+    justifyContent: 'center',
+    flexGrow: 1,
   },
   paginationButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -151,5 +182,11 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       }
     }),
+  },
+  buttonInner: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    backgroundColor: '#e2e8f0',
   },
 });

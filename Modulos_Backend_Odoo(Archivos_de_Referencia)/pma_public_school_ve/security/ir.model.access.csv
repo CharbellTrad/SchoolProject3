@@ -11,6 +11,7 @@ access_school_evaluation_score,school_evaluation_score,model_school_evaluation_s
 access_school_register_section,school_register_section,model_school_register_section,base.group_user,1,1,1,1
 access_school_section_letter,school_section_letter,model_school_section_letter,base.group_user,1,1,1,1
 access_school_mention,school_mention,model_school_mention,base.group_user,1,1,1,1
+access_school_mention_section,school_mention_section,model_school_mention_section,base.group_user,1,1,1,1
 access_school_register_subject,school_register_subject,model_school_register_subject,base.group_user,1,1,1,1
 
 access_school_attendance,school_attendance,model_school_attendance,base.group_user,1,1,1,1

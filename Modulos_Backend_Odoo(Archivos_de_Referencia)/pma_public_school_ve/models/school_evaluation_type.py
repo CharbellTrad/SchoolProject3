@@ -11,21 +11,19 @@ class SchoolEvaluationType(models.Model):
                                     ('primary', 'Primaria'), 
                                     ('pre', 'Preescolar')], required=True)
 
-    type_evaluation = fields.Selection(string='Tipo', selection=[('20', 'En base a 20'), 
-                                                        ('100', 'En base a 100'), 
+    type_evaluation = fields.Selection(string='Tipo de Evaluación', selection=[
+                                                        ('20', 'En base a 20'), 
                                                         ('literal', 'Literal'), 
                                                         ('observation', 'Observación')], required=True)
     
-    min_score = fields.Char(string='Mínima aprobatoria', compute="_compute_min_score" )
+    min_score = fields.Char(string='Mínima aprobatoria', compute="_compute_min_score")
     
 
     @api.depends('type_evaluation')
     def _compute_min_score(self):
         for rec in self:
-            if  rec.type_evaluation == '20':
+            if rec.type_evaluation == '20':
                 rec.min_score = '10'
-            elif rec.type_evaluation == '100':
-                rec.min_score = '50'
             elif rec.type_evaluation == 'literal':
                 rec.min_score = 'C'
             else:

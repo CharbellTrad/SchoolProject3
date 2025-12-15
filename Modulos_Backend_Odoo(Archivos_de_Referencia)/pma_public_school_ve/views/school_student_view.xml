@@ -65,6 +65,7 @@
             <form string="Matrícula">
                 <header>
                     <button string="Inscribir" name="validate_inscription" confirm="Estás seguro de realizar esta operación? Los cambios son irreversibles" type="object" invisible="state != 'draft'" class="btn-success"/>
+                    <button string="Reinscribir" name="action_reinscribe" confirm="¿Está seguro de reinscribir a este estudiante? Se limpiaran los datos de la desinscripción." type="object" invisible="state != 'cancel'" class="btn-primary"/>
                     <button string="Desinscribir" name="action_open_uninscription_wizard" type="object" invisible="state != 'done'" class="btn-danger"/>
                     <button string="Inscribir en Mención" 
                             name="action_open_mention_inscription_wizard" 
@@ -105,6 +106,7 @@
                             <field name="section_id" colspan="2" readonly="not year_id or state in ['done', 'cancel']" options="{'no_create': 1}"/>
                         </group>
                         <group colspan="1">
+                            <field name="available_student_ids" invisible="1"/>
                             <field name="student_id" colspan="2" readonly="not section_id or state in ['done', 'cancel']"  options="{'no_create': 1}"/>
                         </group>
                         <group colspan="1" invisible="type != 'secundary'">
@@ -133,11 +135,15 @@
                         </page>
                         <page name="stadistic" string="Rendimiento académico">
                             <field name="type" invisible="1"/>
+                            <field name="mention_state" invisible="1"/>
                             <group>
-                                <group string="Notas" invisible="type != 'secundary'">
+                                <group string="Notas de Sección" invisible="type != 'secundary'">
                                     <field name="evaluation_scores_json" widget="student_scores_graph" colspan="2" nolabel="1"/>
                                 </group>                                
-                                <group string="Resumen" invisible="type == 'pree'">
+                                <group string="Notas de Mención" invisible="type != 'secundary' or mention_state != 'enrolled'">
+                                    <field name="mention_scores_json" widget="student_scores_graph" colspan="2" nolabel="1"/>
+                                </group>
+                                <group string="Resumen General" invisible="type == 'pre'">
                                     <field name="general_performance_json" widget="general_performance_graph" colspan="2" nolabel="1"/>
                                 </group>
                             </group>
@@ -210,6 +216,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

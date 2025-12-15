@@ -3,15 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EditEnrolledSectionModal, ViewEnrolledSectionModal } from '../../../../components/enrolledSection';
-import { EmptyState } from '../../../../components/list';
+import { EmptyState, Pagination, PaginationSkeleton } from '../../../../components/list';
 import { SectionFilters, SectionFiltersSkeleton } from '../../../../components/section';
 import Colors from '../../../../constants/Colors';
 import { useEnrolledSections } from '../../../../hooks/useEnrolledSections';
@@ -19,33 +19,67 @@ import { EnrolledSection, SECTION_TYPE_COLORS, SECTION_TYPE_LABELS } from '../..
 
 type SectionType = 'pre' | 'primary' | 'secundary';
 
-// Skeleton components
-const SkeletonBox = ({ width, height, style }: { width: number | string; height: number; style?: any }) => (
-    <View style={[{ width, height, backgroundColor: '#e2e8f0', borderRadius: 8 }, style]} />
-);
+// Animated Skeleton Box with shimmer effect
+const AnimatedSkeletonBox = ({ width, height, style }: { width: number | string; height: number; style?: any }) => {
+    const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(shimmerAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            })
+        ).start();
+    }, [shimmerAnim]);
+
+    const opacity = shimmerAnim.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0.4, 0.7, 0.4],
+    });
+
+    return (
+        <Animated.View
+            style={[
+                { width, height, backgroundColor: '#e2e8f0', borderRadius: 8, opacity },
+                style
+            ]}
+        />
+    );
+};
 
 const SectionCardSkeleton = ({ count = 3 }: { count?: number }) => (
     <>
         {Array.from({ length: count }).map((_, index) => (
             <View key={index} style={styles.card}>
+                {/* Left accent bar */}
+                <AnimatedSkeletonBox width={4} height={50} style={{ borderRadius: 0 }} />
+
                 {/* Content */}
                 <View style={styles.cardContent}>
-                    {/* Title Row: Color bar + Name + Badge */}
-                    <View style={styles.cardTitleRow}>
-                        <SkeletonBox width={4} height={20} style={{ borderRadius: 2 }} />
-                        <SkeletonBox width="60%" height={18} />
-                        <SkeletonBox width={60} height={22} style={{ borderRadius: 6 }} />
+                    {/* Header Row: Name + Badge */}
+                    <View style={styles.cardHeader}>
+                        <AnimatedSkeletonBox width="55%" height={16} style={{ flex: 1 }} />
+                        <AnimatedSkeletonBox width={100} height={20} style={{ borderRadius: 8 }} />
                     </View>
-                    {/* Stats Row */}
-                    <View style={[styles.cardStats, { marginTop: 10 }]}>
-                        <SkeletonBox width={50} height={18} />
-                        <SkeletonBox width={50} height={18} />
+                    {/* Stats Row with icons */}
+                    <View style={styles.cardStats}>
+                        <View style={styles.statItem}>
+                            <AnimatedSkeletonBox width={24} height={24} style={{ borderRadius: 6 }} />
+                            <AnimatedSkeletonBox width={20} height={14} />
+                            <AnimatedSkeletonBox width={22} height={12} />
+                        </View>
+                        <View style={styles.statItem}>
+                            <AnimatedSkeletonBox width={24} height={24} style={{ borderRadius: 6 }} />
+                            <AnimatedSkeletonBox width={16} height={14} />
+                            <AnimatedSkeletonBox width={26} height={12} />
+                        </View>
                     </View>
                 </View>
-                {/* Actions - View & Edit buttons */}
+                {/* Actions - horizontal */}
                 <View style={styles.actions}>
-                    <SkeletonBox width={34} height={34} style={{ borderRadius: 10 }} />
-                    <SkeletonBox width={34} height={34} style={{ borderRadius: 10 }} />
+                    <AnimatedSkeletonBox width={36} height={36} style={{ borderRadius: 10 }} />
+                    <AnimatedSkeletonBox width={36} height={36} style={{ borderRadius: 10 }} />
                 </View>
             </View>
         ))}
@@ -53,20 +87,20 @@ const SectionCardSkeleton = ({ count = 3 }: { count?: number }) => (
 );
 
 const StatsCardSkeleton = () => (
-    <View style={styles.statsCardSkeleton}>
-        <SkeletonBox width={50} height={32} />
-        <SkeletonBox width={120} height={16} style={{ marginTop: 4 }} />
+    <View style={[styles.statsCardSkeleton, { alignItems: 'center' }]}>
+        <AnimatedSkeletonBox width={60} height={36} style={{ borderRadius: 8 }} />
+        <AnimatedSkeletonBox width={130} height={16} style={{ marginTop: 6, borderRadius: 4 }} />
     </View>
 );
 
 const SearchBarSkeleton = () => (
     <View style={styles.searchBarSkeleton}>
-        <SkeletonBox width={24} height={24} style={{ borderRadius: 12 }} />
-        <SkeletonBox width="80%" height={20} />
+        <AnimatedSkeletonBox width={20} height={20} style={{ borderRadius: 10 }} />
+        <AnimatedSkeletonBox width="70%" height={18} style={{ borderRadius: 4 }} />
     </View>
 );
 
-// Section Card Component - StudentCard-style layout
+// Section Card Component - Enhanced visual design
 const SectionCard = ({
     section,
     onView,
@@ -77,65 +111,81 @@ const SectionCard = ({
     onView: () => void;
     onEdit: () => void;
     isOfflineMode: boolean;
-}) => (
-    <TouchableOpacity style={styles.card} onPress={onView} activeOpacity={0.7}>
-        <View style={styles.cardContent}>
-            {/* Title Row: Color Bar + Name + Type Badge */}
-            <View style={styles.cardTitleRow}>
-                <View style={[styles.typeBar, { backgroundColor: SECTION_TYPE_COLORS[section.type] }]} />
-                <Text style={styles.cardName} numberOfLines={1}>{section.sectionName}</Text>
-                <View style={[styles.typeBadge, { backgroundColor: SECTION_TYPE_COLORS[section.type] + '20' }]}>
-                    <Text style={[styles.typeText, { color: SECTION_TYPE_COLORS[section.type] }]}>
-                        {SECTION_TYPE_LABELS[section.type]}
-                    </Text>
-                </View>
-            </View>
+}) => {
+    const typeColor = SECTION_TYPE_COLORS[section.type];
 
-            {/* Stats Row - Indented to not align under color bar */}
-            <View style={styles.cardStats}>
-                <View style={styles.statItem}>
-                    <Ionicons name="people" size={18} color={Colors.primary} />
-                    <Text style={styles.statValue}>{section.studentsCount}</Text>
-                </View>
-                <View style={styles.statItem}>
-                    <Ionicons name="person" size={18} color={Colors.secondary} />
-                    <Text style={styles.statValue}>{section.professorsCount}</Text>
-                </View>
-                {section.type === 'secundary' && (
-                    <View style={styles.statItem}>
-                        <Ionicons name="book" size={18} color="#10b981" />
-                        <Text style={styles.statValue}>{section.subjectsCount}</Text>
+    return (
+        <View style={styles.card}>
+            {/* Left accent border */}
+            <View style={[styles.cardAccent, { backgroundColor: typeColor }]} />
+
+            {/* Content */}
+            <View style={styles.cardContent}>
+                {/* Name + Badge Row */}
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardName} numberOfLines={1}>{section.sectionName}</Text>
+                    <View style={[styles.typeBadge, { backgroundColor: typeColor + '15' }]}>
+                        <Text style={[styles.typeText, { color: typeColor }]}>
+                            {SECTION_TYPE_LABELS[section.type]}
+                        </Text>
                     </View>
-                )}
+                </View>
+
+                {/* Stats Row */}
+                <View style={styles.cardStats}>
+                    <View style={styles.statItem}>
+                        <View style={[styles.statIcon, { backgroundColor: Colors.primary + '12' }]}>
+                            <Ionicons name="people" size={14} color={Colors.primary} />
+                        </View>
+                        <Text style={styles.statValue}>{section.studentsCount}</Text>
+                        <Text style={styles.statLabel}>est.</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                        <View style={[styles.statIcon, { backgroundColor: Colors.secondaryLight + '12' }]}>
+                            <Ionicons name="person" size={14} color={Colors.secondaryLight} />
+                        </View>
+                        <Text style={styles.statValue}>{section.professorsCount}</Text>
+                        <Text style={styles.statLabel}>prof.</Text>
+                    </View>
+                    {section.type === 'secundary' && (
+                        <View style={styles.statItem}>
+                            <View style={[styles.statIcon, { backgroundColor: '#10b981' + '12' }]}>
+                                <Ionicons name="book" size={14} color="#10b981" />
+                            </View>
+                            <Text style={styles.statValue}>{section.subjectsCount}</Text>
+                            <Text style={styles.statLabel}>mat.</Text>
+                        </View>
+                    )}
+                </View>
+            </View>
+
+            {/* Actions Row */}
+            <View style={styles.actions}>
+                <TouchableOpacity
+                    style={[styles.actionBtn, styles.viewBtn, isOfflineMode && styles.btnDisabled]}
+                    onPress={(e) => {
+                        e.stopPropagation();
+                        onView();
+                    }}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="eye-outline" size={18} color={isOfflineMode ? '#9ca3af' : Colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.actionBtn, styles.editBtn, isOfflineMode && styles.btnDisabled]}
+                    onPress={(e) => {
+                        e.stopPropagation();
+                        if (!isOfflineMode) onEdit();
+                    }}
+                    disabled={isOfflineMode}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="create-outline" size={18} color={isOfflineMode ? '#9ca3af' : Colors.secondary} />
+                </TouchableOpacity>
             </View>
         </View>
-
-        {/* Actions Column - View & Edit */}
-        <View style={styles.actions}>
-            <TouchableOpacity
-                style={[styles.viewBtn, isOfflineMode && styles.btnDisabled]}
-                onPress={(e) => {
-                    e.stopPropagation();
-                    onView();
-                }}
-                activeOpacity={0.7}
-            >
-                <Ionicons name="eye-outline" size={18} color={isOfflineMode ? '#9ca3af' : Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.editBtn, isOfflineMode && styles.btnDisabled]}
-                onPress={(e) => {
-                    e.stopPropagation();
-                    if (!isOfflineMode) onEdit();
-                }}
-                disabled={isOfflineMode}
-                activeOpacity={0.7}
-            >
-                <Ionicons name="create-outline" size={18} color={isOfflineMode ? '#9ca3af' : Colors.secondary} />
-            </TouchableOpacity>
-        </View>
-    </TouchableOpacity>
-);
+    );
+};
 
 // Stats Card Component - Selectable
 const StatsCard = ({
@@ -189,8 +239,12 @@ export default function SectionsListScreen() {
         totalSections,
         isOfflineMode,
         countByType,
+        currentPage,
+        totalPages,
         setSearchQuery,
         exitSearchMode,
+        loadPage,
+        loadCounts,
         onRefresh,
         handleDelete,
     } = useEnrolledSections();
@@ -201,20 +255,46 @@ export default function SectionsListScreen() {
     const [selectedFilter, setSelectedFilter] = useState<SectionType | 'all'>('all');
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [showSkeleton, setShowSkeleton] = useState(true);
+    const scrollRef = useRef<ScrollView>(null);
 
     // Modal state
     const [viewModalVisible, setViewModalVisible] = useState(false);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [selectedSection, setSelectedSection] = useState<EnrolledSection | null>(null);
 
-    // Filter sections by type
-    const filteredSections = useMemo(() => {
-        if (selectedFilter === 'all') return sections;
-        return sections.filter(s => s.type === selectedFilter);
-    }, [sections, selectedFilter]);
+    // Refresh data when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            // Reset to page 1 with all filter
+            setSelectedFilter('all');
+            setShowSkeleton(true);
+            fadeAnim.setValue(1);
+            scrollRef.current?.scrollTo({ y: 0, animated: false });
+            // Load counts and page 1 with 'all' filter
+            loadCounts();
+            loadPage(1, 'all');
+        }, [loadCounts, loadPage]) // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    // Show sections directly (server handles pagination and filtering)
+    const filteredSections = sections;
+
+    // Handle filter change - load from server
+    const handleFilterChange = useCallback((filter: SectionType | 'all') => {
+        setSelectedFilter(filter);
+        loadPage(1, filter);
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, [loadPage]);
+
+    // Handle page change
+    const handlePageChange = useCallback((page: number) => {
+        loadPage(page, selectedFilter);
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, [loadPage, selectedFilter]);
 
     useEffect(() => {
-        if (!initialLoading && showSkeleton) {
+        // Hide skeleton when loading finishes (either initial or refresh)
+        if (!initialLoading && !refreshing && showSkeleton) {
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 300,
@@ -229,7 +309,7 @@ export default function SectionsListScreen() {
                 }).start();
             });
         }
-    }, [initialLoading, showSkeleton, fadeAnim]);
+    }, [initialLoading, refreshing, showSkeleton, fadeAnim]);
 
     const handleView = (section: EnrolledSection) => {
         setSelectedSection(section);
@@ -294,6 +374,7 @@ export default function SectionsListScreen() {
                                         <StatsCardSkeleton />
                                         <SectionFiltersSkeleton />
                                         <SearchBarSkeleton />
+                                        <PaginationSkeleton />
                                         <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
                                             <SectionCardSkeleton count={5} />
                                         </ScrollView>
@@ -313,19 +394,28 @@ export default function SectionsListScreen() {
                                                     total={totalSections}
                                                     countByType={countByType}
                                                     isSelected={selectedFilter === 'all'}
-                                                    onPress={() => setSelectedFilter('all')}
+                                                    onPress={() => handleFilterChange('all')}
                                                 />
                                                 <SectionFilters
                                                     countByType={countByType}
                                                     selectedFilter={selectedFilter}
-                                                    onFilterChange={setSelectedFilter}
+                                                    onFilterChange={handleFilterChange}
                                                 />
                                             </>
                                         )}
 
                                         <SearchBar value={searchQuery} onChangeText={setSearchQuery} onClear={exitSearchMode} />
 
+                                        {!searchMode && totalPages > 1 && (
+                                            <Pagination
+                                                currentPage={currentPage}
+                                                totalPages={totalPages}
+                                                onPageChange={handlePageChange}
+                                            />
+                                        )}
+
                                         <ScrollView
+                                            ref={scrollRef}
                                             style={styles.listContainer}
                                             showsVerticalScrollIndicator={false}
                                             removeClippedSubviews={true}
@@ -334,13 +424,15 @@ export default function SectionsListScreen() {
                                                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} tintColor={Colors.primary} />
                                             }
                                         >
-                                            {filteredSections.length === 0 ? (
-                                                loading ? (
-                                                    <SectionCardSkeleton count={5} />
+                                            {loading ? (
+                                                <SectionCardSkeleton count={5} />
+                                            ) : filteredSections.length === 0 ? (
+                                                searchMode ? (
+                                                    <EmptyState hasSearchQuery={searchQuery.trim().length >= 3} entityName="secciones" />
                                                 ) : selectedFilter !== 'all' ? (
                                                     <EmptyState hasSearchQuery={false} entityName={`secciones de ${SECTION_TYPE_LABELS[selectedFilter]}`} />
                                                 ) : (
-                                                    <EmptyState hasSearchQuery={searchMode && searchQuery.trim().length >= 3} entityName="secciones" />
+                                                    <EmptyState hasSearchQuery={false} entityName="secciones" />
                                                 )
                                             ) : (
                                                 filteredSections.map((section) => (
@@ -413,22 +505,62 @@ const styles = StyleSheet.create({
     statsDot: { width: 8, height: 8, borderRadius: 4 },
     statsItemText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '500' },
     statsCardSkeleton: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: Colors.border },
-    searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, gap: 12, borderWidth: 1, borderColor: Colors.border },
+    searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 8, gap: 12, borderWidth: 1, borderColor: Colors.border },
     searchInput: { flex: 1, fontSize: 16, color: Colors.textPrimary },
-    searchBarSkeleton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, gap: 12, borderWidth: 1, borderColor: Colors.border },
-    card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 12, gap: 14, borderWidth: 1, borderColor: Colors.border },
-    cardSkeleton: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
-    cardContent: { flex: 1 },
+    searchBarSkeleton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8, gap: 12, borderWidth: 1, borderColor: Colors.border },
+    card: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 18,
+        padding: 14,
+        paddingLeft: 0,
+        marginBottom: 14,
+        gap: 12,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        overflow: 'hidden',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: 2,
+            },
+        }),
+    },
+    cardAccent: {
+        width: 4,
+        height: '100%',
+        borderTopLeftRadius: 18,
+        borderBottomLeftRadius: 18,
+    },
+    cardIconBox: {
+        width: 48,
+        height: 48,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cardSkeleton: { backgroundColor: '#fff', borderRadius: 18, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: Colors.border },
+    cardContent: { flex: 1, gap: 6 },
+    cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     typeBar: { width: 4, height: 20, borderRadius: 2 },
-    cardName: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, flex: 1 },
-    typeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-    typeText: { fontSize: 11, fontWeight: '700' },
-    cardStats: { flexDirection: 'row', marginTop: 10, marginLeft: 12, gap: 16 },
-    statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    statValue: { fontSize: 14, color: Colors.textSecondary, fontWeight: '600' },
+    cardName: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, flex: 1 },
+    typeBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    typeText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+    cardStats: { flexDirection: 'row', gap: 12 },
+    statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    statIcon: { width: 24, height: 24, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+    statValue: { fontSize: 14, color: Colors.textPrimary, fontWeight: '700' },
+    statLabel: { fontSize: 11, color: Colors.textTertiary, fontWeight: '500' },
     actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    viewBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.primary + '12', justifyContent: 'center', alignItems: 'center' },
-    editBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.secondaryLight + '15', justifyContent: 'center', alignItems: 'center' },
+    actionBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+    viewBtn: { backgroundColor: Colors.primary + '12' },
+    editBtn: { backgroundColor: Colors.secondaryLight + '15' },
     btnDisabled: { backgroundColor: '#f1f5f9', opacity: 0.5 },
 });

@@ -32,20 +32,26 @@ export class StudentsDistributionChart extends Component {
         });
     }
 
+    get hasData() {
+        return this.data && this.data.data && this.data.total > 0;
+    }
+
     renderChart() {
         if (this.chart) {
             this.chart.destroy();
+            this.chart = null;
         }
 
-        if (!this.data || !this.data.data || this.data.total === 0) {
+        if (!this.hasData) {
             return;
         }
 
         const colorScheme = cookie.get("color_scheme");
         const colors = [
-            getColor(8, colorScheme),  // Azul para Preescolar
-            getColor(10, colorScheme), // Verde para Primaria
-            getColor(3, colorScheme)   // Naranja para Media General
+            getColor(8, colorScheme),   // Azul para Preescolar
+            getColor(10, colorScheme),  // Verde para Primaria
+            getColor(3, colorScheme),   // Naranja para Media General
+            getColor(4, colorScheme)    // Púrpura para Medio Técnico
         ];
 
         const config = {
@@ -54,7 +60,7 @@ export class StudentsDistributionChart extends Component {
                 labels: this.data.labels,
                 datasets: [{
                     data: this.data.data,
-                    backgroundColor: colors,
+                    backgroundColor: colors.slice(0, this.data.labels.length),
                     borderWidth: 2
                 }]
             },
