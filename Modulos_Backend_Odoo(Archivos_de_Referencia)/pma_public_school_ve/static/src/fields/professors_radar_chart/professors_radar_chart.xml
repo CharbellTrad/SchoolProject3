@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-    <t t-name="school.StudentsDistributionChart">
-        <div class="o_students_distribution_chart">
+    <t t-name="school.ProfessorsRadarChart">
+        <div class="o_professors_radar_chart">
             <t t-if="hasData">
+                <!-- Add min-height to match content and center properly -->
                 <div class="row align-items-center">
-                    <!-- Chart Column -->
-                    <div class="col-md-5 col-12 d-flex justify-content-center">
-                        <div class="position-relative" style="width: 160px; height: 160px;">
+                    <!-- Chart Column (Left) -->
+                    <div class="col-md-5 col-12 d-flex justify-content-center align-items-center">
+                        <div style="width: 160px; height: 160px;">
                             <canvas t-ref="canvas"/>
-                            <!-- Centered Total -->
-                            <div class="position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                                <span class="d-block fw-bold fs-4"><t t-esc="totalStudents"/></span>
-                                <small class="text-muted">Total</small>
-                            </div>
                         </div>
                     </div>
-                    <!-- Legend Column -->
+                    <!-- Legend Column (Right) -->
                     <div class="col-md-7 col-12 mt-3 mt-md-0">
+                        <!-- Total above legend - CENTERED -->
+                        <div class="d-flex justify-content-center align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <i class="fa fa-users text-primary"/>
+                            <span class="fw-bold fs-5"><t t-esc="total"/></span>
+                            <span class="text-muted">profesores en total</span>
+                        </div>
+                        <!-- Legend list -->
                         <div class="d-flex flex-column gap-2">
                             <t t-foreach="chartData" t-as="item" t-key="item.label">
                                 <div class="d-flex align-items-center p-2 rounded" 
-                                     t-on-click="() => this.onLevelClick(item.level)" 
-                                     t-att-style="'cursor: pointer; background-color: ' + item.color + '22; border-left: 4px solid ' + item.color">
+                                     t-att-style="'background-color: ' + item.color + '22; border-left: 4px solid ' + item.color">
                                     <i t-attf-class="fa {{ item.icon }} me-2" t-att-style="'color: ' + item.color"/>
                                     <span class="flex-grow-1 small fw-medium"><t t-esc="item.label"/></span>
                                     <span class="fw-bold small me-2"><t t-esc="item.value"/></span>
@@ -34,7 +36,7 @@
             </t>
             <t t-else="">
                 <div class="alert alert-info text-center">
-                    <i class="fa fa-info-circle me-2"/>No hay estudiantes.
+                    <i class="fa fa-info-circle me-2"/>No hay profesores registrados.
                 </div>
             </t>
         </div>

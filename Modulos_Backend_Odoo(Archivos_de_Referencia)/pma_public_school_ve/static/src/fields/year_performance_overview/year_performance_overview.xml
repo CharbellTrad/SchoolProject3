@@ -2,48 +2,66 @@
 <templates id="template" xml:space="preserve">
     <t t-name="school.YearPerformanceOverview">
         <div class="o_year_performance_overview">
-            <t t-if="levelsData.length > 0">
-                <div class="row">
+            <t t-if="hasData">
+                <div class="row g-3">
                     <t t-foreach="levelsData" t-as="level" t-key="level.type">
-                        <div class="col-lg-4 mb-3">
-                            <div t-attf-class="card border-{{ getLevelClass(level.type) }} shadow-sm">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0">
-                                        <i t-attf-class="fa {{ getLevelIcon(level.type) }} me-2"/>
-                                        <t t-esc="level.name"/>
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row text-center">
-                                        <div class="col-6 mb-3">
-                                            <h4 class="mb-0"><t t-esc="level.total_students"/></h4>
-                                            <small class="text-muted">Estudiantes</small>
+                        <div class="col-lg-3 col-md-6 col-sm-12">
+                            <div t-attf-class="card h-100 level-card {{ getLevelClass(level.type) }}"
+                                 t-on-click="() => this.onLevelClick(level.type)" style="cursor: pointer;">
+                                
+                                <div class="card-body p-3">
+                                    <!-- Row Layout: Icon left, content right -->
+                                    <div class="d-flex align-items-start">
+                                        <!-- Icon Column -->
+                                        <div t-attf-class="level-icon-box me-3 {{ getLevelIconBg(level.type) }}">
+                                            <i t-attf-class="fa {{ getLevelIcon(level.type) }} fa-lg text-white"/>
                                         </div>
-                                        <div class="col-6 mb-3">
-                                            <h4 class="mb-0" t-att-class="level.average >= 10 ? 'text-success' : 'text-danger'">
-                                                <t t-esc="level.average"/>
-                                            </h4>
-                                            <small class="text-muted">Promedio</small>
+                                        
+                                        <!-- Content Column -->
+                                        <div class="flex-grow-1">
+                                            <!-- Header -->
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0 fw-bold"><t t-esc="level.name"/></h6>
+                                                <span class="badge bg-secondary rounded-pill"><t t-esc="level.total_students"/></span>
+                                            </div>
+                                            
+                                            <!-- Main Display Area - Same height for all -->
+                                            <div class="text-center py-2" style="min-height: 60px;">
+                                                <!-- PREESCOLAR -->
+                                                <t t-if="level.type === 'pre'">
+                                                    <span class="badge bg-success-subtle text-success px-3 py-2">
+                                                        <i class="fa fa-check-circle me-1"/>Observación
+                                                    </span>
+                                                </t>
+                                                
+                                                <!-- PRIMARIA: Literal Grade -->
+                                                <t t-elif="level.type === 'primary'">
+                                                    <span t-attf-class="badge fs-3 px-3 py-2 {{ getLiteralBadgeClass(getLiteralFromAverage(level.average)) }}">
+                                                        <t t-esc="getLiteralFromAverage(level.average)"/>
+                                                    </span>
+                                                </t>
+                                                
+                                                <!-- NUMERIC: Media General, Técnico -->
+                                                <t t-else="">
+                                                    <span t-attf-class="fs-2 fw-bold {{ isApproved(level) ? 'text-success' : 'text-danger' }}">
+                                                        <t t-esc="level.average"/>
+                                                    </span>
+                                                    <span class="text-muted small">/20</span>
+                                                </t>
+                                            </div>
+                                            
+                                            <!-- Stats Row - Same for all -->
+                                            <div class="d-flex justify-content-around text-center small border-top pt-2">
+                                                <t t-if="level.type === 'pre'">
+                                                    <span class="text-success"><i class="fa fa-check me-1"/><t t-esc="level.total_students"/> apr.</span>
+                                                    <span class="text-muted"><i class="fa fa-times me-1"/>0 rep.</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-success"><i class="fa fa-check me-1"/><t t-esc="level.approved_students"/> apr.</span>
+                                                    <span class="text-danger"><i class="fa fa-times me-1"/><t t-esc="level.failed_students"/> rep.</span>
+                                                </t>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="progress mb-2" style="height: 25px;">
-                                        <div class="progress-bar bg-success" 
-                                             t-att-style="'width: ' + (level.approved_students / level.total_students * 100) + '%'"
-                                             role="progressbar">
-                                            <strong><t t-esc="level.approved_students"/> aprobados</strong>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between mt-2">
-                                        <span class="text-success">
-                                            <i class="fa fa-check-circle"/> 
-                                            <t t-esc="level.approval_rate"/>% aprobación
-                                        </span>
-                                        <span class="text-danger">
-                                            <i class="fa fa-times-circle"/> 
-                                            <t t-esc="level.failed_students"/> reprobados
-                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -51,10 +69,11 @@
                     </t>
                 </div>
             </t>
-            <div t-else="" class="alert alert-info text-center">
-                <i class="fa fa-info-circle me-2"/>
-                No hay datos de rendimiento disponibles
-            </div>
+            <t t-else="">
+                <div class="alert alert-info text-center py-3">
+                    <i class="fa fa-info-circle me-2"/>No hay datos de rendimiento.
+                </div>
+            </t>
         </div>
     </t>
 </templates>

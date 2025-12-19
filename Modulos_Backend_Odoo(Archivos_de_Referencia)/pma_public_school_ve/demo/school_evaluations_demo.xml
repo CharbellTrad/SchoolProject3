@@ -477,4 +477,189 @@
             <field name="observation">&lt;p&gt;Daniela está avanzando bien en el reconocimiento de letras. Identifica las vocales y algunas consonantes. Disfruta de las actividades de lectura compartida.&lt;/p&gt;</field>
         </record>
 
+        <!-- ============================================== -->
+        <!-- 4. EVALUACIONES DE MENCIÓN (Técnico Medio)     -->
+        <!-- ============================================== -->
+        
+        <!-- Evaluación Programación - Mención Informática -->
+        <record id="eval_mention_programacion_l1" model="school.evaluation">
+            <field name="name">Proyecto de Programación - Lapso 1</field>
+            <field name="description">&lt;p&gt;Desarrollo de proyecto de programación orientada a objetos&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
+            <field name="professor_id" ref="professor_informatica"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-15</field>
+            <field name="subject_id" ref="subject_mention_programacion_inf"/>
+        </record>
+        
+        <!-- Evaluación Base de Datos - Mención Informática -->
+        <record id="eval_mention_bd_l1" model="school.evaluation">
+            <field name="name">Diseño de Base de Datos - Lapso 1</field>
+            <field name="description">&lt;p&gt;Diseño y normalización de bases de datos relacionales&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
+            <field name="professor_id" ref="professor_informatica"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-20</field>
+            <field name="subject_id" ref="subject_mention_base_datos_inf"/>
+        </record>
+        
+        <!-- Evaluación Circuitos - Mención Electricidad -->
+        <record id="eval_mention_circuitos_l1" model="school.evaluation">
+            <field name="name">Análisis de Circuitos - Lapso 1</field>
+            <field name="description">&lt;p&gt;Análisis de circuitos eléctricos en serie y paralelo&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-18</field>
+            <field name="subject_id" ref="subject_mention_circuitos_elec"/>
+        </record>
+        
+        <!-- Evaluación Instalaciones - Mención Electricidad -->
+        <record id="eval_mention_instalaciones_l1" model="school.evaluation">
+            <field name="name">Instalaciones Eléctricas Prácticas - Lapso 1</field>
+            <field name="description">&lt;p&gt;Instalación de circuitos eléctricos residenciales&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-25</field>
+            <field name="subject_id" ref="subject_mention_instalaciones_elec"/>
+        </record>
+        
+        <!-- Evaluación Contabilidad - Mención Comercio -->
+        <record id="eval_mention_contabilidad_l1" model="school.evaluation">
+            <field name="name">Contabilidad General - Lapso 1</field>
+            <field name="description">&lt;p&gt;Fundamentos de contabilidad general y estados financieros&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-16</field>
+            <field name="subject_id" ref="subject_mention_contabilidad_com"/>
+        </record>
+        
+        <!-- Evaluación Administración - Mención Comercio -->
+        <record id="eval_mention_administracion_l1" model="school.evaluation">
+            <field name="name">Administración de Empresas - Lapso 1</field>
+            <field name="description">&lt;p&gt;Principios de administración de empresas&lt;/p&gt;</field>
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+            <field name="lapso">1</field>
+            <field name="evaluation_date">2024-10-22</field>
+            <field name="subject_id" ref="subject_mention_administracion_com"/>
+        </record>
+        
+        <!-- ============================================== -->
+        <!-- 5. NOTAS DE EVALUACIONES DE MENCIÓN            -->
+        <!-- ============================================== -->
+        
+        <!-- Notas de Carolina (Informática) -->
+        <record id="score_carolina_prog" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_programacion_l1"/>
+            <field name="student_id" ref="student_carolina_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_carolina_bd" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_bd_l1"/>
+            <field name="student_id" ref="student_carolina_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- Notas de Adriana (Informática) -->
+        <record id="score_adriana_prog" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_programacion_l1"/>
+            <field name="student_id" ref="student_adriana_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <record id="score_adriana_bd" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_bd_l1"/>
+            <field name="student_id" ref="student_adriana_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <!-- Notas de Andrés Felipe (Informática) -->
+        <record id="score_andres_prog" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_programacion_l1"/>
+            <field name="student_id" ref="student_andres_felipe_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_andres_bd" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_bd_l1"/>
+            <field name="student_id" ref="student_andres_felipe_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <!-- Notas de Luis Fernando (Electricidad) -->
+        <record id="score_luis_circuitos" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_circuitos_l1"/>
+            <field name="student_id" ref="student_luis_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <record id="score_luis_instalaciones" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_instalaciones_l1"/>
+            <field name="student_id" ref="student_luis_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <!-- Notas de Eduardo (Electricidad) -->
+        <record id="score_eduardo_circuitos" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_circuitos_l1"/>
+            <field name="student_id" ref="student_eduardo_media"/>
+            <field name="score">14</field>
+        </record>
+        
+        <record id="score_eduardo_instalaciones" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_instalaciones_l1"/>
+            <field name="student_id" ref="student_eduardo_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <!-- Notas de María José (Comercio) -->
+        <record id="score_mariajose_conta" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_contabilidad_l1"/>
+            <field name="student_id" ref="student_mariajose_media"/>
+            <field name="score">18</field>
+        </record>
+        
+        <record id="score_mariajose_admin" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_administracion_l1"/>
+            <field name="student_id" ref="student_mariajose_media"/>
+            <field name="score">17</field>
+        </record>
+        
+        <!-- Notas de Fernanda (Comercio) -->
+        <record id="score_fernanda_conta" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_contabilidad_l1"/>
+            <field name="student_id" ref="student_fernanda_media"/>
+            <field name="score">16</field>
+        </record>
+        
+        <record id="score_fernanda_admin" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_administracion_l1"/>
+            <field name="student_id" ref="student_fernanda_media"/>
+            <field name="score">15</field>
+        </record>
+        
+        <!-- Notas de Paula (Comercio) -->
+        <record id="score_paula_conta" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_contabilidad_l1"/>
+            <field name="student_id" ref="student_paula_media"/>
+            <field name="score">19</field>
+        </record>
+        
+        <record id="score_paula_admin" model="school.evaluation.score">
+            <field name="evaluation_id" ref="eval_mention_administracion_l1"/>
+            <field name="student_id" ref="student_paula_media"/>
+            <field name="score">18</field>
+        </record>
+
 </odoo>
+

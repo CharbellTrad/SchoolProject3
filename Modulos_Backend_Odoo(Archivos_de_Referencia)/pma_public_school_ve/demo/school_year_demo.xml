@@ -110,6 +110,31 @@
         </record>
         
         <!-- ============================================== -->
+        <!-- 2.5 MENCIONES DEL AÑO (school.mention.section) -->
+        <!-- ============================================== -->
+        
+        <!-- Mención Informática para el año 2024-2025 -->
+        <record id="mention_section_informatica_2024" model="school.mention.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_id" ref="mention_informatica"/>
+            <field name="lapso_inscripcion">1</field>
+        </record>
+        
+        <!-- Mención Electricidad para el año 2024-2025 -->
+        <record id="mention_section_electricidad_2024" model="school.mention.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_id" ref="mention_electricidad"/>
+            <field name="lapso_inscripcion">1</field>
+        </record>
+        
+        <!-- Mención Comercio para el año 2024-2025 -->
+        <record id="mention_section_comercio_2024" model="school.mention.section">
+            <field name="year_id" ref="school_year_2024_2025"/>
+            <field name="mention_id" ref="mention_comercio"/>
+            <field name="lapso_inscripcion">1</field>
+        </record>
+        
+        <!-- ============================================== -->
         <!-- 3. PROFESORES ASIGNADOS                        -->
         <!-- ============================================== -->
         
@@ -491,4 +516,67 @@
             <field name="professor_id" ref="professor_contabilidad"/>
         </record>
         
+        <!-- ============================================== -->
+        <!-- 7. MATERIAS DE MENCIÓN (school.subject con mention_section_id) -->
+        <!-- ============================================== -->
+        
+        <!-- Materias de Mención Informática -->
+        <record id="subject_mention_programacion_inf" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
+            <field name="subject_id" ref="subject_programacion"/>
+            <field name="professor_id" ref="professor_informatica"/>
+        </record>
+        
+        <record id="subject_mention_base_datos_inf" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
+            <field name="subject_id" ref="subject_base_datos"/>
+            <field name="professor_id" ref="professor_informatica"/>
+        </record>
+        
+        <record id="subject_mention_redes_inf" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
+            <field name="subject_id" ref="subject_redes"/>
+            <field name="professor_id" ref="professor_informatica"/>
+        </record>
+        
+        <!-- Materias de Mención Electricidad -->
+        <record id="subject_mention_circuitos_elec" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
+            <field name="subject_id" ref="subject_circuitos"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+        </record>
+        
+        <record id="subject_mention_instalaciones_elec" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
+            <field name="subject_id" ref="subject_instalaciones"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+        </record>
+        
+        <record id="subject_mention_electronica_elec" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
+            <field name="subject_id" ref="subject_electronica"/>
+            <field name="professor_id" ref="professor_electricidad"/>
+        </record>
+        
+        <!-- Materias de Mención Comercio -->
+        <record id="subject_mention_contabilidad_com" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
+            <field name="subject_id" ref="subject_contabilidad"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+        </record>
+        
+        <record id="subject_mention_administracion_com" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
+            <field name="subject_id" ref="subject_administracion"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+        </record>
+        
+        <record id="subject_mention_mercadeo_com" model="school.subject">
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
+            <field name="subject_id" ref="subject_mercadeo"/>
+            <field name="professor_id" ref="professor_contabilidad"/>
+        </record>
+        
+
 </odoo>
+

@@ -1,44 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-
     <t t-name="school.GeneralPerformanceGraphField">
-        <div class="o_general_performance_graph" t-att-class="props.className">
-            <t t-if="performanceInfo">
-                <!-- Promedio -->
-                <div class="text-center mb-3">
-                    <small class="text-muted d-block mb-2" t-esc="performanceInfo.averageLabel"/>
-                    <h2 class="mb-0 fw-bold" t-esc="performanceInfo.average" 
-                        t-att-style="'color: ' + averageColor"/>
-                </div>
-
-                <!-- Gráfico de torta -->
-                <div class="o_pie_chart_wrapper" style="position: relative; height: 300px;">
-                    <canvas t-ref="canvas"/>
-                </div>
-                
-                <!-- Porcentaje de aprobación -->
-                <div class="text-center mt-3">
-                    <h6 class="mb-2">Porcentaje de Aprobación</h6>
-                    <div class="progress" style="height: 30px;">
-                        <div class="progress-bar" 
-                             t-att-class="performanceInfo.approvalPercentage >= 70 ? 'bg-success' : (performanceInfo.approvalPercentage >= 50 ? 'bg-warning' : 'bg-danger')"
-                             role="progressbar" 
-                             t-att-style="'width: ' + performanceInfo.approvalPercentage + '%'"
-                             t-att-aria-valuenow="performanceInfo.approvalPercentage" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            <strong t-esc="performanceInfo.approvalPercentage + '%'"/>
+        <div class="o_general_performance_graph">
+            <t t-if="hasData">
+                <div class="performance-container">
+                    <!-- OBSERVATION TYPE (Preescolar) -->
+                    <t t-if="evaluationType === 'observation'">
+                        <div class="observation-display">
+                            <div class="observation-icon"><i class="fa fa-check-circle"/></div>
+                            <h5><t t-esc="performanceInfo.message"/></h5>
+                            <span class="observation-badge"><i class="fa fa-thumbs-up me-2"/>Todos los estudiantes aprobados</span>
+                            <div class="observation-note"><i class="fa fa-info-circle me-1"/>En Preescolar no se asignan calificaciones numéricas ni literales</div>
                         </div>
-                    </div>
+                    </t>
+                    
+                    <!-- LITERAL TYPE (Primaria) - Enhanced Distribution -->
+                    <t t-elif="evaluationType === 'literal'">
+                        <div class="row">
+                            <!-- Left: Literal Main Badge -->
+                            <div class="col-md-5">
+                                <div class="literal-display-section">
+                                    <div class="literal-main">
+                                        <small class="text-muted d-block mb-2">Promedio General</small>
+                                        <span t-attf-class="literal-badge-xl literal-{{ performanceInfo.average }}"><t t-esc="performanceInfo.average"/></span>
+                                        <p class="literal-description mt-3"><t t-esc="getLiteralDescription(performanceInfo.average)"/></p>
+                                    </div>
+                                    <!-- Stats -->
+                                    <div class="stats-grid row g-2 mt-3">
+                                        <div class="col-4"><div class="stat-item"><span class="stat-value"><t t-esc="performanceInfo.totalSubjects"/></span><span class="stat-label">Total</span></div></div>
+                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobadas</span></div></div>
+                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobadas</span></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Right: Literal Distribution Bars -->
+                            <div class="col-md-7">
+                                <div class="literal-display-section">
+                                    <h6 class="text-muted mb-3"><i class="fa fa-bar-chart me-2"/>Distribución de Literales</h6>
+                                    <t t-if="literalDistribution">
+                                        <t t-foreach="literalDistribution" t-as="item" t-key="item.literal">
+                                            <div class="literal-bar-item">
+                                                <span t-attf-class="literal-label label-{{ item.literal }}"><t t-esc="item.literal"/></span>
+                                                <div class="literal-bar-wrapper">
+                                                    <div class="literal-bar"><div t-attf-class="literal-bar-fill fill-{{ item.literal }}" t-att-style="'width: ' + item.percentage + '%'"/></div>
+                                                </div>
+                                                <div class="literal-stats"><span class="literal-percentage"><t t-esc="item.percentage"/>%</span><span class="literal-count d-block">(<t t-esc="item.count"/>)</span></div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    
+                    <!-- NUMERIC TYPE -->
+                    <t t-else="">
+                        <div class="row">
+                            <t t-if="showChart"><div class="col-md-6"><h6 class="text-muted mb-3"><i class="fa fa-pie-chart me-2"/>Distribución de Materias</h6><div class="chart-container" style="height: 200px;"><canvas t-ref="canvas"/></div></div></t>
+                            <div t-attf-class="{{ showChart ? 'col-md-6' : 'col-12' }}">
+                                <div class="average-display mb-4 p-4 bg-light rounded text-center">
+                                    <span class="average-label text-muted d-block mb-1"><t t-esc="performanceInfo.averageLabel"/></span>
+                                    <span t-attf-class="average-value {{ performanceInfo.stateClass }}"><t t-esc="performanceInfo.average"/></span>
+                                    <span class="average-suffix"><t t-esc="performanceInfo.suffix"/></span>
+                                </div>
+                                <div class="text-center mb-3"><span t-attf-class="badge {{ performanceInfo.badgeClass }} px-3 py-2"><t t-if="performanceInfo.state === 'approve'"><i class="fa fa-check me-1"/></t><t t-else=""><i class="fa fa-times me-1"/></t><t t-esc="performanceInfo.stateLabel"/></span></div>
+                                <div class="stats-grid row g-2">
+                                    <div class="col-4"><div class="stat-item"><span class="stat-value"><t t-esc="performanceInfo.totalSubjects"/></span><span class="stat-label">Total</span></div></div>
+                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobadas</span></div></div>
+                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobadas</span></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
                 </div>
             </t>
-            
-            <!-- Mensaje cuando no hay datos -->
-            <div t-else="" class="alert alert-info text-center">
-                <i class="fa fa-info-circle me-2"/>
-                No hay datos de rendimiento académico para mostrar
-            </div>
+            <t t-else=""><div class="alert alert-info text-center"><i class="fa fa-info-circle me-2"/>No hay datos de rendimiento disponibles.</div></t>
         </div>
     </t>
-
 </templates>

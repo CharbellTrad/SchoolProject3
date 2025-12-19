@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.LapsosTimeline">
+        <div class="o_lapsos_timeline d-flex align-items-center justify-content-center py-2">
+            <t t-foreach="lapsos" t-as="lapso" t-key="lapso.number">
+                <!-- Connector line (before lapso, except first) -->
+                <t t-if="lapso.number > 1">
+                    <div t-attf-class="timeline-connector {{ getLapsoStatus(lapso.number - 1) === 'completed' ? 'completed' : '' }}"/>
+                </t>
+                
+                <!-- Lapso circle -->
+                <div t-attf-class="timeline-step {{ getLapsoStatus(lapso.number) }}" t-att-title="lapso.name">
+                    <div class="timeline-circle">
+                        <i t-attf-class="fa {{ getLapsoIcon(lapso.number) }}"/>
+                    </div>
+                    <span class="timeline-label"><t t-esc="lapso.number"/>° Lapso</span>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

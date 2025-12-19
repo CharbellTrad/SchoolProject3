@@ -18,7 +18,8 @@ class SchoolSection(models.Model):
     @api.depends('section_id', 'year_id')
     def _compute_name(self):
         for record in self:
-            record.name = f"{record.section_id.name} - {record.year_id.name}" if record.section_id and record.year_id else ''
+            # Use display_name which includes the letter (e.g., "1er Grado A")
+            record.name = record.section_id.display_name if record.section_id else ''
 
     year_id = fields.Many2one(comodel_name='school.year', string='Año Escolar', default=_default_year, required=True, tracking=True)
 
@@ -69,7 +70,7 @@ class SchoolSection(models.Model):
     students_average_json = fields.Json(
         string='Promedios de Estudiantes (JSON)',
         compute='_compute_students_average_json',
-        store=True,
+        store=False,  # Always compute in real-time for dashboard
     )
 
     top_students_json = fields.Json(
@@ -194,31 +195,68 @@ class SchoolSection(models.Model):
             approved_count = 0
             failed_count = 0
             
-            for student in record.student_ids.filtered(lambda s: s.current and s.state == 'done'):
+            active_students = record.student_ids.filtered(lambda s: s.current and s.state == 'done')
+            
+            for student in active_students:
                 perf_data = student.general_performance_json
-                if not perf_data or perf_data.get('total_subjects', 0) == 0:
-                    continue
                 
-                if perf_data.get('use_literal'):
-                    # Para literales, convertir a numérico aproximado
-                    literal = perf_data.get('literal_average', 'E')
-                    literal_weights = {'A': 18, 'B': 15, 'C': 12, 'D': 8, 'E': 4}
-                    avg = literal_weights.get(literal, 0)
+                # For Primaria: If no performance data, assume approved (observation-based)
+                if record.type == 'primary':
+                    if not perf_data or perf_data.get('total_subjects', 0) == 0:
+                        # Primaria without grades - assume approved with 'A' equivalent
+                        students_data.append({
+                            'student_id': student.student_id.id,
+                            'student_name': student.student_id.name,
+                            'average': 18,  # A equivalent
+                            'state': 'approve',
+                        })
+                        total_average += 18
+                        approved_count += 1
+                        continue
+                    
+                    # Has performance data
+                    if perf_data.get('use_literal'):
+                        literal = perf_data.get('literal_average', 'A')
+                        literal_weights = {'A': 18, 'B': 15, 'C': 12, 'D': 8, 'E': 4}
+                        avg = literal_weights.get(literal, 18)
+                    else:
+                        avg = perf_data.get('general_average', 18)
+                    
+                    students_data.append({
+                        'student_id': student.student_id.id,
+                        'student_name': student.student_id.name,
+                        'average': avg,
+                        'state': perf_data.get('general_state', 'approve'),
+                    })
+                    total_average += avg
+                    if perf_data.get('general_state', 'approve') == 'approve':
+                        approved_count += 1
+                    else:
+                        failed_count += 1
                 else:
-                    avg = perf_data.get('general_average', 0)
-                
-                students_data.append({
-                    'student_id': student.student_id.id,
-                    'student_name': student.student_id.name,
-                    'average': avg,
-                    'state': perf_data.get('general_state', 'failed'),
-                })
-                
-                total_average += avg
-                if perf_data.get('general_state') == 'approve':
-                    approved_count += 1
-                else:
-                    failed_count += 1
+                    # Media General - require performance data
+                    if not perf_data or perf_data.get('total_subjects', 0) == 0:
+                        continue
+                    
+                    if perf_data.get('use_literal'):
+                        literal = perf_data.get('literal_average', 'E')
+                        literal_weights = {'A': 18, 'B': 15, 'C': 12, 'D': 8, 'E': 4}
+                        avg = literal_weights.get(literal, 0)
+                    else:
+                        avg = perf_data.get('general_average', 0)
+                    
+                    students_data.append({
+                        'student_id': student.student_id.id,
+                        'student_name': student.student_id.name,
+                        'average': avg,
+                        'state': perf_data.get('general_state', 'failed'),
+                    })
+                    
+                    total_average += avg
+                    if perf_data.get('general_state') == 'approve':
+                        approved_count += 1
+                    else:
+                        failed_count += 1
             
             # Calcular promedio general de la sección
             general_average = 0.0

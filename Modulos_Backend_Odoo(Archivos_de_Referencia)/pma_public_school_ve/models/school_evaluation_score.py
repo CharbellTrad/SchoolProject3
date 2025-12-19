@@ -61,12 +61,27 @@ class SchoolEvaluationScore(models.Model):
 
     points_20 = fields.Float(string='Puntaje (Base 20)', compute='_compute_points', store=True)
 
-    @api.depends('score', 'type')
+    # FIX: Agregamos 'is_mention_score' como dependencia porque las evaluaciones
+    # de mención no tienen section_id (tienen mention_section_id), lo que causa
+    # que el campo 'type' sea NULL para notas de mención.
+    @api.depends('score', 'type', 'is_mention_score')
     def _compute_points(self):
-        """Compute points normalized to base 20"""
+        """Compute points normalized to base 20
+        
+        PROBLEMA ORIGINAL:
+        - El campo 'type' viene de 'section_id.type' (línea 27-30)
+        - Para evaluaciones de MENCIÓN, section_id es NULL (usan mention_section_id)
+        - Esto causaba que type = NULL, y por tanto points_20 = 0.0
+        - Resultado: todas las notas de mención aparecían como "Desaprobado"
+        
+        SOLUCIÓN:
+        - Verificamos primero si es una nota de mención (is_mention_score)
+        - Las notas de mención usan sistema numérico base 20 (igual que secundary)
+        """
         for record in self:
-            if record.type in ['secundary', 'primary']:
-                # All numeric scores are now base 20
+            # Las notas de mención siempre usan base 20 (igual que secundary)
+            # porque el Técnico Medio usa el sistema de calificación numérica
+            if record.is_mention_score or record.type in ['secundary', 'primary']:
                 record.points_20 = record.score
             else:
                 record.points_20 = 0.0

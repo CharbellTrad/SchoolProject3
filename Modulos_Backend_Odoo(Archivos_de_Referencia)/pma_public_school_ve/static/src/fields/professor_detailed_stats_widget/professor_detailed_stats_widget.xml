@@ -1,112 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
+<templates id="template" xml:space="preserve">
     <t t-name="school.ProfessorDetailedStatsWidget">
-        <div class="o_professor_detailed_stats">
+        <div class="o_professor_detailed_stats_widget">
             <t t-if="hasData">
                 <div class="table-responsive">
-                    <table class="table table-sm table-hover">
+                    <table class="table table-sm mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Profesor</th>
-                                <th class="text-center">Evaluaciones</th>
-                                <th class="text-center">Secciones</th>
-                                <th class="text-center">
-                                    <span class="badge bg-info">Preesc.</span>
-                                </th>
-                                <th class="text-center">
-                                    <span class="badge bg-success">Primaria</span>
-                                </th>
-                                <th class="text-center">
-                                    <span class="badge bg-primary">Media G.</span>
-                                </th>
-                                <th class="text-center">
-                                    <span class="badge bg-warning text-dark">Técnico</span>
-                                </th>
+                                <th class="border-0"><i class="fa fa-user me-1 text-muted"/>Profesor</th>
+                                <t t-foreach="studentTypes" t-as="type" t-key="type.key">
+                                    <th class="border-0 text-center small" style="min-width: 60px;">
+                                        <i t-attf-class="fa {{ type.icon }}" t-att-style="'color:' + type.color"/>
+                                    </th>
+                                </t>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="professors" t-as="prof" t-key="prof.professor_id">
-                                <tr style="cursor: pointer;" t-on-click="() => onProfessorClick(prof.professor_id)">
-                                    <td>
-                                        <i class="fa fa-user-circle me-1 text-muted"/>
-                                        <t t-esc="prof.professor_name"/>
+                                <tr t-on-click="() => this.onProfessorClick(prof.professor_id)" style="cursor: pointer;">
+                                    <td class="border-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-xs me-2" t-att-style="'background-color: ' + getAvatarColor(prof.professor_name)">
+                                                <t t-esc="getInitials(prof.professor_name)"/>
+                                            </div>
+                                            <span class="text-truncate small" style="max-width: 100px;"><t t-esc="prof.professor_name"/></span>
+                                        </div>
                                     </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary">
-                                            <t t-esc="prof.total_evaluations"/>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-outline-secondary border">
-                                            <t t-esc="prof.sections_count"/>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <t t-if="prof.stats_by_type.pre.count > 0">
-                                            <span t-attf-class="#{getAverageClass(prof.stats_by_type.pre.average)}">
-                                                <t t-esc="formatAverage(prof.stats_by_type.pre.average)"/>
-                                            </span>
-                                            <small class="text-muted ms-1">
-                                                (<t t-esc="prof.stats_by_type.pre.count"/>)
-                                            </small>
-                                        </t>
-                                        <t t-else="">
-                                            <span class="text-muted">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-center">
-                                        <t t-if="prof.stats_by_type.primary.count > 0">
-                                            <span t-attf-class="#{getAverageClass(prof.stats_by_type.primary.average)}">
-                                                <t t-esc="formatAverage(prof.stats_by_type.primary.average)"/>
-                                            </span>
-                                            <small class="text-muted ms-1">
-                                                (<t t-esc="prof.stats_by_type.primary.count"/>)
-                                            </small>
-                                        </t>
-                                        <t t-else="">
-                                            <span class="text-muted">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-center">
-                                        <t t-if="prof.stats_by_type.secundary_general.count > 0">
-                                            <span t-attf-class="#{getAverageClass(prof.stats_by_type.secundary_general.average)}">
-                                                <t t-esc="formatAverage(prof.stats_by_type.secundary_general.average)"/>
-                                            </span>
-                                            <small class="text-muted ms-1">
-                                                (<t t-esc="prof.stats_by_type.secundary_general.count"/>)
-                                            </small>
-                                        </t>
-                                        <t t-else="">
-                                            <span class="text-muted">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-center">
-                                        <t t-if="prof.stats_by_type.secundary_tecnico.count > 0">
-                                            <span t-attf-class="#{getAverageClass(prof.stats_by_type.secundary_tecnico.average)}">
-                                                <t t-esc="formatAverage(prof.stats_by_type.secundary_tecnico.average)"/>
-                                            </span>
-                                            <small class="text-muted ms-1">
-                                                (<t t-esc="prof.stats_by_type.secundary_tecnico.count"/>)
-                                            </small>
-                                        </t>
-                                        <t t-else="">
-                                            <span class="text-muted">-</span>
-                                        </t>
-                                    </td>
+                                    <t t-foreach="studentTypes" t-as="type" t-key="type.key">
+                                        <td class="border-0 text-center">
+                                            <t t-set="stats" t-value="getProfStats(prof, type.key)"/>
+                                            <t t-if="stats &amp;&amp; stats.count > 0">
+                                                <span t-attf-class="badge {{ stats.average >= 15 ? 'bg-success' : stats.average >= 10 ? 'bg-warning' : 'bg-danger' }} small">
+                                                    <t t-esc="stats.average"/>
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="text-muted small">-</span>
+                                            </t>
+                                        </td>
+                                    </t>
                                 </tr>
                             </t>
                         </tbody>
                     </table>
                 </div>
-                <div class="text-muted small mt-2 text-end">
-                    <i class="fa fa-info-circle me-1"/>
-                    Los números entre paréntesis indican la cantidad de evaluaciones
-                </div>
             </t>
             <t t-else="">
-                <div class="alert alert-info text-center py-4">
-                    <i class="fa fa-info-circle fa-2x mb-2"/>
-                    <p class="mb-0">No hay estadísticas de profesores disponibles.</p>
+                <div class="alert alert-info text-center py-3">
+                    <i class="fa fa-info-circle me-2"/>No hay estadísticas de profesores.
                 </div>
             </t>
         </div>

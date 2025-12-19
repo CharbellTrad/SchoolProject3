@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.ProfessorDashboard">
+        <div class="o_professor_dashboard">
+            <t t-if="hasData">
+                <!-- KPI Cards + Progress Bar (only if showKpis) -->
+                <t t-if="showKpis">
+                    <div class="row g-3 kpi-row mb-3">
+                        <div class="col-md-3 col-6">
+                            <div class="kpi-card professor-kpi">
+                                <div class="kpi-icon icon-professor"><i class="fa fa-users"/></div>
+                                <span class="kpi-value"><t t-esc="state.animatedProfessors"/></span>
+                                <span class="kpi-label">Total Profesores</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="kpi-card professor-kpi">
+                                <div class="kpi-icon icon-subjects"><i class="fa fa-book"/></div>
+                                <span class="kpi-value text-primary"><t t-esc="state.animatedSubjects"/></span>
+                                <span class="kpi-label">Materias</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="kpi-card professor-kpi">
+                                <div class="kpi-icon icon-evaluations"><i class="fa fa-clipboard"/></div>
+                                <span class="kpi-value text-info"><t t-esc="state.animatedEvaluations"/></span>
+                                <span class="kpi-label">Evaluaciones</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="kpi-card professor-kpi">
+                                <div class="kpi-icon icon-average"><i class="fa fa-line-chart"/></div>
+                                <span t-attf-class="kpi-value {{ generalAverage >= 15 ? 'text-success' : generalAverage >= 10 ? 'text-warning' : 'text-danger' }}">
+                                    <t t-esc="state.animatedAverage"/>/20
+                                </span>
+                                <span class="kpi-label">Promedio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Rendimiento General del Profesorado</small>
+                            <small t-attf-class="fw-bold {{ generalAverage >= 15 ? 'text-success' : generalAverage >= 10 ? 'text-warning' : 'text-danger' }}">
+                                <t t-esc="((generalAverage / 20) * 100).toFixed(1)"/>%
+                            </small>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div t-attf-class="progress-bar {{ getAverageClass() }}" 
+                                 t-att-style="'width: ' + ((generalAverage / 20) * 100) + '%'"/>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Top 5 + Distribution (only if showRanking) -->
+                <t t-if="showRanking">
+                    <div class="row g-4">
+                        <!-- Top 5 Professors -->
+                        <div class="col-lg-7">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-gradient-primary text-white">
+                                    <i class="fa fa-trophy me-2"/>Top 5 Profesores
+                                </div>
+                                <div class="card-body p-0">
+                                    <t t-if="topProfessors.length > 0">
+                                        <t t-foreach="topProfessors" t-as="prof" t-key="prof.professor_id">
+                                            <div class="professor-rank-item d-flex align-items-center p-3 border-bottom" 
+                                                 t-on-click="() => this.onProfessorClick(prof.professor_id)"
+                                                 style="cursor: pointer;">
+                                                <span class="rank-medal me-3" style="font-size: 1.5rem;">
+                                                    <t t-esc="getMedalIcon(prof_index)"/>
+                                                </span>
+                                                <div class="professor-avatar me-3" t-att-style="'background-color: ' + getAvatarColor(prof.professor_name)">
+                                                    <t t-esc="getInitials(prof.professor_name)"/>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-semibold"><t t-esc="prof.professor_name"/></div>
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-book me-1"/><t t-esc="prof.subjects_count"/> materias
+                                                        <span class="mx-2">•</span>
+                                                        <i class="fa fa-clipboard me-1"/><t t-esc="prof.evaluations_count"/> evaluaciones
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span t-attf-class="badge fs-6 {{ prof.average >= 15 ? 'bg-success' : prof.average >= 10 ? 'bg-warning' : 'bg-danger' }}">
+                                                        <t t-esc="prof.average"/>/20
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="p-4 text-center text-muted">
+                                            <i class="fa fa-user-slash fa-2x mb-2"/>
+                                            <p>No hay datos de profesores disponibles.</p>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distribution by Level -->
+                        <div class="col-lg-5">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-gradient-secondary text-white">
+                                    <i class="fa fa-pie-chart me-2"/>Distribución por Nivel
+                                </div>
+                                <div class="card-body">
+                                    <div class="level-distribution">
+                                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                                            <span><i class="fa fa-child me-2 text-pink"/>Preescolar</span>
+                                            <span class="badge bg-pink"><t t-esc="distributionByLevel.pre || 0"/> profesores</span>
+                                        </div>
+                                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                                            <span><i class="fa fa-book me-2 text-info"/>Primaria</span>
+                                            <span class="badge bg-info"><t t-esc="distributionByLevel.primary || 0"/> profesores</span>
+                                        </div>
+                                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                                            <span><i class="fa fa-graduation-cap me-2 text-primary"/>Media General</span>
+                                            <span class="badge bg-primary"><t t-esc="distributionByLevel.secundary || 0"/> profesores</span>
+                                        </div>
+                                        <div class="level-item d-flex align-items-center justify-content-between p-2 rounded bg-light">
+                                            <span><i class="fa fa-wrench me-2 text-warning"/>Técnico Medio</span>
+                                            <span class="badge bg-warning text-dark"><t t-esc="distributionByLevel.tecnico || 0"/> profesores</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Distribution Only mode (for Dashboard General) -->
+                <t t-if="showDistributionOnly">
+                    <div class="level-distribution">
+                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                            <span><i class="fa fa-child me-2 text-warning"/>Preescolar</span>
+                            <span class="badge bg-warning"><t t-esc="distributionByLevel.pre || 0"/> profesores</span>
+                        </div>
+                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                            <span><i class="fa fa-book me-2 text-info"/>Primaria</span>
+                            <span class="badge bg-info"><t t-esc="distributionByLevel.primary || 0"/> profesores</span>
+                        </div>
+                        <div class="level-item d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light">
+                            <span><i class="fa fa-graduation-cap me-2 text-primary"/>Media General</span>
+                            <span class="badge bg-primary"><t t-esc="distributionByLevel.secundary || 0"/> profesores</span>
+                        </div>
+                        <div class="level-item d-flex align-items-center justify-content-between p-2 rounded bg-light">
+                            <span><i class="fa fa-wrench me-2 text-secondary"/>Técnico Medio</span>
+                            <span class="badge bg-secondary"><t t-esc="distributionByLevel.tecnico || 0"/> profesores</span>
+                        </div>
+                    </div>
+                </t>
+            </t>
+            <t t-else="">
+                <div class="alert alert-info text-center py-4">
+                    <i class="fa fa-info-circle fa-2x mb-2"/>
+                    <p class="mb-0">No hay profesores registrados en este año escolar.</p>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="school.MentionsTagsWidget">
+        <div class="o_mentions_tags_widget o_field_many2many_tags d-inline-flex flex-wrap gap-1">
+            <t t-if="hasMentions">
+                <!-- Estilo igual al many2many_tags nativo de Odoo -->
+                <t t-foreach="mentions" t-as="mention" t-key="mention.id">
+                    <span class="o_tag badge rounded-pill d-inline-flex align-items-center o_tag_color_0"
+                          t-on-click="() => this.onMentionClick(mention)"
+                          style="cursor: pointer;">
+                        <span class="o_tag_badge_text text-truncate" style="max-width: none;">
+                            <t t-esc="mention.name"/>
+                        </span>
+                    </span>
+                </t>
+            </t>
+            <t t-else="">
+                <span class="text-muted fst-italic">No hay menciones inscritas</span>
+            </t>
+        </div>
+    </t>
+</templates>
+

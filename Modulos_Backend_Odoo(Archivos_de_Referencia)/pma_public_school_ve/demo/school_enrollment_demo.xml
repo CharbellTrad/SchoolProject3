@@ -150,6 +150,7 @@
             <field name="size_pants">38</field>
             <field name="size_shoes">37</field>
             <field name="mention_id" ref="mention_informatica"/>
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-02</field>
             <field name="parent_siganture_date">2024-09-02</field>
@@ -170,6 +171,7 @@
             <field name="size_pants">32</field>
             <field name="size_shoes">42</field>
             <field name="mention_id" ref="mention_electricidad"/>
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-02</field>
             <field name="parent_siganture_date">2024-09-02</field>
@@ -190,6 +192,7 @@
             <field name="size_pants">28</field>
             <field name="size_shoes">38</field>
             <field name="mention_id" ref="mention_comercio"/>
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-01</field>
             <field name="parent_siganture_date">2024-09-01</field>
@@ -391,6 +394,7 @@
             <field name="size_pants">36</field>
             <field name="size_shoes">37</field>
             <field name="mention_id" ref="mention_informatica"/>
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-02</field>
             <field name="parent_siganture_date">2024-09-02</field>
@@ -411,6 +415,7 @@
             <field name="size_pants">32</field>
             <field name="size_shoes">43</field>
             <field name="mention_id" ref="mention_electricidad"/>
+            <field name="mention_section_id" ref="mention_section_electricidad_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-02</field>
             <field name="parent_siganture_date">2024-09-02</field>
@@ -431,6 +436,7 @@
             <field name="size_pants">28</field>
             <field name="size_shoes">38</field>
             <field name="mention_id" ref="mention_comercio"/>
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-01</field>
             <field name="parent_siganture_date">2024-09-01</field>
@@ -451,6 +457,7 @@
             <field name="size_pants">34</field>
             <field name="size_shoes">44</field>
             <field name="mention_id" ref="mention_informatica"/>
+            <field name="mention_section_id" ref="mention_section_informatica_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-01</field>
             <field name="parent_siganture_date">2024-09-01</field>
@@ -471,6 +478,7 @@
             <field name="size_pants">28</field>
             <field name="size_shoes">38</field>
             <field name="mention_id" ref="mention_comercio"/>
+            <field name="mention_section_id" ref="mention_section_comercio_2024"/>
             <field name="state">done</field>
             <field name="inscription_date">2024-09-02</field>
             <field name="parent_siganture_date">2024-09-02</field>

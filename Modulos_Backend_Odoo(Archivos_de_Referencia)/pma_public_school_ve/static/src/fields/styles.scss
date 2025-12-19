@@ -1,35 +1,2532 @@
-.o_school_year_dashboard {
-    .card {
-        transition: transform 0.2s, box-shadow 0.2s;
-        
-        &:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
+/**
+ * PREMIUM Dashboard Styles for pma_public_school_ve
+ * 
+ * This file contains all global styles for the school year dashboard.
+ * Follows strict spacing system and premium visual design.
+ */
+
+// =============================================================================
+// CSS VARIABLES - SPACING SYSTEM
+// =============================================================================
+
+:root {
+    // Spacing scale (8px base)
+    --spacing-xs: 0.25rem; // 4px
+    --spacing-sm: 0.5rem; // 8px
+    --spacing-md: 1rem; // 16px
+    --spacing-lg: 1.5rem; // 24px
+    --spacing-xl: 2rem; // 32px
+    --spacing-xxl: 3rem; // 48px
+
+    // Border radius
+    --radius-sm: 0.375rem; // 6px
+    --radius-md: 0.5rem; // 8px
+    --radius-lg: 0.75rem; // 12px
+    --radius-xl: 1rem; // 16px
+    --radius-full: 9999px;
+
+    // Shadows (elevation system)
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.15);
+
+    // Transition timing
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 300ms ease;
+    --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+// =============================================================================
+// PREMIUM COLOR PALETTE
+// =============================================================================
+
+// Preescolar - Amber
+$color-preescolar: #FFB300;
+$color-preescolar-light: #FFD54F;
+$color-preescolar-dark: #FF8F00;
+$color-preescolar-bg: rgba(255, 179, 0, 0.1);
+
+// Primaria - Green Forest
+$color-primaria: #43A047;
+$color-primaria-light: #66BB6A;
+$color-primaria-dark: #2E7D32;
+$color-primaria-bg: rgba(67, 160, 71, 0.1);
+
+// Media General - Ocean Blue
+$color-media: #1E88E5;
+$color-media-light: #42A5F5;
+$color-media-dark: #1565C0;
+$color-media-bg: rgba(30, 136, 229, 0.1);
+
+// Técnico Medio - Royal Purple
+$color-tecnico: #8E24AA;
+$color-tecnico-light: #AB47BC;
+$color-tecnico-dark: #6A1B9A;
+$color-tecnico-bg: rgba(142, 36, 170, 0.1);
+
+// Literal colors (Primaria)
+$literal-a: #4CAF50;
+$literal-a-light: #81C784;
+$literal-b: #2196F3;
+$literal-b-light: #64B5F6;
+$literal-c: #FFC107;
+$literal-c-light: #FFD54F;
+$literal-d: #FF9800;
+$literal-d-light: #FFB74D;
+$literal-e: #F44336;
+$literal-e-light: #E57373;
+
+// Status colors
+$color-success: #10B981;
+$color-warning: #F59E0B;
+$color-danger: #EF4444;
+$color-info: #3B82F6;
+
+// Medal colors
+$medal-gold: #FFD700;
+$medal-silver: #C0C0C0;
+$medal-bronze: #CD7F32;
+
+// Literal badge classes (for Primaria grades display)
+.literal-A {
+    background-color: $literal-a !important;
+    color: #fff !important;
+}
+
+.literal-B {
+    background-color: $literal-b !important;
+    color: #fff !important;
+}
+
+.literal-C {
+    background-color: $literal-c !important;
+    color: #333 !important;
+}
+
+.literal-D {
+    background-color: $literal-d !important;
+    color: #fff !important;
+}
+
+.literal-E {
+    background-color: $literal-e !important;
+    color: #fff !important;
+}
+
+// Orange background utility (for D grade)
+.bg-orange {
+    background-color: $literal-d !important;
+    color: #fff !important;
+}
+
+// =============================================================================
+// LITERAL DISTRIBUTION BARS (for general_performance_graph)
+// =============================================================================
+
+.literal-display-section {
+    padding: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.literal-main {
+    text-align: center;
+    padding: 0.75rem;
+}
+
+.literal-badge-xl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+
+    &.literal-A {
+        background: linear-gradient(135deg, $literal-a 0%, $literal-a-light 100%);
+        color: #fff;
     }
-    
-    .o_year_performance_overview {
-        .card-header {
-            border-bottom: 2px solid;
-            
-            h5 {
-                font-weight: 600;
-            }
-        }
+
+    &.literal-B {
+        background: linear-gradient(135deg, $literal-b 0%, $literal-b-light 100%);
+        color: #fff;
     }
-    
-    .progress {
-        border-radius: 10px;
-        overflow: hidden;
+
+    &.literal-C {
+        background: linear-gradient(135deg, $literal-c 0%, $literal-c-light 100%);
+        color: #333;
     }
-    
-    .progress-bar {
-        font-size: 14px;
-        font-weight: bold;
+
+    &.literal-D {
+        background: linear-gradient(135deg, $literal-d 0%, $literal-d-light 100%);
+        color: #fff;
+    }
+
+    &.literal-E {
+        background: linear-gradient(135deg, $literal-e 0%, $literal-e-light 100%);
+        color: #fff;
     }
 }
 
-.o_students_distribution_chart,
+.literal-description {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.literal-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+    padding: 0.25rem 0.4rem;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateX(2px);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.literal-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 5px;
+    flex-shrink: 0;
+
+    &.label-A {
+        background-color: $literal-a;
+        color: #fff;
+    }
+
+    &.label-B {
+        background-color: $literal-b;
+        color: #fff;
+    }
+
+    &.label-C {
+        background-color: $literal-c;
+        color: #333;
+    }
+
+    &.label-D {
+        background-color: $literal-d;
+        color: #fff;
+    }
+
+    &.label-E {
+        background-color: $literal-e;
+        color: #fff;
+    }
+}
+
+.literal-bar-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.literal-bar {
+    height: 12px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.literal-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s ease;
+
+    &.fill-A {
+        background: linear-gradient(90deg, $literal-a 0%, $literal-a-light 100%);
+    }
+
+    &.fill-B {
+        background: linear-gradient(90deg, $literal-b 0%, $literal-b-light 100%);
+    }
+
+    &.fill-C {
+        background: linear-gradient(90deg, $literal-c 0%, $literal-c-light 100%);
+    }
+
+    &.fill-D {
+        background: linear-gradient(90deg, $literal-d 0%, $literal-d-light 100%);
+    }
+
+    &.fill-E {
+        background: linear-gradient(90deg, $literal-e 0%, $literal-e-light 100%);
+    }
+}
+
+.literal-stats {
+    text-align: right;
+    min-width: 50px;
+}
+
+.literal-percentage {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #212529;
+}
+
+.literal-count {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+// =============================================================================
+// ANIMATIONS
+// =============================================================================
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes pulseSoft {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// =============================================================================
+// UTILITY CLASSES
+// =============================================================================
+
+// Text truncation
+.text-truncate-1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// Premium card base
+.premium-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+}
+
+// Gradient backgrounds
+.gradient-preescolar {
+    background: linear-gradient(135deg, $color-preescolar-light 0%, $color-preescolar 100%);
+}
+
+.gradient-primaria {
+    background: linear-gradient(135deg, $color-primaria-light 0%, $color-primaria 100%);
+}
+
+.gradient-media {
+    background: linear-gradient(135deg, $color-media-light 0%, $color-media 100%);
+}
+
+.gradient-tecnico {
+    background: linear-gradient(135deg, $color-tecnico-light 0%, $color-tecnico 100%);
+}
+
+// Avatar styles
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.student-avatar-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.student-avatar-xs {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+// Level icon box
+.level-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+// Purple background utility
+.bg-purple {
+    background-color: $color-tecnico !important;
+}
+
+.text-purple {
+    color: $color-tecnico !important;
+}
+
+.border-purple {
+    border-color: $color-tecnico !important;
+}
+
+// Success subtle background
+.bg-success-subtle {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+// =============================================================================
+// DASHBOARD CONTAINER
+// =============================================================================
+
+.o_school_year_dashboard {
+
+    // Progress bars
+    .progress {
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        background-color: #e9ecef;
+        height: 8px;
+    }
+
+    .progress-bar {
+        font-size: 12px;
+        font-weight: 600;
+        transition: width 1s ease-out;
+    }
+}
+
+// =============================================================================
+// YEAR PERFORMANCE OVERVIEW - PREMIUM
+// =============================================================================
+
+.o_year_performance_overview {
+    .level-card {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        transition: all var(--transition-base);
+        animation: fadeInUp 0.4s ease-out;
+        animation-fill-mode: both;
+
+        // Staggered animation
+        @for $i from 1 through 4 {
+            &:nth-child(#{$i}) {
+                animation-delay: #{$i * 0.1}s;
+            }
+        }
+
+        &:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+        }
+
+        // Level-specific top border
+        &.level-pre {
+            border-top: 4px solid $color-preescolar;
+
+            .card-header {
+                background: $color-preescolar-bg;
+            }
+        }
+
+        &.level-primary {
+            border-top: 4px solid $color-primaria;
+
+            .card-header {
+                background: $color-primaria-bg;
+            }
+        }
+
+        &.level-secundary {
+            border-top: 4px solid $color-media;
+
+            .card-header {
+                background: $color-media-bg;
+            }
+        }
+
+        &.level-tecnico {
+            border-top: 4px solid $color-tecnico;
+
+            .card-header {
+                background: $color-tecnico-bg;
+            }
+        }
+
+        .card-header {
+            border-bottom: none;
+            padding: var(--spacing-md);
+
+            h6 {
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
+        }
+
+        .card-body {
+            padding: var(--spacing-lg);
+        }
+
+        // Observation display for Preescolar
+        .observation-display {
+            padding: var(--spacing-xl);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.02) 100%);
+            border-radius: var(--radius-lg);
+            text-align: center;
+
+            .observation-icon {
+                animation: float 3s ease-in-out infinite;
+            }
+
+            .observation-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: var(--spacing-sm);
+                padding: var(--spacing-sm) var(--spacing-lg);
+                background: $color-success;
+                color: white;
+                border-radius: var(--radius-full);
+                font-weight: 600;
+                margin-top: var(--spacing-md);
+            }
+
+            .observation-note {
+                margin-top: var(--spacing-lg);
+                padding: var(--spacing-md);
+                background: rgba(0, 0, 0, 0.03);
+                border-radius: var(--radius-md);
+                font-size: 0.85rem;
+                color: #6b7280;
+            }
+        }
+
+        // Literal display for Primaria
+        .literal-display {
+            text-align: center;
+
+            .literal-badge-large {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 80px;
+                height: 80px;
+                border-radius: var(--radius-xl);
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: white;
+                box-shadow: var(--shadow-lg);
+                animation: bounceIn 0.6s ease-out;
+
+                &.literal-A {
+                    background: linear-gradient(135deg, $literal-a-light, $literal-a);
+                }
+
+                &.literal-B {
+                    background: linear-gradient(135deg, $literal-b-light, $literal-b);
+                }
+
+                &.literal-C {
+                    background: linear-gradient(135deg, $literal-c-light, $literal-c);
+                    color: #333;
+                }
+
+                &.literal-D {
+                    background: linear-gradient(135deg, $literal-d-light, $literal-d);
+                }
+
+                &.literal-E {
+                    background: linear-gradient(135deg, $literal-e-light, $literal-e);
+                }
+            }
+
+            .literal-description {
+                margin-top: var(--spacing-md);
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: #374151;
+            }
+        }
+
+        // Numeric display
+        .numeric-display {
+            text-align: center;
+
+            .average-value {
+                font-size: 2.5rem;
+                font-weight: 800;
+                font-family: 'Roboto Mono', monospace;
+                line-height: 1;
+            }
+
+            .average-suffix {
+                font-size: 1.25rem;
+                color: #9ca3af;
+                font-weight: 500;
+            }
+        }
+
+        // Stats section
+        .level-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+
+            .stat-item {
+                padding: var(--spacing-sm);
+                background: #f9fafb;
+                border-radius: var(--radius-md);
+                text-align: center;
+
+                .stat-value {
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    font-family: 'Roboto Mono', monospace;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                    color: #6b7280;
+                }
+            }
+        }
+    }
+}
+
+// =============================================================================
+// APPROVAL RATE GAUGE - PREMIUM MULTI-RING
+// =============================================================================
+
 .o_approval_rate_gauge {
-    padding: 20px;
+    padding: var(--spacing-xl);
+
+    .gauge-wrapper {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .gauge-container {
+        position: relative;
+        padding: var(--spacing-lg);
+    }
+
+    .gauge-svg {
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+
+        .gauge-background {
+            stroke-linecap: round;
+        }
+
+        .gauge-progress {
+            stroke-linecap: round;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .gauge-needle-group {
+            transition: transform 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+        }
+    }
+
+    .gauge-value-container {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+
+        .gauge-percentage {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Roboto Mono', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .gauge-label-text {
+            display: block;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+    }
+
+    // Stats cards
+    .gauge-stats {
+        margin-top: var(--spacing-xl);
+
+        .stat-box {
+            background: #f9fafb;
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: all var(--transition-base);
+
+            &:hover {
+                background: #f3f4f6;
+                transform: translateY(-2px);
+            }
+
+            i {
+                font-size: 1.5rem;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .stat-value {
+                display: block;
+                font-size: 1.75rem;
+                font-weight: 700;
+                font-family: 'Roboto Mono', monospace;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+                color: #6b7280;
+                font-weight: 500;
+            }
+        }
+    }
+
+    // Level breakdown
+    .level-breakdown {
+        margin-top: var(--spacing-lg);
+
+        .level-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            background: #f9fafb;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+
+            &:hover {
+                background: #f3f4f6;
+                transform: translateX(4px);
+            }
+
+            .level-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: var(--radius-md);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                margin-right: var(--spacing-md);
+
+                &.icon-pre {
+                    background: $color-preescolar;
+                }
+
+                &.icon-primary {
+                    background: $color-primaria;
+                }
+
+                &.icon-secundary {
+                    background: $color-media;
+                }
+
+                &.icon-tecnico {
+                    background: $color-tecnico;
+                }
+            }
+
+            .level-info {
+                flex: 1;
+
+                .level-name {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+
+                .level-count {
+                    font-size: 0.75rem;
+                    color: #6b7280;
+                }
+            }
+
+            .level-rate {
+                font-weight: 700;
+                font-family: 'Roboto Mono', monospace;
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: var(--radius-md);
+                font-size: 0.9rem;
+
+                &.rate-excellent {
+                    background: rgba(16, 185, 129, 0.1);
+                    color: $color-success;
+                }
+
+                &.rate-good {
+                    background: rgba(245, 158, 11, 0.1);
+                    color: $color-warning;
+                }
+
+                &.rate-poor {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: $color-danger;
+                }
+            }
+        }
+    }
+}
+
+// =============================================================================
+// STUDENTS DISTRIBUTION CHART - PREMIUM 3D EFFECT
+// =============================================================================
+
+.o_students_distribution_chart {
+    padding: var(--spacing-xl);
+
+    .chart-wrapper {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 280px;
+
+        canvas {
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.1));
+        }
+    }
+
+    .chart-center-text {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        pointer-events: none;
+
+        .total-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Roboto Mono', monospace;
+            color: #1f2937;
+            animation: countUp 1s ease-out;
+        }
+
+        .total-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+    }
+
+    // Premium Legend
+    .chart-legend {
+        margin-top: var(--spacing-xl);
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            background: #f9fafb;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            cursor: pointer;
+
+            &:hover {
+                background: #f3f4f6;
+                transform: translateX(4px);
+            }
+
+            .legend-color {
+                width: 14px;
+                height: 14px;
+                border-radius: var(--radius-sm);
+                flex-shrink: 0;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .legend-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: var(--radius-md);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-left: var(--spacing-sm);
+
+                &.icon-pre {
+                    background: $color-preescolar-bg;
+                    color: $color-preescolar-dark;
+                }
+
+                &.icon-primary {
+                    background: $color-primaria-bg;
+                    color: $color-primaria-dark;
+                }
+
+                &.icon-secundary {
+                    background: $color-media-bg;
+                    color: $color-media-dark;
+                }
+
+                &.icon-tecnico {
+                    background: $color-tecnico-bg;
+                    color: $color-tecnico-dark;
+                }
+            }
+
+            .legend-text {
+                flex: 1;
+                margin-left: var(--spacing-sm);
+
+                .legend-label {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: #374151;
+                }
+            }
+
+            .legend-values {
+                text-align: right;
+
+                .legend-value {
+                    font-weight: 700;
+                    font-family: 'Roboto Mono', monospace;
+                    font-size: 1.1rem;
+                    color: #1f2937;
+                }
+
+                .legend-percentage {
+                    font-size: 0.8rem;
+                    color: #6b7280;
+                }
+            }
+        }
+    }
+}
+
+// =============================================================================
+// TOP STUDENTS LIST - PREMIUM CARDS
+// =============================================================================
+
+.o_top_students_list {
+
+    // Medal styling
+    .position-gold {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+        border-left: 3px solid $medal-gold;
+    }
+
+    .position-silver {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%);
+        border-left: 3px solid $medal-silver;
+    }
+
+    .position-bronze {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%);
+        border-left: 3px solid $medal-bronze;
+    }
+
+    .section-card {
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid #e5e7eb;
+            padding: var(--spacing-md);
+        }
+    }
+
+    .student-item {
+        padding: var(--spacing-md);
+        transition: all var(--transition-base);
+        border-bottom: 1px solid #f3f4f6;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: #fafafa;
+            transform: translateX(4px);
+        }
+    }
+
+    // Premium avatar
+    .student-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+
+        // Gold border for 1st place
+        &.avatar-gold {
+            box-shadow: 0 0 0 3px $medal-gold, var(--shadow-md);
+        }
+
+        &.avatar-silver {
+            box-shadow: 0 0 0 3px $medal-silver, var(--shadow-md);
+        }
+
+        &.avatar-bronze {
+            box-shadow: 0 0 0 3px $medal-bronze, var(--shadow-md);
+        }
+    }
+
+    .position-medal {
+        font-size: 1.5rem;
+        min-width: 32px;
+        text-align: center;
+    }
+
+    // Stars rating
+    .student-stars {
+        display: flex;
+        gap: 2px;
+        margin-top: var(--spacing-xs);
+
+        .star {
+            color: #e5e7eb;
+            font-size: 0.75rem;
+
+            &.filled {
+                color: $medal-gold;
+            }
+        }
+    }
+
+    // Average badges
+    .average-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+
+        &.grade-excellent {
+            background: linear-gradient(135deg, $color-success, darken($color-success, 10%));
+            color: white;
+        }
+
+        &.grade-good {
+            background: linear-gradient(135deg, $color-info, darken($color-info, 10%));
+            color: white;
+        }
+
+        &.grade-average {
+            background: linear-gradient(135deg, $color-warning, darken($color-warning, 10%));
+            color: #333;
+        }
+
+        &.grade-poor {
+            background: linear-gradient(135deg, $color-danger, darken($color-danger, 10%));
+            color: white;
+        }
+    }
+
+    // Literal badges (Primaria)
+    .literal-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        box-shadow: var(--shadow-md);
+
+        &.literal-A {
+            background: linear-gradient(135deg, $literal-a-light, $literal-a);
+        }
+
+        &.literal-B {
+            background: linear-gradient(135deg, $literal-b-light, $literal-b);
+        }
+
+        &.literal-C {
+            background: linear-gradient(135deg, $literal-c-light, $literal-c);
+            color: #333;
+        }
+
+        &.literal-D {
+            background: linear-gradient(135deg, $literal-d-light, $literal-d);
+        }
+
+        &.literal-E {
+            background: linear-gradient(135deg, $literal-e-light, $literal-e);
+        }
+    }
+}
+
+// =============================================================================
+// LEVEL DASHBOARD - PREMIUM KPI CARDS
+// =============================================================================
+
+// Force full width on parent container (Odoo field wrapper)
+.o_field_widget[name$="_dashboard_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+.o_level_dashboard {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+    display: block !important;
+
+    .kpi-row {
+        margin-bottom: var(--spacing-xl);
+        width: 100%;
+    }
+
+    .kpi-card {
+        background: #fff;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, $color-media, $color-media-dark);
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-sm);
+            font-size: 1.1rem;
+            color: white;
+
+            &.icon-total {
+                background: linear-gradient(135deg, $color-info, darken($color-info, 10%));
+            }
+
+            &.icon-approved {
+                background: linear-gradient(135deg, $color-success, darken($color-success, 10%));
+            }
+
+            &.icon-failed {
+                background: linear-gradient(135deg, $color-danger, darken($color-danger, 10%));
+            }
+
+            &.icon-rate {
+                background: linear-gradient(135deg, $color-tecnico, $color-tecnico-dark);
+            }
+
+            &.icon-sections {
+                background: linear-gradient(135deg, #1E88E5, #1565C0);
+            }
+        }
+
+        .kpi-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Roboto Mono', monospace;
+            animation: countUp 0.8s ease-out;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-top: var(--spacing-xs);
+        }
+
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+
+            &.trend-up {
+                background: rgba(16, 185, 129, 0.1);
+                color: $color-success;
+            }
+
+            &.trend-down {
+                background: rgba(239, 68, 68, 0.1);
+                color: $color-danger;
+            }
+        }
+    }
+
+    // Section cards
+    .section-card {
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+
+        .card-header {
+            background: #f9fafb;
+            border-bottom: none;
+            padding: var(--spacing-md);
+        }
+    }
+
+    .student-avatar-sm {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+}
+
+// =============================================================================
+// GENERAL PERFORMANCE GRAPH - PREMIUM
+// =============================================================================
+
+.o_general_performance_graph {
+    .performance-container {
+        padding: var(--spacing-lg);
+    }
+
+    .chart-container {
+        position: relative;
+
+        canvas {
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+    }
+
+    // Observation display (Preescolar)
+    .observation-display {
+        text-align: center;
+        padding: var(--spacing-xxl);
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.02) 100%);
+        border-radius: var(--radius-xl);
+
+        .observation-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, $color-success, darken($color-success, 15%));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            animation: float 3s ease-in-out infinite;
+
+            i {
+                font-size: 2.5rem;
+                color: white;
+            }
+        }
+
+        h5 {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .observation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: $color-success;
+            color: white;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+        }
+
+        .observation-note {
+            margin-top: var(--spacing-xl);
+            padding: var(--spacing-md);
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            color: #6b7280;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    // Literal display (Primaria)
+    .literal-display-section {
+        .literal-main {
+            text-align: center;
+            padding: var(--spacing-xl);
+            background: #f9fafb;
+            border-radius: var(--radius-lg);
+
+            .literal-badge-xl {
+                width: 100px;
+                height: 100px;
+                border-radius: var(--radius-xl);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3.5rem;
+                font-weight: 800;
+                color: white;
+                margin: 0 auto var(--spacing-md);
+                box-shadow: var(--shadow-lg);
+                animation: bounceIn 0.6s ease-out;
+
+                &.literal-A {
+                    background: linear-gradient(135deg, $literal-a-light, $literal-a);
+                }
+
+                &.literal-B {
+                    background: linear-gradient(135deg, $literal-b-light, $literal-b);
+                }
+
+                &.literal-C {
+                    background: linear-gradient(135deg, $literal-c-light, $literal-c);
+                    color: #333;
+                }
+
+                &.literal-D {
+                    background: linear-gradient(135deg, $literal-d-light, $literal-d);
+                }
+
+                &.literal-E {
+                    background: linear-gradient(135deg, $literal-e-light, $literal-e);
+                }
+            }
+
+            .literal-description {
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: #374151;
+            }
+        }
+
+        // Literal distribution bars
+        .literal-distribution {
+            margin-top: var(--spacing-xl);
+
+            .literal-bar-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: var(--spacing-md);
+
+                .literal-label {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: var(--radius-md);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                    color: white;
+                    flex-shrink: 0;
+
+                    &.label-A {
+                        background: $literal-a;
+                    }
+
+                    &.label-B {
+                        background: $literal-b;
+                    }
+
+                    &.label-C {
+                        background: $literal-c;
+                        color: #333;
+                    }
+
+                    &.label-D {
+                        background: $literal-d;
+                    }
+
+                    &.label-E {
+                        background: $literal-e;
+                    }
+                }
+
+                .literal-bar-wrapper {
+                    flex: 1;
+                    margin: 0 var(--spacing-md);
+
+                    .literal-bar {
+                        height: 24px;
+                        border-radius: var(--radius-md);
+                        position: relative;
+                        overflow: hidden;
+                        background: #e5e7eb;
+
+                        .literal-bar-fill {
+                            height: 100%;
+                            border-radius: var(--radius-md);
+                            transition: width 1s ease-out;
+
+                            &.fill-A {
+                                background: linear-gradient(90deg, $literal-a-light, $literal-a);
+                            }
+
+                            &.fill-B {
+                                background: linear-gradient(90deg, $literal-b-light, $literal-b);
+                            }
+
+                            &.fill-C {
+                                background: linear-gradient(90deg, $literal-c-light, $literal-c);
+                            }
+
+                            &.fill-D {
+                                background: linear-gradient(90deg, $literal-d-light, $literal-d);
+                            }
+
+                            &.fill-E {
+                                background: linear-gradient(90deg, $literal-e-light, $literal-e);
+                            }
+                        }
+                    }
+                }
+
+                .literal-stats {
+                    min-width: 100px;
+                    text-align: right;
+
+                    .literal-percentage {
+                        font-weight: 700;
+                        font-family: 'Roboto Mono', monospace;
+                    }
+
+                    .literal-count {
+                        font-size: 0.75rem;
+                        color: #6b7280;
+                    }
+                }
+            }
+        }
+    }
+
+    // Average display
+    .average-display {
+        text-align: center;
+        padding: var(--spacing-xl);
+        background: linear-gradient(135deg, #f9fafb 0%, #fff 100%);
+        border-radius: var(--radius-lg);
+
+        .average-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .average-value {
+            font-size: 3rem;
+            font-weight: 800;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .average-suffix {
+            font-size: 1.5rem;
+            color: #9ca3af;
+        }
+    }
+
+    .stats-grid {
+        .stat-item {
+            background: #f9fafb;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: all var(--transition-base);
+
+            &:hover {
+                background: #f3f4f6;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+                font-weight: 700;
+                font-family: 'Roboto Mono', monospace;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+                color: #6b7280;
+            }
+        }
+    }
+}
+
+// =============================================================================
+// PROFESSOR WIDGETS - PREMIUM
+// =============================================================================
+
+.o_professor_summary_widget,
+.o_professor_detailed_stats_widget {
+    .professor-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .search-bar {
+        .input-group {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+
+            .input-group-text {
+                background: #f9fafb;
+                border: 1px solid #e5e7eb;
+            }
+
+            .form-control {
+                border: 1px solid #e5e7eb;
+
+                &:focus {
+                    box-shadow: none;
+                    border-color: $color-media;
+                }
+            }
+        }
+    }
+
+    .table {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+
+        thead {
+            background: #f9fafb;
+
+            th {
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: #374151;
+                padding: var(--spacing-md);
+                border: none;
+
+                &.sortable:hover {
+                    background: #f3f4f6;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                transition: all var(--transition-base);
+
+                &:hover {
+                    background: #fafafa;
+                    transform: scale(1.005);
+                }
+            }
+
+            td {
+                padding: var(--spacing-md);
+                vertical-align: middle;
+            }
+        }
+    }
+
+    .workload-badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.85rem;
+    }
+}
+
+// =============================================================================
+// SECTIONS COMPARISON CHART - PODIUM STYLE
+// =============================================================================
+
+.o_sections_comparison_chart {
+    .chart-container {
+        min-height: 200px;
+
+        canvas {
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+    }
+
+    .section-card {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        transition: all var(--transition-base);
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        // Level-specific left border
+        &.border-primary {
+            border-left: 4px solid $color-primaria !important;
+        }
+
+        &.border-secundary {
+            border-left: 4px solid $color-media !important;
+        }
+
+        &.border-tecnico {
+            border-left: 4px solid $color-tecnico !important;
+        }
+    }
+}
+
+// =============================================================================
+// DIFFICULT SUBJECTS CHART - PREMIUM
+// =============================================================================
+
+.o_difficult_subjects_chart {
+    .chart-container {
+        min-height: 300px;
+
+        canvas {
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+    }
+
+    .difficulty-badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .table {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+
+        thead {
+            background: #f9fafb;
+        }
+    }
+}
+
+// =============================================================================
+// EVALUATIONS STATS WIDGET - PREMIUM
+// =============================================================================
+
+.o_evaluations_stats_widget {
+    .kpi-card {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        &.kpi-total::after {
+            background: $color-info;
+        }
+
+        &.kpi-qualified::after {
+            background: $color-success;
+        }
+
+        &.kpi-partial::after {
+            background: $color-warning;
+        }
+
+        &.kpi-draft::after {
+            background: #9ca3af;
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        i {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Roboto Mono', monospace;
+            animation: countUp 0.8s ease-out;
+        }
+
+        small {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+    }
+
+    .completion-section,
+    .chart-section {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        box-shadow: var(--shadow-md);
+
+        h6 {
+            color: #6b7280;
+            font-weight: 600;
+        }
+    }
+
+    .completion-display {
+        .display-4 {
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 800;
+        }
+    }
+}
+
+// =============================================================================
+// RESPONSIVE DESIGN
+// =============================================================================
+
+// Tablet
+@media (max-width: 992px) {
+    .o_year_performance_overview {
+        .level-card {
+
+            .literal-display .literal-badge-large,
+            .literal-display-section .literal-badge-xl {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .numeric-display .average-value {
+                font-size: 2rem;
+            }
+        }
+    }
+
+    .o_approval_rate_gauge {
+        .gauge-percentage {
+            font-size: 2rem !important;
+        }
+
+        .stat-box .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+}
+
+// Mobile
+@media (max-width: 768px) {
+    :root {
+        --spacing-lg: 1rem;
+        --spacing-xl: 1.5rem;
+        --spacing-xxl: 2rem;
+    }
+
+    .o_students_distribution_chart {
+        .chart-container {
+            height: 220px;
+        }
+
+        .chart-center-text .total-value {
+            font-size: 2rem;
+        }
+    }
+
+    .o_level_dashboard {
+        .kpi-card {
+            padding: var(--spacing-md);
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            .kpi-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.25rem;
+            }
+        }
+    }
+
+    .o_professor_detailed_stats_widget {
+        .type-header {
+            small {
+                display: none;
+            }
+        }
+    }
+
+    .student-avatar,
+    .professor-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
+    }
+}
+
+// Small Mobile
+@media (max-width: 576px) {
+    .o_year_performance_overview {
+        .level-card {
+            .card-body {
+                padding: var(--spacing-md);
+            }
+        }
+    }
+
+    .o_evaluations_stats_widget {
+        .kpi-card {
+            h3 {
+                font-size: 1.5rem;
+            }
+        }
+    }
+}
+
+// =============================================================================
+// PROFESSOR DASHBOARD - PREMIUM STYLING
+// =============================================================================
+
+.o_professor_dashboard {
+    width: 100% !important;
+
+    .kpi-row {
+        margin-bottom: var(--spacing-xl);
+        width: 100%;
+    }
+
+    .kpi-card {
+        background: #fff;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-sm);
+            font-size: 1.1rem;
+        }
+
+        .kpi-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #1f2937;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-top: var(--spacing-xs);
+        }
+    }
+
+    .kpi-card.professor-kpi {
+        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+    }
+
+    .icon-professor {
+        background: linear-gradient(135deg, #E0E7FF, #C7D2FE);
+        color: #4F46E5;
+    }
+
+    .icon-subjects {
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        color: #2563EB;
+    }
+
+    .icon-evaluations {
+        background: linear-gradient(135deg, #CFFAFE, #A5F3FC);
+        color: #0891B2;
+    }
+
+    .icon-average {
+        background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+        color: #059669;
+    }
+
+    .professor-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .professor-rank-item {
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        &:last-child {
+            border-bottom: none !important;
+        }
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
+    }
+
+    .bg-gradient-secondary {
+        background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
+    }
+
+    .level-distribution {
+        .level-item {
+            transition: all 0.2s ease;
+
+            &:hover {
+                transform: translateX(4px);
+            }
+        }
+    }
+
+    .bg-pink {
+        background-color: #EC4899 !important;
+    }
+
+    .text-pink {
+        color: #EC4899 !important;
+    }
+
+    .o_horizontal_separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+
+        &::before,
+        &::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .o_separator_label {
+            padding: 0 1rem;
+            font-size: 0.875rem;
+        }
+    }
+}
+
+// =============================================================================
+// DIFFICULT SUBJECTS CHART - STYLING
+// =============================================================================
+
+.o_difficult_subjects_chart {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+
+    .row {
+        width: 100%;
+        margin: 0;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
+    }
+
+    .bg-gradient-secondary {
+        background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
+    }
+
+    .card {
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.5rem;
+    }
+
+    .chart-container {
+        min-height: 300px;
+    }
+}
+
+// Force full width on field wrapper for difficult subjects
+.o_field_widget[name="difficult_subjects_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+// =============================================================================
+// DISTRIBUTION CHARTS - SHARED STYLING (Students, Sections, Professors)
+// =============================================================================
+
+.o_students_distribution_chart {
+    width: 100%;
+    padding: 0.5rem;
+
+    .row {
+        width: 100%;
+        margin: 0;
+    }
+
+    canvas {
+        max-width: 100%;
+        max-height: 160px;
+    }
+
+    .bg-light {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+    }
+}
+
+// Force full width on field wrappers for distribution charts
+.o_field_widget[name="students_distribution_json"],
+.o_field_widget[name="sections_distribution_json"],
+.o_field_widget[name="professors_distribution_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+// =============================================================================
+// SECTIONS POLAR AREA CHART
+// =============================================================================
+
+.o_sections_polar_chart {
+    width: 100%;
+    padding: 0.5rem;
+
+    .row {
+        width: 100%;
+        margin: 0;
+    }
+
+    canvas {
+        max-width: 100%;
+        max-height: 160px;
+    }
+
+    .bg-light {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+    }
+}
+
+// =============================================================================
+// PROFESSORS RADAR CHART
+// =============================================================================
+
+.o_professors_radar_chart {
+    width: 100%;
+    padding: 0.5rem;
+
+    .row {
+        width: 100%;
+        margin: 0;
+    }
+
+    canvas {
+        max-width: 100%;
+        max-height: 160px;
+    }
+
+    .bg-light {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+    }
+}
+
+// =============================================================================
+// APPROVAL RATE GAUGE - Fix spacing
+// =============================================================================
+
+.o_approval_rate_gauge {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+
+    .row {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+}
+
+// =============================================================================
+// STUDENTS TAB WIDGETS - Full width fix
+// =============================================================================
+
+.o_students_distribution_stats,
+.o_students_approval_stats,
+.o_students_top_performers,
+.o_students_at_risk {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    .card {
+        border-radius: var(--radius-lg);
+    }
+
+    .table {
+        width: 100% !important;
+
+        th,
+        td {
+            vertical-align: middle;
+        }
+    }
+}
+
+// Full width for field containers in form view
+.o_form_sheet .o_field_widget[name="students_tab_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+// =============================================================================
+// PRESCHOOL OBSERVATIONS TIMELINE - Full width fix
+// =============================================================================
+
+.o_pre_observations_timeline {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.o_form_sheet .o_field_widget[name="pre_observations_timeline_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+// =============================================================================
+// LAPSOS TIMELINE WIDGET - Visual timeline for school year lapsos
+// =============================================================================
+
+.o_lapsos_timeline {
+    padding: 1rem 0;
+    margin: 0.5rem 0;
+
+    .timeline-connector {
+        width: 80px;
+        height: 4px;
+        background: #E5E7EB;
+        border-radius: 2px;
+        transition: background 0.3s ease;
+
+        &.completed {
+            background: linear-gradient(90deg, #22C55E 0%, #16A34A 100%);
+        }
+    }
+
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+
+        .timeline-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .timeline-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6B7280;
+            white-space: nowrap;
+        }
+
+        &.pending {
+            .timeline-circle {
+                background: #F3F4F6;
+                border-color: #D1D5DB;
+                color: #9CA3AF;
+            }
+
+            .timeline-label {
+                color: #9CA3AF;
+            }
+        }
+
+        &.current {
+            .timeline-circle {
+                background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+                border-color: #3B82F6;
+                color: white;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+                animation: pulse-blue 2s infinite;
+            }
+
+            .timeline-label {
+                color: #1D4ED8;
+                font-weight: 700;
+            }
+        }
+
+        &.completed {
+            .timeline-circle {
+                background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+                border-color: #22C55E;
+                color: white;
+            }
+
+            .timeline-label {
+                color: #16A34A;
+            }
+        }
+    }
+
+    @keyframes pulse-blue {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        50% {
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+        }
+    }
+}
+
+// =============================================================================
+// ENHANCED NOTEBOOK TABS - Full width and modern styling
+// =============================================================================
+
+.o_form_sheet {
+
+    // Year header enhancements
+    .o_year_header {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+        h1 {
+            color: #1E3A5F;
+            font-size: 1.75rem;
+            letter-spacing: -0.025em;
+        }
+    }
+
+    // Full-width notebook tabs
+    .o_notebook {
+        margin-top: 0 !important;
+
+        .o_notebook_headers {
+            background: #F8FAFC;
+            border-bottom: 2px solid #E2E8F0;
+            padding: 0;
+            margin: 0 -1.5rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+
+            .nav-tabs {
+                border: none;
+                display: flex;
+                gap: 0;
+                flex-wrap: nowrap;
+                width: 100%;
+
+                .nav-item {
+                    flex: 1;
+                    text-align: center;
+
+                    .nav-link {
+                        border: none;
+                        border-radius: 0;
+                        padding: 0.875rem 0.5rem;
+                        color: #64748B;
+                        font-weight: 500;
+                        font-size: 0.875rem;
+                        background: transparent;
+                        transition: all 0.2s ease;
+                        position: relative;
+                        white-space: nowrap;
+
+                        &:hover {
+                            color: #3B82F6;
+                            background: rgba(59, 130, 246, 0.05);
+                        }
+
+                        &.active {
+                            color: #1D4ED8;
+                            background: white;
+                            font-weight: 600;
+
+                            &::after {
+                                content: '';
+                                position: absolute;
+                                bottom: -2px;
+                                left: 0;
+                                right: 0;
+                                height: 3px;
+                                background: linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%);
+                                border-radius: 3px 3px 0 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .tab-content {
+            padding-top: 1.5rem;
+        }
+    }
 }

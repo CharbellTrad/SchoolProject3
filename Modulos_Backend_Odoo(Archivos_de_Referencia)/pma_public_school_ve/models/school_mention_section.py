@@ -102,7 +102,7 @@ class SchoolMentionSection(models.Model):
     students_average_json = fields.Json(
         string='Promedios de Estudiantes (JSON)',
         compute='_compute_students_average_json',
-        store=True,
+        store=False,  # Always compute in real-time for dashboard
     )
 
     top_students_json = fields.Json(
@@ -205,9 +205,11 @@ class SchoolMentionSection(models.Model):
             approved_count = 0
             failed_count = 0
             
-            for student in record.student_ids.filtered(
+            enrolled_students = record.student_ids.filtered(
                 lambda s: s.current and s.state == 'done' and s.mention_state == 'enrolled'
-            ):
+            )
+            
+            for student in enrolled_students:
                 # Obtener notas de las evaluaciones de esta mención
                 scores = self.env['school.evaluation.score'].search([
                     ('student_id', '=', student.id),
@@ -215,27 +217,32 @@ class SchoolMentionSection(models.Model):
                     ('is_mention_score', '=', True)
                 ])
                 
-                if not scores:
-                    continue
-                
-                # Calcular promedio del estudiante en la mención
-                score_values = [s.points_20 for s in scores if s.points_20 > 0]
-                if score_values:
-                    avg = sum(score_values) / len(score_values)
-                    state = 'approve' if avg >= 10 else 'failed'
-                    
-                    students_data.append({
-                        'student_id': student.student_id.id,
-                        'student_name': student.student_id.name,
-                        'average': round(avg, 2),
-                        'state': state,
-                    })
-                    
-                    total_average += avg
-                    if state == 'approve':
-                        approved_count += 1
+                if scores:
+                    # Calcular promedio del estudiante en la mención
+                    score_values = [s.points_20 for s in scores if s.points_20 > 0]
+                    if score_values:
+                        avg = sum(score_values) / len(score_values)
+                        state = 'approve' if avg >= 10 else 'failed'
                     else:
-                        failed_count += 1
+                        avg = 10  # Default passing grade
+                        state = 'approve'
+                else:
+                    # No scores yet - assume approved with default grade
+                    avg = 10
+                    state = 'approve'
+                
+                students_data.append({
+                    'student_id': student.student_id.id,
+                    'student_name': student.student_id.name,
+                    'average': round(avg, 2),
+                    'state': state,
+                })
+                
+                total_average += avg
+                if state == 'approve':
+                    approved_count += 1
+                else:
+                    failed_count += 1
             
             general_average = 0.0
             if students_data:

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- ============================================ -->
+    <!-- WIDGET 1: Gender & State Distribution       -->
+    <!-- ============================================ -->
+    <t t-name="school.StudentsDistributionStats">
+        <div class="o_students_distribution_stats w-100" style="width: 100% !important;">
+            <t t-if="hasData">
+                <div class="row g-3">
+                    <!-- Gender Distribution -->
+                    <div class="col-md-6 col-12">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);">
+                                        <i class="fa fa-venus-mars text-white" title="Distribución por género"/>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark mb-0">Distribución por Género</h6>
+                                </div>
+                                
+                                <!-- Total above chart -->
+                                <div class="text-center mb-2 py-1 rounded" style="background: #F3F4F6;">
+                                    <span class="text-muted small">Total estudiantes: </span>
+                                    <span class="fw-bold text-dark"><t t-esc="genderTotal"/></span>
+                                </div>
+                                
+                                <!-- Stacked Progress Bar -->
+                                <div class="progress mb-3" style="height: 28px; border-radius: 14px; overflow: hidden;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         t-att-style="'width: ' + malePercent + '%; background: linear-gradient(90deg, #6366F1 0%, #818CF8 100%);'"
+                                         t-att-aria-valuenow="malePercent" aria-valuemin="0" aria-valuemax="100">
+                                        <span class="fw-semibold small"><t t-esc="malePercent"/>%</span>
+                                    </div>
+                                    <div class="progress-bar" role="progressbar"
+                                         t-att-style="'width: ' + femalePercent + '%; background: linear-gradient(90deg, #EC4899 0%, #F472B6 100%);'"
+                                         t-att-aria-valuenow="femalePercent" aria-valuemin="0" aria-valuemax="100">
+                                        <span class="fw-semibold small"><t t-esc="femalePercent"/>%</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Legend with counts -->
+                                <div class="d-flex justify-content-around">
+                                    <div class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center mb-1">
+                                            <i class="fa fa-mars me-2" style="color: #6366F1; font-size: 18px;"/>
+                                            <span class="fw-bold fs-4 text-dark"><t t-esc="byGender.M"/></span>
+                                        </div>
+                                        <small class="text-muted">Masculino (<t t-esc="malePercent"/>%)</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center mb-1">
+                                            <i class="fa fa-venus me-2" style="color: #EC4899; font-size: 18px;"/>
+                                            <span class="fw-bold fs-4 text-dark"><t t-esc="byGender.F"/></span>
+                                        </div>
+                                        <small class="text-muted">Femenino (<t t-esc="femalePercent"/>%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- State Distribution -->
+                    <div class="col-md-6 col-12">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                        <i class="fa fa-check-square text-white" title="Estado de inscripción"/>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark mb-0">Estado de Inscripción</h6>
+                                </div>
+                                
+                                <!-- Total above chart -->
+                                <div class="text-center mb-2 py-1 rounded" style="background: #F3F4F6;">
+                                    <span class="text-muted small">Total inscripciones: </span>
+                                    <span class="fw-bold text-dark"><t t-esc="stateTotal"/></span>
+                                </div>
+                                
+                                <!-- Inscritos -->
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-dark"><i class="fa fa-check-circle text-success me-1"/>Inscritos</span>
+                                        <span class="fw-bold text-success"><t t-esc="byState.done"/> (<t t-esc="donePercent"/>%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                                        <div class="progress-bar bg-success" t-att-style="'width: ' + donePercent + '%'"/>
+                                    </div>
+                                </div>
+                                
+                                <!-- Pendientes -->
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-dark"><i class="fa fa-hourglass-half text-warning me-1"/>Pendientes</span>
+                                        <span class="fw-bold text-warning"><t t-esc="byState.draft"/> (<t t-esc="draftPercent"/>%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                                        <div class="progress-bar bg-warning" t-att-style="'width: ' + draftPercent + '%'"/>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cancelados -->
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-dark"><i class="fa fa-times-circle text-danger me-1"/>Cancelados</span>
+                                        <span class="fw-bold text-danger"><t t-esc="byState.cancel"/> (<t t-esc="cancelPercent"/>%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                                        <div class="progress-bar bg-danger" t-att-style="'width: ' + cancelPercent + '%'"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="alert alert-secondary border-0 text-center py-3 mb-0">
+                    <i class="fa fa-info-circle me-2"/>No hay datos de distribución disponibles.
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- ============================================ -->
+    <!-- WIDGET 2: Approval Gauge & Level Bar Chart  -->
+    <!-- ============================================ -->
+    <t t-name="school.StudentsApprovalStats">
+        <div class="o_students_approval_stats w-100" style="width: 100% !important;">
+            <t t-if="hasData">
+                <div class="row g-3">
+                    <!-- Approval Rate - Semi Circle Gauge -->
+                    <div class="col-md-6 col-12">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);">
+                                        <i class="fa fa-pie-chart text-white" title="Tasa de aprobación"/>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark mb-0">Tasa de Aprobación</h6>
+                                </div>
+                                
+                                <!-- Total above chart -->
+                                <div class="text-center mb-2 py-1 rounded" style="background: #F3F4F6;">
+                                    <span class="text-muted small">Estudiantes evaluados: </span>
+                                    <span class="fw-bold text-dark"><t t-esc="approvalTotal"/></span>
+                                </div>
+                                
+                                <!-- Gauge Chart Container -->
+                                <div class="position-relative" style="height: 90px;">
+                                    <canvas t-ref="approvalGauge"/>
+                                    <!-- Center Text -->
+                                    <div class="position-absolute w-100 text-center" style="bottom: 0; left: 0;">
+                                        <span t-attf-class="fw-bold display-6 {{ approvalRate >= 70 ? 'text-success' : (approvalRate >= 50 ? 'text-warning' : 'text-danger') }}">
+                                            <t t-esc="approvalRate"/>%
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats Below -->
+                                <div class="d-flex justify-content-around mt-2 pt-2 border-top">
+                                    <div class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fa fa-check text-success me-1"/>
+                                            <span class="fw-bold fs-5 text-success"><t t-esc="byApproval.approved"/></span>
+                                        </div>
+                                        <small class="text-muted">Aprobados</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fa fa-times text-danger me-1"/>
+                                            <span class="fw-bold fs-5 text-danger"><t t-esc="byApproval.failed"/></span>
+                                        </div>
+                                        <small class="text-muted">Reprobados</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Level Distribution - List Style -->
+                    <div class="col-md-6 col-12">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                                        <i class="fa fa-graduation-cap text-white" title="Distribución por nivel"/>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark mb-0">Por Nivel Educativo</h6>
+                                </div>
+                                
+                                <!-- Total above list -->
+                                <div class="text-center mb-2 py-1 rounded" style="background: #F3F4F6;">
+                                    <span class="text-muted small">Total estudiantes: </span>
+                                    <span class="fw-bold text-dark"><t t-esc="total"/></span>
+                                </div>
+                                
+                                <!-- Level bars with counts -->
+                                <t t-foreach="byLevel" t-as="level" t-key="level.name">
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-dark fw-medium"><t t-esc="level.name"/></span>
+                                            <span class="fw-bold" t-att-style="'color: ' + level.color"><t t-esc="level.count"/></span>
+                                        </div>
+                                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                                            <div class="progress-bar" 
+                                                 t-att-style="'width: ' + (total > 0 ? Math.round(level.count / total * 100) : 0) + '%; background: ' + level.color"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="alert alert-secondary border-0 text-center py-3 mb-0">
+                    <i class="fa fa-info-circle me-2"/>No hay datos de rendimiento disponibles.
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- ============================================ -->
+    <!-- WIDGET 3: Top Performers Table              -->
+    <!-- ============================================ -->
+    <t t-name="school.StudentsTopPerformers">
+        <div class="o_students_top_performers w-100" style="width: 100% !important;">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <t t-if="topPerformers.length > 0">
+                        <table class="table table-hover mb-0" style="width: 100%;">
+                            <thead style="background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);">
+                                <tr>
+                                    <th class="ps-3 py-3 border-0 text-muted" style="width: 60px;">Pos.</th>
+                                    <th class="py-3 border-0 text-muted">Estudiante</th>
+                                    <th class="py-3 border-0 text-muted">Sección</th>
+                                    <th class="py-3 border-0 text-muted text-center">Nivel</th>
+                                    <th class="py-3 border-0 text-muted text-end pe-3">Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="topPerformers" t-as="student" t-key="student.id">
+                                    <tr>
+                                        <td class="ps-3 py-2 align-middle">
+                                            <span t-if="student_index === 0" class="badge rounded-pill px-2 py-1" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
+                                                <i class="fa fa-trophy me-1" title="Primer lugar"/>1°
+                                            </span>
+                                            <span t-elif="student_index === 1" class="badge rounded-pill px-2 py-1" style="background: #C0C0C0;">
+                                                <i class="fa fa-star me-1" title="Segundo lugar"/>2°
+                                            </span>
+                                            <span t-elif="student_index === 2" class="badge rounded-pill px-2 py-1" style="background: #CD7F32; color: white;">
+                                                <i class="fa fa-star me-1" title="Tercer lugar"/>3°
+                                            </span>
+                                            <span t-else="" class="text-muted ps-2"><t t-esc="student_index + 1"/>°</span>
+                                        </td>
+                                        <td class="py-2 align-middle">
+                                            <span class="text-dark"><t t-esc="student.name"/></span>
+                                        </td>
+                                        <td class="py-2 align-middle text-muted"><t t-esc="student.section"/></td>
+                                        <td class="py-2 align-middle text-center">
+                                            <span class="badge rounded-pill px-2" 
+                                                  t-att-style="'background: ' + getLevelColor(student.level) + '20; color: ' + getLevelColor(student.level) + ';'">
+                                                <t t-if="student.level === 'pre'">Preescolar</t>
+                                                <t t-elif="student.level === 'primary'">Primaria</t>
+                                                <t t-else="">Media G.</t>
+                                            </span>
+                                        </td>
+                                        <td class="py-2 align-middle text-end pe-3">
+                                            <span class="badge bg-success fs-6 px-2"><t t-esc="student.average"/></span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center text-muted py-5">
+                            <i class="fa fa-trophy fa-3x mb-3 opacity-25"/>
+                            <p class="mb-0">No hay datos de mejores promedios disponibles</p>
+                            <small class="text-muted">Los promedios se calculan cuando hay evaluaciones registradas</small>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================ -->
+    <!-- WIDGET 4: At Risk Students Table            -->
+    <!-- ============================================ -->
+    <t t-name="school.StudentsAtRisk">
+        <div class="o_students_at_risk w-100" style="width: 100% !important;">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <t t-if="atRisk.length > 0">
+                        <table class="table table-hover mb-0" style="width: 100%;">
+                            <thead style="background: linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%);">
+                                <tr>
+                                    <th class="ps-3 py-3 border-0 text-muted" style="width: 60px;">Pos.</th>
+                                    <th class="py-3 border-0 text-muted">Estudiante</th>
+                                    <th class="py-3 border-0 text-muted">Sección</th>
+                                    <th class="py-3 border-0 text-muted text-center">Nivel</th>
+                                    <th class="py-3 border-0 text-muted text-end pe-3">Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="atRisk" t-as="student" t-key="student.id">
+                                    <tr>
+                                        <td class="ps-3 py-2 align-middle text-muted"><t t-esc="student_index + 1"/>°</td>
+                                        <td class="py-2 align-middle">
+                                            <span class="text-dark"><t t-esc="student.name"/></span>
+                                        </td>
+                                        <td class="py-2 align-middle text-muted"><t t-esc="student.section"/></td>
+                                        <td class="py-2 align-middle text-center">
+                                            <span class="badge rounded-pill px-2" 
+                                                  t-att-style="'background: ' + getLevelColor(student.level) + '20; color: ' + getLevelColor(student.level) + ';'">
+                                                <t t-if="student.level === 'pre'">Preescolar</t>
+                                                <t t-elif="student.level === 'primary'">Primaria</t>
+                                                <t t-else="">Media G.</t>
+                                            </span>
+                                        </td>
+                                        <td class="py-2 align-middle text-end pe-3">
+                                            <span class="badge fs-6 px-2 bg-danger">
+                                                <t t-esc="student.average"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center text-muted py-5">
+                            <i class="fa fa-shield-alt fa-3x mb-3 text-success opacity-50"/>
+                            <p class="mb-0 text-success fw-semibold">¡Excelente! No hay estudiantes en riesgo académico</p>
+                            <small class="text-muted">Todos los estudiantes con calificaciones están por encima del mínimo</small>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

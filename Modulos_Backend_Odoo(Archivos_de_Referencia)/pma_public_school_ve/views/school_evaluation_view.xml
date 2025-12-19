@@ -62,7 +62,12 @@
                             <field name="invisible_observation" invisible="1"/>
                             <field name="invisible_literal" invisible="1"/>
 
-                            <field name="evaluation_score_ids" colspan="2" readonly="not section_id">
+                            <!-- FIX: Antes era 'readonly="not section_id"' lo cual hacía que las 
+                                 calificaciones de mención fueran de solo lectura porque section_id 
+                                 es NULL para evaluaciones de mención (usan mention_section_id).
+                                 Ahora verificamos que NO exista ni section_id NI mention_section_id 
+                                 para poner readonly, permitiendo edición en ambos casos. -->
+                            <field name="evaluation_score_ids" colspan="2" readonly="not section_id and not mention_section_id">
                                 <kanban>
                                     <field name="student_id"/>
                                     <field name="score"/>

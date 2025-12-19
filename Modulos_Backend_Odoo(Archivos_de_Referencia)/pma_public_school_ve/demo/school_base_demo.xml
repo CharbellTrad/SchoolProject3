@@ -91,11 +91,13 @@
             <field name="name">4to Año</field>
             <field name="type">secundary</field>
             <field name="letter_id" ref="section_letter_a"/>
+            <field name="has_medio_tecnico" eval="True"/>
         </record>
         <record id="register_section_media_5" model="school.register.section">
             <field name="name">5to Año</field>
             <field name="type">secundary</field>
             <field name="letter_id" ref="section_letter_a"/>
+            <field name="has_medio_tecnico" eval="True"/>
         </record>
         
         <!-- ============================================== -->

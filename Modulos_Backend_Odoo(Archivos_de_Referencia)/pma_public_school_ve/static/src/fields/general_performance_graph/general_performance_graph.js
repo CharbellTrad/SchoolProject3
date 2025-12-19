@@ -1,192 +1,100 @@
+/** @odoo-module **/
+
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
-import { getColor, hexToRGBA, getCustomColor } from "@web/core/colors/colors";
+import { getColor } from "@web/core/colors/colors";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { useService } from "@web/core/utils/hooks";
-
 import { Component, onWillStart, useEffect, useRef } from "@odoo/owl";
 import { cookie } from "@web/core/browser/cookie";
 
-const colorScheme = cookie.get("color_scheme");
-
 export class GeneralPerformanceGraphField extends Component {
     static template = "school.GeneralPerformanceGraphField";
-    static props = {
-        ...standardFieldProps,
-    };
+    static props = { ...standardFieldProps };
 
     setup() {
         this.chart = null;
         this.canvasRef = useRef("canvas");
-        this.actionService = useService("action");
-        
         this.data = this.props.record.data[this.props.name];
-
         onWillStart(async () => await loadBundle("web.chartjs_lib"));
-
-        useEffect(() => {
-            this.renderChart();
-            return () => {
-                if (this.chart) {
-                    this.chart.destroy();
-                }
-            };
-        });
+        useEffect(() => { this.renderChart(); return () => { if (this.chart) this.chart.destroy(); }; });
     }
 
-    /**
-     * Renderiza el gráfico de torta con el rendimiento general
-     */
-    renderChart() {
-        if (this.chart) {
-            this.chart.destroy();
-        }
+    get hasData() { return this.data && (this.data.total_subjects > 0 || this.evaluationType === 'observation'); }
 
-        if (!this.data.total_subjects || this.data.total_subjects === 0) {
-            return;
-        }
-
-        const config = this.getPieChartConfig();
-        this.chart = new Chart(this.canvasRef.el, config);
+    get evaluationType() {
+        if (this.data?.evaluation_type === 'observation' || this.data?.section_type === 'pre') return 'observation';
+        if (this.data?.use_literal) return 'literal';
+        return 'numeric';
     }
 
-    getPieChartConfig() {
-        const colorApprove = getColor(10, cookie.get("color_scheme"), "odoo"); // Verde
-        const colorFailed = getColor(1, cookie.get("color_scheme"), "odoo"); // Rojo
+    get showChart() { return this.evaluationType !== 'observation' && this.data?.total_subjects > 0; }
 
-        const data = {
-            labels: ['Aprobadas', 'Reprobadas'],
-            datasets: [{
-                data: [this.data.subjects_approved, this.data.subjects_failed],
-                backgroundColor: [colorApprove, colorFailed],
-                borderColor: [colorApprove, colorFailed],
-                borderWidth: 2,
-            }]
-        };
-
-        return {
-            type: 'pie',
-            data: data,
-            options: {
-                onClick: () => this.onChartClick(),
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: {
-                                size: 13,
-                            },
-                            generateLabels: (chart) => {
-                                const data = chart.data;
-                                return data.labels.map((label, i) => ({
-                                    text: `${label}: ${data.datasets[0].data[i]} materias`,
-                                    fillStyle: data.datasets[0].backgroundColor[i],
-                                    hidden: false,
-                                    index: i
-                                }));
-                            }
-                        }
-                    },
-                    tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            label: (context) => {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const total = this.data.total_subjects;
-                                const percentage = ((value / total) * 100).toFixed(1);
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        };
-    }
-
-    onChartClick() {
-        const studentId = this.props.record.evalContext.id;
-        const yearId = this.props.record.data.year_id.id;
-        
-        this.actionService.doAction({
-            type: 'ir.actions.act_window',
-            name: 'Notas de la Materias',
-            res_model: 'school.evaluation.score',
-            views: [[false, 'list']],
-            domain: [
-                ['student_id', '=', studentId],
-                ['year_id', '=', yearId],
-            ],
-            context: {
-                default_student_id: studentId,
-                group_by: 'subject_id'
-            },
-            target: 'current',
-        });
-    }
-
-    /**
-     * Obtiene la información del rendimiento para mostrar
-     */
     get performanceInfo() {
-        if (!this.data.total_subjects || this.data.total_subjects === 0) {
-            return null;
+        if (!this.data) return null;
+        if (this.evaluationType === 'observation') return { type: 'observation', message: 'Evaluación por observación', approved: true };
+
+        if (this.evaluationType === 'literal') {
+            // For literal, calculate state based on literal grade
+            const literal = this.data.literal_average || 'E';
+            const isApproved = ['A', 'B', 'C', 'D'].includes(literal); // A-D are approved
+            return {
+                type: 'literal', average: literal, averageLabel: 'Promedio Literal',
+                state: isApproved ? 'approve' : 'failed', stateLabel: isApproved ? 'Aprobado' : 'Reprobado',
+                badgeClass: this.getLiteralBadgeClass(literal),
+                totalSubjects: this.data.total_subjects, subjectsApproved: this.data.subjects_approved, subjectsFailed: this.data.subjects_failed
+            };
         }
 
-        let average = '';
-        let averageLabel = '';
-        
-        if (this.data.use_literal) {
-            average = this.data.literal_average || 'N/A';
-            averageLabel = 'Literal Promedio';
-        } else {
-            const suffix = this.data.evaluation_type === '20' ? '/20' : '/100';
-            average = `${this.data.general_average}${suffix}`;
-            averageLabel = 'Promedio General';
-        }
-
+        // For numeric, calculate state based on average (>= 10 is approved)
+        const average = this.data.general_average || 0;
+        const isApproved = average >= 10;
+        const suffix = this.data.evaluation_type === '20' ? '/20' : '/100';
         return {
-            average: average,
-            averageLabel: averageLabel,
-            state: this.data.general_state === 'approve' ? 'Aprobado' : 'Reprobado',
-            stateClass: this.data.general_state === 'approve' ? 'text-success' : 'text-danger',
-            stateBadgeClass: this.data.general_state === 'approve' ? 'bg-success' : 'bg-danger',
-            totalSubjects: this.data.total_subjects,
-            approvalPercentage: this.data.approval_percentage || 0,
-            subjectsApproved: this.data.subjects_approved || 0,
-            subjectsFailed: this.data.subjects_failed || 0,
+            type: 'numeric', average: average, suffix: suffix, averageLabel: 'Promedio General',
+            state: isApproved ? 'approve' : 'failed', stateLabel: isApproved ? 'Aprobado' : 'Reprobado',
+            stateClass: isApproved ? 'text-success' : 'text-danger',
+            badgeClass: isApproved ? 'bg-success' : 'bg-danger',
+            totalSubjects: this.data.total_subjects, subjectsApproved: this.data.subjects_approved, subjectsFailed: this.data.subjects_failed
         };
     }
 
-    /**
-     * Obtiene el color del indicador de promedio
-     */
-    get averageColor() {
-        if (this.data.use_literal) {
-            const literal = this.data.literal_average;
-            if (literal === 'A') return '#28a745'; // Verde oscuro
-            if (literal === 'B') return '#5cb85c'; // Verde claro
-            if (literal === 'C') return '#f0ad4e'; // Amarillo
-            if (literal === 'D') return '#ff9800'; // Naranja
-            return '#dc3545'; // Rojo
-        } else {
-            const avg = this.data.general_average;
-            const max = this.data.evaluation_type === '20' ? 20 : 100;
-            const min = this.data.evaluation_type === '20' ? 10 : 50;
-            
-            if (avg >= min) return '#28a745'; // Verde
-            return '#dc3545'; // Rojo
-        }
+    get literalDistribution() {
+        if (this.evaluationType !== 'literal' || !this.data?.literal_distribution) return null;
+        const dist = this.data.literal_distribution;
+        const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+        return ['A', 'B', 'C', 'D', 'E'].map(lit => ({
+            literal: lit, count: dist[lit] || 0, percentage: Math.round(((dist[lit] || 0) / total) * 100)
+        }));
+    }
+
+    renderChart() {
+        if (this.chart) { this.chart.destroy(); this.chart = null; }
+        if (!this.showChart || !this.canvasRef.el) return;
+
+        const colorScheme = cookie.get("color_scheme");
+        this.chart = new Chart(this.canvasRef.el, {
+            type: 'pie',
+            data: {
+                labels: ['Aprobadas', 'Reprobadas'],
+                datasets: [{ data: [this.data.subjects_approved, this.data.subjects_failed], backgroundColor: [getColor(10, colorScheme, "odoo"), getColor(1, colorScheme, "odoo")], borderColor: '#ffffff', borderWidth: 2 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 1000, easing: 'easeOutQuart' },
+                plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } } }
+            }
+        });
+    }
+
+    getLiteralBadgeClass(literal) {
+        const classes = { 'A': 'bg-success', 'B': 'bg-info', 'C': 'bg-warning text-dark', 'D': 'bg-orange', 'E': 'bg-danger' };
+        return classes[literal] || 'bg-secondary';
+    }
+
+    getLiteralDescription(literal) {
+        const desc = { 'A': 'Excelente - Superó las expectativas', 'B': 'Muy Bueno - Cumplió con las expectativas', 'C': 'Bueno - Alcanzó las expectativas básicas', 'D': 'Regular - Por debajo de las expectativas', 'E': 'Necesita Mejorar - No alcanzó las expectativas' };
+        return desc[literal] || '';
     }
 }
 
-export const generalPerformanceGraphField = {
-    component: GeneralPerformanceGraphField,
-    supportedTypes: ["json"],
-};
-
-registry.category("fields").add("general_performance_graph", generalPerformanceGraphField);
+registry.category("fields").add("general_performance_graph", { component: GeneralPerformanceGraphField, supportedTypes: ["json"] });

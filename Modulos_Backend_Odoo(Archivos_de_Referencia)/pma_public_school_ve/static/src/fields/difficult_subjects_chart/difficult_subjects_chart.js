@@ -4,9 +4,13 @@ import { registry } from "@web/core/registry";
 import { Component, onWillStart, useEffect, useRef } from "@odoo/owl";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { loadBundle } from "@web/core/assets";
-import { getColor } from "@web/core/colors/colors";
-import { cookie } from "@web/core/browser/cookie";
 
+/**
+ * Widget: Difficult Subjects Chart
+ * 
+ * Displays a horizontal bar chart of the top 10 most difficult subjects
+ * (highest failure rates).
+ */
 export class DifficultSubjectsChart extends Component {
     static template = "school.DifficultSubjectsChart";
     static props = {
@@ -36,26 +40,37 @@ export class DifficultSubjectsChart extends Component {
         return this.data?.subjects || [];
     }
 
+    get hasData() {
+        return this.subjects.length > 0;
+    }
+
+    /**
+     * Get gradient color based on failure rate (higher = more red)
+     */
+    getFailureColor(rate) {
+        // Gradient from orange (low failure) to red (high failure)
+        const r = 220 + Math.min(35, rate * 0.35);
+        const g = Math.max(60, 180 - rate * 1.8);
+        const b = 60;
+        return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+    }
+
+    /**
+     * Render horizontal bar chart
+     */
     renderChart() {
         if (this.chart) {
             this.chart.destroy();
+            this.chart = null;
         }
 
-        if (!this.subjects || this.subjects.length === 0) {
+        if (!this.hasData || !this.canvasRef.el) {
             return;
         }
 
-        const colorScheme = cookie.get("color_scheme");
         const labels = this.subjects.map(s => s.subject_name);
-        const failureRates = this.subjects.map(s => s.failure_rate);
-        const averages = this.subjects.map(s => s.average);
-
-        // Colores degradados según tasa de reprobación
-        const backgroundColors = failureRates.map(rate => {
-            if (rate >= 50) return 'rgba(220, 53, 69, 0.7)';  // Rojo
-            if (rate >= 30) return 'rgba(255, 193, 7, 0.7)';  // Amarillo
-            return 'rgba(40, 167, 69, 0.7)';  // Verde
-        });
+        const data = this.subjects.map(s => s.failure_rate);
+        const colors = this.subjects.map(s => this.getFailureColor(s.failure_rate));
 
         const config = {
             type: 'bar',
@@ -63,41 +78,59 @@ export class DifficultSubjectsChart extends Component {
                 labels: labels,
                 datasets: [{
                     label: 'Tasa de Reprobación (%)',
-                    data: failureRates,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
-                    borderWidth: 2
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: colors,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barThickness: 20
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            afterLabel: (context) => {
-                                const index = context.dataIndex;
-                                const subject = this.subjects[index];
-                                return [
-                                    `Promedio: ${subject.average}`,
-                                    `Total estudiantes: ${subject.total_students}`,
-                                    `Reprobados: ${subject.failed_students}`
-                                ];
-                            }
-                        }
-                    }
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
                 },
                 scales: {
                     x: {
                         beginAtZero: true,
                         max: 100,
-                        title: {
+                        grid: {
                             display: true,
-                            text: 'Tasa de Reprobación (%)'
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        ticks: {
+                            callback: (value) => value + '%'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
+                        callbacks: {
+                            label: (context) => {
+                                const subject = this.subjects[context.dataIndex];
+                                return [
+                                    `Reprobación: ${subject.failure_rate}%`,
+                                    `Reprobados: ${subject.failed_students} de ${subject.total_students}`,
+                                    `Promedio: ${subject.average}/20`
+                                ];
+                            }
                         }
                     }
                 }
@@ -105,6 +138,26 @@ export class DifficultSubjectsChart extends Component {
         };
 
         this.chart = new Chart(this.canvasRef.el, config);
+    }
+
+    /**
+     * Get difficulty level label
+     */
+    getDifficultyLabel(rate) {
+        if (rate >= 50) return 'Muy Difícil';
+        if (rate >= 30) return 'Difícil';
+        if (rate >= 15) return 'Moderada';
+        return 'Normal';
+    }
+
+    /**
+     * Get difficulty badge class
+     */
+    getDifficultyClass(rate) {
+        if (rate >= 50) return 'bg-danger';
+        if (rate >= 30) return 'bg-warning text-dark';
+        if (rate >= 15) return 'bg-info';
+        return 'bg-success';
     }
 }
 

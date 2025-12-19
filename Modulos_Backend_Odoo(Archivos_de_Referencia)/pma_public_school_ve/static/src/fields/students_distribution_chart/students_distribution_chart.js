@@ -1,96 +1,149 @@
 /** @odoo-module **/
 
-import { registry } from "@web/core/registry";
-import { Component, onWillStart, useEffect, useRef } from "@odoo/owl";
-import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { loadBundle } from "@web/core/assets";
-import { getColor } from "@web/core/colors/colors";
-import { cookie } from "@web/core/browser/cookie";
+import { registry } from "@web/core/registry";
+import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { useService } from "@web/core/utils/hooks";
+import { Component, onWillStart, onMounted, onWillUnmount, useRef } from "@odoo/owl";
 
+/**
+ * Widget: Students Distribution Chart
+ * Displays a doughnut chart showing student counts per education level.
+ */
 export class StudentsDistributionChart extends Component {
     static template = "school.StudentsDistributionChart";
-    static props = {
-        ...standardFieldProps,
-    };
+    static props = { ...standardFieldProps };
 
     setup() {
         this.chart = null;
         this.canvasRef = useRef("canvas");
+        this.actionService = useService("action");
         this.data = this.props.record.data[this.props.name];
+        this.resizeObserver = null;
 
-        onWillStart(async () => {
-            await loadBundle("web.chartjs_lib");
+        this.levelColors = ['#FFB300', '#43A047', '#1E88E5', '#8E24AA'];
+        this.levelIcons = ['fa-child', 'fa-book', 'fa-graduation-cap', 'fa-cogs'];
+        this.levelKeys = ['pre', 'primary', 'secundary', 'tecnico'];
+
+        onWillStart(async () => await loadBundle("web.chartjs_lib"));
+
+        onMounted(() => {
+            this.renderChart();
+            // Handle resize
+            this.resizeObserver = new ResizeObserver(() => {
+                if (this.chart) {
+                    this.chart.resize();
+                }
+            });
+            if (this.canvasRef.el?.parentElement) {
+                this.resizeObserver.observe(this.canvasRef.el.parentElement);
+            }
         });
 
-        useEffect(() => {
-            this.renderChart();
-            return () => {
-                if (this.chart) {
-                    this.chart.destroy();
-                }
-            };
+        onWillUnmount(() => {
+            if (this.chart) { this.chart.destroy(); this.chart = null; }
+            if (this.resizeObserver) { this.resizeObserver.disconnect(); }
         });
     }
 
-    get hasData() {
-        return this.data && this.data.data && this.data.total > 0;
+    get labels() { return this.data?.labels || []; }
+    get values() { return this.data?.data || []; }
+    get totalStudents() { return this.data?.total || this.values.reduce((a, b) => a + b, 0); }
+    get hasData() { return this.values.length > 0 && this.values.some(v => v > 0); }
+
+    get chartData() {
+        return this.labels.map((label, i) => ({
+            label,
+            value: this.values[i] || 0,
+            level: this.levelKeys[i] || 'other',
+            color: this.levelColors[i] || '#6b7280',
+            icon: this.levelIcons[i] || 'fa-users',
+            percentage: this.totalStudents > 0 ? Math.round((this.values[i] / this.totalStudents) * 100) : 0
+        }));
     }
 
     renderChart() {
-        if (this.chart) {
-            this.chart.destroy();
-            this.chart = null;
-        }
+        if (this.chart) { this.chart.destroy(); this.chart = null; }
+        if (!this.hasData || !this.canvasRef.el) return;
 
-        if (!this.hasData) {
-            return;
-        }
-
-        const colorScheme = cookie.get("color_scheme");
-        const colors = [
-            getColor(8, colorScheme),   // Azul para Preescolar
-            getColor(10, colorScheme),  // Verde para Primaria
-            getColor(3, colorScheme),   // Naranja para Media General
-            getColor(4, colorScheme)    // Púrpura para Medio Técnico
-        ];
-
-        const config = {
+        this.chart = new Chart(this.canvasRef.el, {
             type: 'doughnut',
             data: {
-                labels: this.data.labels,
+                labels: this.labels,
                 datasets: [{
-                    data: this.data.data,
-                    backgroundColor: colors.slice(0, this.data.labels.length),
-                    borderWidth: 2
+                    data: this.values,
+                    backgroundColor: this.levelColors.slice(0, this.values.length),
+                    borderColor: '#fff',
+                    borderWidth: 3,
+                    hoverOffset: 10
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
+                cutout: '60%',
+                animation: { duration: 800 },
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (context) => {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const percentage = ((value / this.data.total) * 100).toFixed(1);
-                                return `${label}: ${value} (${percentage}%)`;
+                            label: (ctx) => {
+                                const pct = ((ctx.parsed / this.totalStudents) * 100).toFixed(0);
+                                return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
                             }
                         }
                     }
                 }
             }
-        };
+        });
+    }
 
-        this.chart = new Chart(this.canvasRef.el, config);
+    getLevelIcon(level) {
+        return { 'pre': 'fa-child', 'primary': 'fa-book', 'secundary': 'fa-graduation-cap', 'tecnico': 'fa-cogs' }[level] || 'fa-users';
+    }
+
+    getLevelIconClass(level) {
+        return { 'pre': 'icon-pre', 'primary': 'icon-primary', 'secundary': 'icon-secundary', 'tecnico': 'icon-tecnico' }[level] || 'icon-other';
+    }
+
+    onLevelClick(level) {
+        const yearId = this.props.record.data.id;
+        this.actionService.doAction({
+            type: 'ir.actions.act_window',
+            name: 'Estudiantes',
+            res_model: 'school.student',
+            views: [[false, 'list'], [false, 'form']],
+            domain: [['year_id', '=', yearId], ['type', '=', level], ['state', '=', 'done']],
+            target: 'current',
+        });
     }
 }
 
 registry.category("fields").add("students_distribution_chart", {
     component: StudentsDistributionChart,
+    supportedTypes: ["json"],
+});
+
+// Sections distribution - reuses same widget but for sections data
+class SectionsDistributionChart extends StudentsDistributionChart {
+    get totalStudents() {
+        return this.data?.total || this.values.reduce((a, b) => a + b, 0);
+    }
+}
+
+registry.category("fields").add("sections_distribution_chart", {
+    component: SectionsDistributionChart,
+    supportedTypes: ["json"],
+});
+
+// Professors distribution - for professors by level
+class ProfessorsDistributionChart extends StudentsDistributionChart {
+    get totalStudents() {
+        return this.data?.total || this.values.reduce((a, b) => a + b, 0);
+    }
+}
+
+registry.category("fields").add("professors_distribution_chart", {
+    component: ProfessorsDistributionChart,
     supportedTypes: ["json"],
 });

@@ -2,75 +2,72 @@
 <templates id="template" xml:space="preserve">
     <t t-name="school.EvaluationsStatsWidget">
         <div class="o_evaluations_stats_widget">
-            <t t-if="stats.total and stats.total > 0">
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body text-center">
-                                <h2 class="mb-0"><t t-esc="stats.total"/></h2>
-                                <p class="mb-0">Total Evaluaciones</p>
-                            </div>
+            <t t-if="hasData">
+                <div class="row g-3">
+                    <!-- Left: Distribution Chart -->
+                    <div class="col-md-4 col-12">
+                        <div class="position-relative" style="height: 140px;">
+                            <canvas t-ref="canvas"/>
+                        </div>
+                        <!-- Mini Legend -->
+                        <div class="d-flex justify-content-center gap-3 mt-2">
+                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#1E88E5;"/> Media</span>
+                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#43A047;"/> Primaria</span>
+                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#FFB300;"/> Preescolar</span>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <h2 class="mb-0"><t t-esc="stats.qualified"/></h2>
-                                <p class="mb-0">Calificadas</p>
-                                <small><t t-esc="getPercentage(stats.qualified, stats.total)"/>%</small>
+                    
+                    <!-- Right: Stats -->
+                    <div class="col-md-8 col-12">
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fa fa-file-text text-primary"/>
+                                    <span class="d-block fw-bold"><t t-esc="state.animatedTotal"/></span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Total</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fa fa-check-circle text-success"/>
+                                    <span class="d-block fw-bold text-success"><t t-esc="state.animatedQualified"/></span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Calificadas</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fa fa-clock-o text-warning"/>
+                                    <span class="d-block fw-bold text-warning"><t t-esc="state.animatedPartial"/></span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Parciales</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fa fa-pencil text-muted"/>
+                                    <span class="d-block fw-bold text-muted"><t t-esc="state.animatedDraft"/></span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Borrador</small>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                <h2 class="mb-0"><t t-esc="stats.partial"/></h2>
-                                <p class="mb-0">Parciales</p>
-                                <small><t t-esc="getPercentage(stats.partial, stats.total)"/>%</small>
+                        
+                        <!-- Completion Progress -->
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Completadas</small>
+                                <small t-attf-class="fw-bold {{ getCompletionClass() }}"><t t-esc="completionRate"/>%</small>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-secondary text-white">
-                            <div class="card-body text-center">
-                                <h2 class="mb-0"><t t-esc="stats.draft"/></h2>
-                                <p class="mb-0">Borrador</p>
-                                <small><t t-esc="getPercentage(stats.draft, stats.total)"/>%</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <h6>Distribución por Nivel</h6>
-                        <div class="progress" style="height: 30px;">
-                            <div class="progress-bar bg-warning" 
-                                 role="progressbar" 
-                                 t-att-style="'width: ' + getPercentage(stats.by_type.secundary, stats.total) + '%'"
-                                 t-att-aria-valuenow="stats.by_type.secundary">
-                                <strong>Media: <t t-esc="stats.by_type.secundary"/></strong>
-                            </div>
-                            <div class="progress-bar bg-success" 
-                                 role="progressbar" 
-                                 t-att-style="'width: ' + getPercentage(stats.by_type.primary, stats.total) + '%'"
-                                 t-att-aria-valuenow="stats.by_type.primary">
-                                <strong>Primaria: <t t-esc="stats.by_type.primary"/></strong>
-                            </div>
-                            <div class="progress-bar bg-info" 
-                                 role="progressbar" 
-                                 t-att-style="'width: ' + getPercentage(stats.by_type.pre, stats.total) + '%'"
-                                 t-att-aria-valuenow="stats.by_type.pre">
-                                <strong>Pre: <t t-esc="stats.by_type.pre"/></strong>
+                            <div class="progress" style="height: 8px;">
+                                <div t-attf-class="progress-bar {{ getCompletionBgClass() }}" t-att-style="'width: ' + completionRate + '%'"/>
                             </div>
                         </div>
                     </div>
                 </div>
             </t>
-            <div t-else="" class="alert alert-info text-center">
-                <i class="fa fa-info-circle me-2"/>
-                No hay evaluaciones registradas
-            </div>
+            <t t-else="">
+                <div class="alert alert-info text-center py-3">
+                    <i class="fa fa-info-circle me-2"/>No hay evaluaciones.
+                </div>
+            </t>
         </div>
     </t>
 </templates>
