@@ -1406,26 +1406,83 @@ class SchoolYear(models.Model):
         if not students:
             return {}
         
+        # FIX: Para Primaria, calcular por ESTUDIANTES (no por notas individuales)
+        # Cada estudiante tiene un promedio literal basado en sus notas
         if is_primary:
-            # Primaria uses observation-based evaluation - all students are approved with 'A'
+            literal_weights_map = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1}
+            literal_distribution = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0}
+            
+            students_approved = 0
+            students_failed = 0
+            total_weight_sum = 0.0
+            students_with_grades = 0
+            
+            for student in students:
+                # Obtener todas las notas literales del estudiante
+                student_literals = [
+                    s.literal_type for s in student.evaluation_score_ids 
+                    if s.literal_type and not s.evaluation_id.invisible_literal
+                ]
+                
+                if student_literals:
+                    # Calcular promedio literal del estudiante
+                    avg_weight = sum(literal_weights_map.get(lit, 0) for lit in student_literals) / len(student_literals)
+                    total_weight_sum += avg_weight
+                    students_with_grades += 1
+                    
+                    # Determinar literal promedio del estudiante
+                    if avg_weight >= 4.5:
+                        student_literal = 'A'
+                    elif avg_weight >= 3.5:
+                        student_literal = 'B'
+                    elif avg_weight >= 2.5:
+                        student_literal = 'C'
+                    elif avg_weight >= 1.5:
+                        student_literal = 'D'
+                    else:
+                        student_literal = 'E'
+                    
+                    # Incrementar distribución
+                    literal_distribution[student_literal] += 1
+                    
+                    # Contar aprobado/reprobado (A, B, C = aprobado)
+                    if student_literal in ['A', 'B', 'C']:
+                        students_approved += 1
+                    else:
+                        students_failed += 1
+            
+            # Calcular promedio general del nivel
+            if students_with_grades > 0:
+                overall_avg_weight = total_weight_sum / students_with_grades
+                if overall_avg_weight >= 4.5:
+                    literal_avg = 'A'
+                elif overall_avg_weight >= 3.5:
+                    literal_avg = 'B'
+                elif overall_avg_weight >= 2.5:
+                    literal_avg = 'C'
+                elif overall_avg_weight >= 1.5:
+                    literal_avg = 'D'
+                else:
+                    literal_avg = 'E'
+            else:
+                overall_avg_weight = 0
+                literal_avg = None
+            
+            total_students = len(students)
+            approval_pct = round((students_approved / total_students) * 100, 2) if total_students > 0 else 0.0
+            
             return {
                 'evaluation_type': 'literal',
                 'section_type': level_type,
-                'total_subjects': len(students),  # Count students as "subjects" for display
-                'subjects_approved': len(students),
-                'subjects_failed': 0,
-                'general_average': 18,  # A equivalent
-                'general_state': 'approve',
+                'total_subjects': total_students,  # Total de ESTUDIANTES
+                'subjects_approved': students_approved,
+                'subjects_failed': students_failed,
+                'general_average': round(overall_avg_weight * 4, 1),  # Escala aproximada 20
+                'general_state': 'approve' if literal_avg in ['A', 'B', 'C'] else 'failed',
                 'use_literal': True,
-                'literal_average': 'A',
-                'approval_percentage': 100.0,
-                'literal_distribution': {
-                    'A': len(students),
-                    'B': 0,
-                    'C': 0,
-                    'D': 0,
-                    'E': 0
-                }
+                'literal_average': literal_avg,
+                'approval_percentage': approval_pct,
+                'literal_distribution': literal_distribution
             }
 
         total_subjects = 0
@@ -1639,13 +1696,38 @@ class SchoolYear(models.Model):
         evaluation_type = evaluation_config.type_evaluation if evaluation_config else '20'
         use_literal = evaluation_type == 'literal' or level_type == 'primary'  # Primaria always uses literal
         
-        # Helper function to safely get performance state
+        # FIX: Helper function to safely get performance state
+        # Para Técnico Medio usamos mention_scores_json para obtener el estado correcto de aprobación
+        # Para Primaria calculamos directamente desde evaluation_score_ids usando literal_type
         def get_perf_state(student, is_primary=False):
+            # Para Técnico Medio, usar mention_scores_json si está disponible
+            if level_type == 'secundary_tecnico':
+                mention_perf = student.mention_scores_json
+                if isinstance(mention_perf, dict) and mention_perf:
+                    return mention_perf.get('general_state', 'failed')
+            
+            # FIX: Para Primaria, calcular directamente desde literal_type
+            # porque general_performance_json está vacío (evaluaciones sin subject_id)
+            if level_type == 'primary':
+                literals = [
+                    s.literal_type for s in student.evaluation_score_ids 
+                    if s.literal_type and not s.evaluation_id.invisible_literal
+                ]
+                if literals:
+                    # Calcular promedio y determinar estado
+                    literal_weights = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1}
+                    avg_weight = sum(literal_weights.get(lit, 0) for lit in literals) / len(literals)
+                    if avg_weight >= 2.5:  # C o mejor = aprobado
+                        return 'approve'
+                    return 'failed'
+                return 'failed'  # Sin notas = reprobado
+            
+            # Para otros niveles, usar general_performance_json
             perf = student.general_performance_json
             if isinstance(perf, dict) and perf:
-                return perf.get('general_state', 'approve' if is_primary else 'failed')
-            # Primaria students without grades are approved by observation
-            return 'approve' if is_primary else 'failed'
+                return perf.get('general_state', 'failed')
+            # Sin datos de performance, marcar como reprobado para evitar falsos positivos
+            return 'failed'
         
         # Calculate approval stats - Preescolar uses observations, all are approved
         is_primary = level_type == 'primary'
@@ -1831,15 +1913,43 @@ class SchoolYear(models.Model):
                 perf = {}
             
             if use_literal or is_primary:
-                # For Primaria or literal: default to 'A' if no data
-                literal = perf.get('literal_average', 'A' if is_primary else 'E')
+                # FIX: Para Primaria, calcular literal directamente desde evaluation_score_ids
+                # porque general_performance_json está vacío (evaluaciones sin subject_id)
+                if is_primary:
+                    literals = [
+                        s.literal_type for s in student.evaluation_score_ids 
+                        if s.literal_type and not s.evaluation_id.invisible_literal
+                    ]
+                    if literals:
+                        literal_weights = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1}
+                        avg_weight = sum(literal_weights.get(lit, 0) for lit in literals) / len(literals)
+                        # Convertir peso promedio a literal
+                        if avg_weight >= 4.5:
+                            literal = 'A'
+                        elif avg_weight >= 3.5:
+                            literal = 'B'
+                        elif avg_weight >= 2.5:
+                            literal = 'C'
+                        elif avg_weight >= 1.5:
+                            literal = 'D'
+                        else:
+                            literal = 'E'
+                        state = 'approve' if literal in ['A', 'B', 'C'] else 'failed'
+                    else:
+                        literal = 'E'
+                        state = 'failed'
+                else:
+                    literal = perf.get('literal_average', 'E')
+                    state = perf.get('general_state', 'failed')
+                
                 literal_weights = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1}
-                sort_value = literal_weights.get(literal, 5 if is_primary else 0)
+                sort_value = literal_weights.get(literal, 0)
                 display_value = literal
             else:
                 sort_value = perf.get('general_average', 0)
                 suffix = '/20' if evaluation_type == '20' else '/100'
                 display_value = f"{sort_value}{suffix}"
+                state = perf.get('general_state', 'failed')
             
             sections_data[section_id]['students'].append({
                 'student_id': student.student_id.id,
@@ -1848,7 +1958,7 @@ class SchoolYear(models.Model):
                 'average': display_value,
                 'literal_average': display_value if (use_literal or is_primary) else None,
                 'sort_value': sort_value,
-                'state': perf.get('general_state', 'approve' if is_primary else 'failed'),
+                'state': state,
                 'use_literal': use_literal or is_primary
             })
         
