@@ -3,56 +3,60 @@
     <t t-name="school.PreObservationsTimeline">
         <div class="o_pre_observations_timeline w-100" style="width: 100% !important;">
             <t t-if="hasData">
-                <div class="w-100">
+                <!-- Timeline Container -->
+                <div class="position-relative" style="margin-left: 20px;">
+                    <!-- Continuous vertical line -->
+                    <div class="position-absolute" style="left: 6px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, #FFB300 0%, #FFA000 100%); border-radius: 1px;"/>
+                    
                     <t t-foreach="timeline" t-as="item" t-key="item.id">
-                        <div class="d-flex mb-3 w-100">
-                            <!-- Timeline dot and line -->
-                            <div class="me-3 d-flex flex-column align-items-center" style="min-width: 20px;">
-                                <div class="rounded-circle bg-warning" style="width: 12px; height: 12px;"/>
-                                <t t-if="!item_last">
-                                    <div class="flex-grow-1 bg-light" style="width: 2px; min-height: 40px;"/>
-                                </t>
+                        <div class="d-flex gap-3" t-att-class="item_last ? 'pb-2' : 'pb-4'">
+                            <!-- Timeline dot - centered on the line -->
+                            <div class="flex-shrink-0 position-relative" style="width: 14px;">
+                                <div class="position-absolute rounded-circle" 
+                                     style="width: 14px; height: 14px; top: 4px; left: 0; background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%); box-shadow: 0 2px 4px rgba(0,0,0,0.15);"/>
                             </div>
                             
-                            <!-- Content - full width -->
-                            <div class="flex-grow-1 p-3 bg-light rounded border-start border-warning border-3" style="width: calc(100% - 35px);">
-                                <!-- Header -->
+                            <!-- Content card -->
+                            <div class="flex-grow-1 bg-white rounded-3 p-3 shadow-sm border">
+                                <!-- Header: Student + Section + Date -->
                                 <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-                                    <div class="flex-grow-1">
-                                        <span class="fw-bold text-dark">
-                                            <i class="fa fa-child me-1 text-warning"/>
-                                            <t t-esc="item.student_name"/>
-                                        </span>
-                                        <t t-if="item.section">
-                                            <span class="text-muted small ms-2">
-                                                (<t t-esc="item.section"/>)
-                                            </span>
-                                        </t>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 28px; height: 28px; background: #FFF8E1;">
+                                            <i class="fa fa-child" style="color: #FF8F00; font-size: 12px;"/>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark"><t t-esc="item.student_name"/></span>
+                                            <t t-if="item.section">
+                                                <span class="badge bg-light text-muted ms-2 fw-normal border"><t t-esc="item.section"/></span>
+                                            </t>
+                                        </div>
                                     </div>
-                                    <span class="badge bg-secondary">
-                                        <i class="fa fa-calendar me-1"/>
-                                        <t t-esc="item.date"/>
-                                    </span>
+                                    <div class="text-muted small d-flex align-items-center gap-1">
+                                        <i class="fa fa-clock-o"/>
+                                        <span><t t-esc="item.date"/></span>
+                                    </div>
                                 </div>
                                 
                                 <!-- Observation text -->
-                                <p class="mb-2 small text-dark">
+                                <p class="mb-2 text-dark" style="line-height: 1.6; font-size: 0.95rem;">
                                     <t t-esc="item.observation"/>
                                 </p>
                                 
-                                <!-- Footer -->
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-                                    <small class="text-muted">
+                                <!-- Footer: Professor + Evaluation -->
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                                    <div class="text-muted small d-flex align-items-center gap-1">
                                         <t t-if="item.professor">
-                                            <i class="fa fa-user-tie me-1"/>Docente <t t-esc="item.professor"/>
+                                            <i class="fa fa-user-circle-o"/>
+                                            <span>Docente <t t-esc="item.professor"/></span>
                                         </t>
-                                    </small>
-                                    <small class="text-muted">
-                                        <t t-if="item.evaluation_name">
+                                    </div>
+                                    <t t-if="item.evaluation_name">
+                                        <span class="badge rounded-pill px-2 py-1" style="background: #E3F2FD; color: #1976D2;">
                                             <i class="fa fa-clipboard me-1"/>
                                             <t t-esc="item.evaluation_name"/>
-                                        </t>
-                                    </small>
+                                        </span>
+                                    </t>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +64,7 @@
                 </div>
             </t>
             <t t-else="">
-                <div class="alert alert-info text-center">
+                <div class="alert alert-info text-center border-0 shadow-sm">
                     <i class="fa fa-info-circle me-2"/>No hay observaciones registradas para preescolar.
                 </div>
             </t>

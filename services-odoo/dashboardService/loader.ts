@@ -18,16 +18,20 @@ import {
     LevelDashboard,
     LevelPerformanceJson,
     PerformanceByLevel,
+    PreObservationsTimeline,
     ProfessorDetailedStats,
+    ProfessorsDistribution,
     ProfessorSummary,
     RecentEvaluations,
     SchoolYear,
     SectionPreview,
     SectionsByLevel,
     SectionsComparison,
+    SectionsDistribution,
     StudentPreview,
     StudentsByLevel,
     StudentsDistribution,
+    StudentsTabData,
     TopStudentsYear,
 } from './types';
 
@@ -74,6 +78,7 @@ const normalizeDashboardData = (raw: any): DashboardData => {
         name: raw.name || '',
         current: raw.current || false,
         state: raw.state || 'draft',
+        currentLapso: raw.current_lapso || '1',
         startDateReal: raw.start_date_real || undefined,
         endDateReal: raw.end_date_real || undefined,
         isLocked: raw.is_locked || false,
@@ -116,9 +121,17 @@ const normalizeDashboardData = (raw: any): DashboardData => {
     // Dashboard General tab
     const performanceByLevel = parseJsonField<PerformanceByLevel>(raw.performance_by_level_json);
     const studentsDistribution = parseJsonField<StudentsDistribution>(raw.students_distribution_json);
+    const sectionsDistribution = parseJsonField<SectionsDistribution>(raw.sections_distribution_json);
+    const professorsDistribution = parseJsonField<ProfessorsDistribution>(raw.professors_distribution_json);
     const approvalRate = parseJsonField<ApprovalRate>(raw.approval_rate_json);
     const sectionsComparison = parseJsonField<SectionsComparison>(raw.sections_comparison_json);
     const topStudentsYear = parseJsonField<TopStudentsYear>(raw.top_students_year_json);
+
+    // Students tab - comprehensive data
+    const studentsTabData = parseJsonField<StudentsTabData>(raw.students_tab_json);
+
+    // Preescolar tab - observations timeline
+    const preObservationsTimeline = parseJsonField<PreObservationsTimeline>(raw.pre_observations_timeline_json);
 
     // Level-specific performance
     const secundaryPerformance = parseJsonField<LevelPerformanceJson>(raw.secundary_performance_json);
@@ -154,9 +167,13 @@ const normalizeDashboardData = (raw: any): DashboardData => {
         evaluationConfigs,
         performanceByLevel,
         studentsDistribution,
+        sectionsDistribution,
+        professorsDistribution,
         approvalRate,
         sectionsComparison,
         topStudentsYear,
+        studentsTabData,
+        preObservationsTimeline,
         secundaryPerformance,
         primaryPerformance,
         prePerformance,

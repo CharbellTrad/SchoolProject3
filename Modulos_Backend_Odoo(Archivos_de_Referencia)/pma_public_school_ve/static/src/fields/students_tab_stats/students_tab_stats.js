@@ -3,7 +3,7 @@
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { Component, onWillStart, onMounted, onWillUnmount, useRef } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
 
 // ============================================
 // BASE CLASS: Common functionality for all widgets
@@ -37,7 +37,7 @@ class StudentsTabBase extends Component {
 
     // Computed percentages for Approval
     get approvalTotal() { return (this.byApproval.approved || 0) + (this.byApproval.failed || 0); }
-    get approvalRate() { return this.approvalTotal > 0 ? Math.round((this.byApproval.approved / this.approvalTotal) * 100) : 0; }
+    get approvalRate() { return this.approvalTotal > 0 ? ((this.byApproval.approved / this.approvalTotal) * 100).toFixed(2) : '0.00'; }
 
     getLevelIcon(level) {
         const icons = { 'pre': 'fa-child', 'primary': 'fa-book', 'secundary': 'fa-graduation-cap' };
@@ -47,6 +47,50 @@ class StudentsTabBase extends Component {
     getLevelColor(level) {
         const colors = { 'pre': '#FFB300', 'primary': '#43A047', 'secundary': '#1E88E5' };
         return colors[level] || '#6B7280';
+    }
+}
+
+// ============================================
+// Widget 0: KPI Stats Cards (like professors tab)
+// ============================================
+export class StudentsKPIStats extends StudentsTabBase {
+    static template = "school.StudentsKPIStats";
+
+    setup() {
+        super.setup();
+        this.state = useState({
+            animatedTotal: 0,
+            animatedEnrolled: 0,
+            animatedApproved: 0,
+            animatedFailed: 0
+        });
+
+        onMounted(() => this.animateCounters());
+    }
+
+    get enrolled() { return this.byState.done || 0; }
+    get approved() { return this.byApproval.approved || 0; }
+    get failed() { return this.byApproval.failed || 0; }
+
+    animateCounters() {
+        const duration = 1200;
+        const startTime = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+
+            this.state.animatedTotal = Math.round(this.total * easeOut);
+            this.state.animatedEnrolled = Math.round(this.enrolled * easeOut);
+            this.state.animatedApproved = Math.round(this.approved * easeOut);
+            this.state.animatedFailed = Math.round(this.failed * easeOut);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        requestAnimationFrame(animate);
     }
 }
 
@@ -125,6 +169,11 @@ export class StudentsAtRisk extends StudentsTabBase {
 // ============================================
 // REGISTRY: Register all widgets
 // ============================================
+registry.category("fields").add("students_kpi_stats", {
+    component: StudentsKPIStats,
+    supportedTypes: ["json"],
+});
+
 registry.category("fields").add("students_distribution_stats", {
     component: StudentsDistributionStats,
     supportedTypes: ["json"],

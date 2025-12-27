@@ -15,7 +15,7 @@
                             </svg>
                             <div class="position-absolute top-100 start-50 translate-middle text-center" style="margin-top: -15px;">
                                 <span t-attf-class="fs-4 fw-bold {{ getTextColorClass(state.animatedRate) }}">
-                                    <t t-esc="state.animatedRate.toFixed(0)"/>%
+                                    <t t-esc="state.animatedRate.toFixed(2)"/>%
                                 </span>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                                 <div t-attf-class="progress-bar {{ level.rate >= 80 ? 'bg-success' : level.rate >= 60 ? 'bg-warning' : 'bg-danger' }}" t-att-style="'width: ' + level.rate + '%'"/>
                                             </div>
                                         </div>
-                                        <span class="small fw-bold ms-2" style="width: 35px;"><t t-esc="level.rate"/>%</span>
+                                        <span class="small fw-bold ms-2" style="width: 50px;"><t t-esc="level.rate.toFixed(2)"/>%</span>
                                     </div>
                                 </t>
                             </div>

@@ -117,6 +117,7 @@ class SchoolEvaluationScore(models.Model):
             if students_to_update:
                 students_to_update._update_performance_json()
         return res
+
     @api.model_create_multi
     def create(self, vals_list):
         res = super().create(vals_list)

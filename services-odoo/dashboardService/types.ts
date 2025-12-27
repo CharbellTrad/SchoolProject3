@@ -66,13 +66,15 @@ export interface EvaluationConfigs {
  * Performance data for a single level
  */
 export interface LevelPerformance {
-    type: 'pre' | 'primary' | 'secundary';
+    type: 'pre' | 'primary' | 'secundary' | 'tecnico';
     name: string;
     total_students: number;
     approved_students: number;
     failed_students: number;
     average: number;
     approval_rate: number;
+    use_literal?: boolean;
+    literal_average?: string; // A, B, C, D, E for Primaria
 }
 
 /**
@@ -92,6 +94,73 @@ export interface StudentsDistribution {
 }
 
 /**
+ * Sections distribution for pie chart (sections_gauge_chart widget)
+ */
+export interface SectionsDistribution {
+    labels: string[];
+    data: number[];
+    total: number;
+}
+
+/**
+ * Professors distribution for chart (professors_radar_chart widget)
+ */
+export interface ProfessorsDistribution {
+    labels: string[];
+    data: number[];
+    total: number;
+}
+
+/**
+ * Students tab data - complete stats and lists
+ */
+export interface StudentsTabLevelData {
+    name: string;
+    count: number;
+    color: string;
+}
+
+export interface StudentsTabPerformer {
+    id: number;
+    name: string;
+    section: string;
+    level: string;
+    average: number;
+    state: string;
+}
+
+export interface StudentsTabData {
+    total: number;
+    by_gender: { M: number; F: number };
+    by_approval: { approved: number; failed: number };
+    by_state: { done: number; draft: number; cancel: number };
+    by_level: StudentsTabLevelData[];
+    top_performers: StudentsTabPerformer[];
+    at_risk: StudentsTabPerformer[];
+}
+
+/**
+ * Preschool observations timeline item
+ */
+export interface PreObservationItem {
+    id: number;
+    student_name: string;
+    section: string;
+    observation: string;
+    date: string;
+    professor: string;
+    evaluation_name: string;
+}
+
+/**
+ * Preschool observations timeline
+ */
+export interface PreObservationsTimeline {
+    total: number;
+    timeline: PreObservationItem[];
+}
+
+/**
  * Approval rate data (approval_rate_gauge widget)
  */
 export interface ApprovalRate {
@@ -99,6 +168,12 @@ export interface ApprovalRate {
     approved: number;
     failed: number;
     rate: number;
+    by_level?: Array<{
+        name: string;
+        rate: number;
+        approved: number;
+        total: number;
+    }>;
 }
 
 /**
@@ -133,7 +208,10 @@ export interface TopStudent {
 }
 
 export interface TopStudentsYear {
-    top_students: TopStudent[];
+    top_students?: TopStudent[];       // Legacy flat list (backwards compatibility)
+    top_primary: TopStudent[];         // Top 3 Primaria students
+    top_secundary: TopStudent[];       // Top 3 Media General students
+    top_tecnico: TopStudent[];         // Top 3 Medio Técnico students
 }
 
 // ===== Section/Student Previews =====
@@ -316,6 +394,7 @@ export interface SchoolYear {
     name: string;
     current: boolean;
     state: 'draft' | 'active' | 'finished';
+    currentLapso?: '1' | '2' | '3';  // Current period in school year
     startDateReal?: string;
     endDateReal?: string;
     isLocked: boolean;
@@ -335,9 +414,15 @@ export interface DashboardData {
     // Dashboard General tab
     performanceByLevel?: PerformanceByLevel;
     studentsDistribution?: StudentsDistribution;
+    sectionsDistribution?: SectionsDistribution;       // NEW: Sections by level
+    professorsDistribution?: ProfessorsDistribution;   // NEW: Professors by level
     approvalRate?: ApprovalRate;
     sectionsComparison?: SectionsComparison;
     topStudentsYear?: TopStudentsYear;
+    // Students tab - comprehensive data
+    studentsTabData?: StudentsTabData;                 // NEW: Complete students tab
+    // Preescolar tab - observations timeline
+    preObservationsTimeline?: PreObservationsTimeline; // NEW: Preschool timeline
     // Level-specific performance
     secundaryPerformance?: LevelPerformanceJson;
     primaryPerformance?: LevelPerformanceJson;

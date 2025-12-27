@@ -1,64 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="school.EvaluationsStatsWidget">
-        <div class="o_evaluations_stats_widget">
+        <div class="o_evaluations_stats_widget w-100" style="width: 100% !important;">
             <t t-if="hasData">
-                <div class="row g-3">
-                    <!-- Left: Distribution Chart -->
-                    <div class="col-md-4 col-12">
-                        <div class="position-relative" style="height: 140px;">
-                            <canvas t-ref="canvas"/>
-                        </div>
-                        <!-- Mini Legend -->
-                        <div class="d-flex justify-content-center gap-3 mt-2">
-                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#1E88E5;"/> Media</span>
-                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#43A047;"/> Primaria</span>
-                            <span class="small"><span class="rounded me-1" style="display:inline-block;width:10px;height:10px;background:#FFB300;"/> Preescolar</span>
+                <!-- KPI Cards Only - Exact same style as professor_dashboard -->
+                <div class="row g-3 kpi-row">
+                    <div class="col-md-3 col-6">
+                        <div class="kpi-card professor-kpi">
+                            <div class="kpi-icon icon-evaluations"><i class="fa fa-check-circle"/></div>
+                            <span class="kpi-value text-success"><t t-esc="state.animatedQualified"/></span>
+                            <span class="kpi-label">Calificadas</span>
                         </div>
                     </div>
-                    
-                    <!-- Right: Stats -->
-                    <div class="col-md-8 col-12">
-                        <div class="row g-2">
-                            <div class="col-6 col-md-3">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <i class="fa fa-file-text text-primary"/>
-                                    <span class="d-block fw-bold"><t t-esc="state.animatedTotal"/></span>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Total</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <i class="fa fa-check-circle text-success"/>
-                                    <span class="d-block fw-bold text-success"><t t-esc="state.animatedQualified"/></span>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Calificadas</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <i class="fa fa-clock-o text-warning"/>
-                                    <span class="d-block fw-bold text-warning"><t t-esc="state.animatedPartial"/></span>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Parciales</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <i class="fa fa-pencil text-muted"/>
-                                    <span class="d-block fw-bold text-muted"><t t-esc="state.animatedDraft"/></span>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Borrador</small>
-                                </div>
-                            </div>
+                    <div class="col-md-3 col-6">
+                        <div class="kpi-card professor-kpi">
+                            <div class="kpi-icon icon-subjects"><i class="fa fa-clock-o"/></div>
+                            <span class="kpi-value text-warning"><t t-esc="state.animatedPartial"/></span>
+                            <span class="kpi-label">Parciales</span>
                         </div>
-                        
-                        <!-- Completion Progress -->
-                        <div class="mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Completadas</small>
-                                <small t-attf-class="fw-bold {{ getCompletionClass() }}"><t t-esc="completionRate"/>%</small>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div t-attf-class="progress-bar {{ getCompletionBgClass() }}" t-att-style="'width: ' + completionRate + '%'"/>
-                            </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="kpi-card professor-kpi">
+                            <div class="kpi-icon icon-professor"><i class="fa fa-edit"/></div>
+                            <span class="kpi-value text-muted"><t t-esc="state.animatedDraft"/></span>
+                            <span class="kpi-label">Borrador</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="kpi-card professor-kpi">
+                            <div class="kpi-icon icon-average"><i class="fa fa-bar-chart"/></div>
+                            <span t-attf-class="kpi-value {{ completionRate >= 80 ? 'text-success' : completionRate >= 50 ? 'text-warning' : 'text-danger' }}">
+                                <t t-esc="completionRate"/>%
+                            </span>
+                            <span class="kpi-label">Completadas</span>
                         </div>
                     </div>
                 </div>
@@ -70,4 +44,47 @@
             </t>
         </div>
     </t>
+
+    <!-- Template for Distribution Widget -->
+    <t t-name="school.EvaluationsDistributionWidget">
+        <div class="o_evaluations_distribution_widget w-100" style="width: 100% !important;">
+            <t t-if="hasData">
+                <!-- Chart and Legend Row -->
+                <div class="row align-items-center">
+                    <!-- Left: Distribution Chart with Total in Center -->
+                    <div class="col-md-5 col-12 d-flex justify-content-center">
+                        <div class="position-relative" style="width: 160px; height: 160px;">
+                            <canvas t-ref="canvas"/>
+                            <!-- Centered Total -->
+                            <div class="position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <span class="d-block fw-bold fs-4"><t t-esc="state.animatedTotal"/></span>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Legend by Level -->
+                    <div class="col-md-7 col-12 mt-3 mt-md-0">
+                        <div class="d-flex flex-column gap-2">
+                            <t t-foreach="chartData" t-as="item" t-key="item.level">
+                                <div class="d-flex align-items-center p-2 rounded" 
+                                     t-att-style="'background-color: ' + item.color + '22; border-left: 4px solid ' + item.color">
+                                    <i t-attf-class="fa {{ item.icon }} me-2" t-att-style="'color: ' + item.color"/>
+                                    <span class="flex-grow-1 small fw-medium"><t t-esc="item.label"/></span>
+                                    <span class="fw-bold small me-2"><t t-esc="item.value"/></span>
+                                    <span class="text-muted small">(<t t-esc="item.percentage"/>%)</span>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="alert alert-info text-center py-3">
+                    <i class="fa fa-info-circle me-2"/>No hay datos de distribución.
+                </div>
+            </t>
+        </div>
+    </t>
+
 </templates>

@@ -31,7 +31,7 @@ export class ApprovalRateGauge extends Component {
             const progress = Math.min(elapsed / duration, 1);
             const easeOut = 1 - Math.pow(1 - progress, 3);
 
-            this.state.animatedRate = Math.round(targetRate * easeOut * 10) / 10;
+            this.state.animatedRate = Math.round(targetRate * easeOut * 100) / 100;
             this.state.animatedApproved = Math.round(targetApproved * easeOut);
             this.state.animatedFailed = Math.round(targetFailed * easeOut);
 

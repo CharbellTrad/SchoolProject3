@@ -34,10 +34,11 @@
                                                     </span>
                                                 </t>
                                                 
-                                                <!-- PRIMARIA: Literal Grade -->
+                                                <!-- PRIMARIA: Literal Grade - use level.average directly when it's already a letter -->
                                                 <t t-elif="level.type === 'primary'">
-                                                    <span t-attf-class="badge fs-3 px-3 py-2 {{ getLiteralBadgeClass(getLiteralFromAverage(level.average)) }}">
-                                                        <t t-esc="getLiteralFromAverage(level.average)"/>
+                                                    <t t-set="literalGrade" t-value="level.use_literal and level.average ? level.average : getLiteralFromAverage(level.average)"/>
+                                                    <span t-attf-class="badge fs-3 px-3 py-2 {{ getLiteralBadgeClass(literalGrade) }}">
+                                                        <t t-esc="literalGrade"/>
                                                     </span>
                                                 </t>
                                                 

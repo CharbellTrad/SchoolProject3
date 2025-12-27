@@ -17,11 +17,11 @@ export const Colors = {
   warning: '#f59e0b',
   info: '#0891b2',  // Cyan/Teal
 
-  // Colores por nivel educativo (matching Odoo)
-  levelPre: '#0891b2',       // bg-info - Preescolar (Cyan)
-  levelPrimary: '#16a34a',   // bg-success - Primaria (Green)
-  levelSecundary: '#1e40af', // bg-primary - Media General (Blue)
-  levelTecnico: '#f59e0b',   // bg-warning - Técnico Medio (Orange)
+  // Colores por nivel educativo (matching Odoo exactly)
+  levelPre: '#FFB300',       // bg-warning - Preescolar (Amber/Yellow)
+  levelPrimary: '#43A047',   // bg-success - Primaria (Green)
+  levelSecundary: '#1E88E5', // bg-primary - Media General (Blue)
+  levelTecnico: '#8E24AA',   // bg-purple - Técnico Medio (Purple)
 
   // Colores de texto
   textPrimary: '#1e293b',

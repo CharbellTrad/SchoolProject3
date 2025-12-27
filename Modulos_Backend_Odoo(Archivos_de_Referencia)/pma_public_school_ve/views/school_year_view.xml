@@ -338,14 +338,20 @@
 
                         <!-- TAB 5: Todos los Estudiantes -->
                         <page string="Estudiantes" name="all_students">
+                            <!-- NEW: KPI Cards Section -->
+                            <separator string="Estadísticas de Estudiantes"/>
+                            <field name="students_tab_json" 
+                                   widget="students_kpi_stats" 
+                                   nolabel="1" colspan="2"/>
+                            
                             <!-- Distribución por Género y Estado -->
                             <separator string="Distribución de Estudiantes"/>
                             <field name="students_tab_json" 
                                    widget="students_distribution_stats" 
                                    nolabel="1" colspan="2"/>
                             
-                            <!-- Rendimiento y Niveles -->
-                            <separator string="Rendimiento y Niveles"/>
+                            <!-- Inscripción y Rendimiento -->
+                            <separator string="Inscripción y Rendimiento"/>
                             <field name="students_tab_json" 
                                    widget="students_approval_stats" 
                                    nolabel="1" colspan="2"/>
@@ -385,12 +391,19 @@
 
                         <!-- TAB 7: Evaluaciones -->
                         <page string="Evaluaciones" name="evaluations">
-                            <group string="Estadísticas de Evaluaciones">
-                                <field name="evaluations_stats_json" 
-                                       widget="evaluations_stats_widget"
-                                       colspan="2"
-                                       nolabel="1"/>
-                            </group>
+                            <!-- KPI Cards Section -->
+                            <separator string="Estadísticas de Evaluaciones"/>
+                            <field name="evaluations_stats_json" 
+                                   widget="evaluations_stats_widget"
+                                   colspan="2"
+                                   nolabel="1"/>
+                            
+                            <!-- Distribution Chart Section -->
+                            <separator string="Distribución de Evaluaciones"/>
+                            <field name="evaluations_stats_json" 
+                                   widget="evaluations_distribution_widget"
+                                   colspan="2"
+                                   nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>

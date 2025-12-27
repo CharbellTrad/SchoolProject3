@@ -60,8 +60,8 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d, loading }) => {
 
     return (
         <View style={styles.container}>
-            {/* Resumen de Profesores */}
-            <Card title="Resumen de Profesores" delay={100}>
+            {/* Estadísticas de Profesores - Matches Odoo's professor_dashboard_kpi */}
+            <Card title="Estadísticas de Profesores" delay={100}>
                 {isLoading ? (
                     <>
                         <StatCardSkeleton />
@@ -121,8 +121,8 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d, loading }) => {
                 )}
             </Card>
 
-            {/* Estadísticas por Tipo de Estudiante */}
-            <Card title="Estadísticas por Tipo de Estudiante" delay={200}>
+            {/* Top Profesores y Distribución - Matches Odoo's professor_dashboard_ranking */}
+            <Card title="Top Profesores y Distribución" delay={200}>
                 {isLoading ? (
                     <>
                         <TableRowSkeleton columns={3} />
@@ -246,7 +246,7 @@ export const ProfessorsTab: React.FC<Props> = ({ data: d, loading }) => {
                                                 <Text style={styles.detailLabel}>{getLevelLabel(key)}</Text>
                                             </View>
                                             <Text style={[styles.detailValue, { color: getLevelColor(key), fontWeight: '700' }]}>
-                                                {stat.average?.toFixed(1) || '-'} ({stat.count})
+                                                {typeof stat.average === 'number' ? stat.average.toFixed(1) : '-'} ({stat.count})
                                             </Text>
                                         </View>
                                     );

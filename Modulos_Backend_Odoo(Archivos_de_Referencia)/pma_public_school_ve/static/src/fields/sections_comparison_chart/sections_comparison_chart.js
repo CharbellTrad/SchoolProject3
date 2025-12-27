@@ -22,11 +22,13 @@ export class SectionsComparisonChart extends Component {
     get sections() { return this.data?.sections || []; }
 
     getLevelBorderClass(type) {
-        return { 'primary': 'border-success', 'secundary': 'border-primary', 'tecnico': 'border-purple' }[type] || 'border-secondary';
+        // Colores estándar del módulo: Primaria=verde, Media General=azul, Técnico=morado
+        return { 'primary': 'border-success', 'secundary': 'border-info', 'tecnico': 'border-purple' }[type] || 'border-secondary';
     }
 
     getLevelBadgeClass(type) {
-        return { 'primary': 'bg-success', 'secundary': 'bg-primary', 'tecnico': 'bg-purple' }[type] || 'bg-secondary';
+        // Colores estándar del módulo: Primaria=verde, Media General=azul, Técnico=morado
+        return { 'primary': 'bg-success', 'secundary': 'bg-info', 'tecnico': 'bg-purple' }[type] || 'bg-secondary';
     }
 
     getLiteralFromAverage(average) {

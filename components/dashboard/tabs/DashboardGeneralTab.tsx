@@ -1,14 +1,17 @@
 /**
- * DashboardGeneralTab - enhanced visual design
- * Features: Staggered animations, gradient tables, glassmorphism, skeleton loading
+ * DashboardGeneralTab - Complete rewrite with interactive charts
+ * Matches Odoo's Dashboard General structure with 7 widgets
  */
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+    FadeInDown,
+    FadeInUp
+} from 'react-native-reanimated';
 import Colors from '../../../constants/Colors';
 import { DashboardData } from '../../../services-odoo/dashboardService';
-import { DonutChart, GroupedBarChart, RingGauge } from '../charts';
+import { DonutChart, PolarAreaChart, RadarChart, SemiCircleGauge } from '../charts';
 import {
     Card,
     ChartSkeleton,
@@ -16,8 +19,7 @@ import {
     LevelCardSkeleton,
     ListRow,
     ListRowSkeleton,
-    RankBadge,
-    TableRowSkeleton
+    RankBadge
 } from '../ui';
 
 interface Props {
@@ -26,337 +28,699 @@ interface Props {
 }
 
 export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
-    // Distribución de Estudiantes data - Colors match Odoo: Pre=info, Primary=success, Secundary=primary, Tecnico=warning
-    const distributionData = d?.studentsDistribution?.labels.map((label, i) => ({
+    const isLoading = loading || !d;
+
+    // Helper for level styling
+    const getLevelStyle = (type: string) => {
+        switch (type) {
+            case 'pre': return { color: Colors.levelPre, icon: 'school-outline' as const, name: 'Preescolar' };
+            case 'primary': return { color: Colors.levelPrimary, icon: 'book-outline' as const, name: 'Primaria' };
+            case 'secundary': return { color: Colors.levelSecundary, icon: 'library-outline' as const, name: 'Media General' };
+            case 'tecnico': return { color: Colors.levelTecnico, icon: 'construct-outline' as const, name: 'Técnico Medio' };
+            default: return { color: Colors.textSecondary, icon: 'school-outline' as const, name: type };
+        }
+    };
+
+    // Prepare chart data
+    const sectionsDistributionData = d?.sectionsDistribution?.labels.map((label, i) => ({
+        value: d.sectionsDistribution!.data[i],
+        color: [Colors.levelPre, Colors.levelPrimary, Colors.levelSecundary][i] || Colors.info,
+        gradientCenterColor: ['#0e7490', '#15803d', '#1e3a8a'][i] || Colors.info,
+        label,
+    })) || [];
+
+    const professorsDistributionData = d?.professorsDistribution?.labels.map((label, i) => ({
+        value: d.professorsDistribution!.data[i],
+        color: [Colors.levelPre, Colors.levelPrimary, Colors.levelSecundary][i] || Colors.info,
+        gradientCenterColor: ['#0e7490', '#15803d', '#1e3a8a'][i] || Colors.info,
+        label,
+    })) || [];
+
+    const studentsDistributionData = d?.studentsDistribution?.labels.map((label, i) => ({
         value: d.studentsDistribution!.data[i],
         color: [Colors.levelPre, Colors.levelPrimary, Colors.levelSecundary, Colors.levelTecnico][i] || Colors.info,
         gradientCenterColor: ['#0e7490', '#15803d', '#1e3a8a', '#d97706'][i] || Colors.info,
         label,
     })) || [];
 
-    // Comparativa de Secciones
-    const sectionsGroupedData = d?.sectionsComparison?.sections?.slice(0, 4).map((s) => ({
+    const sectionsComparisonData = d?.sectionsComparison?.sections?.slice(0, 4).map((s) => ({
         label: s.section_name.length > 8 ? s.section_name.substring(0, 7) + '…' : s.section_name,
+        fullLabel: s.section_name,
         value1: s.average || 0,
         value2: s.approval_rate || 0,
     })) || [];
 
     const approvalRate = d?.approvalRate?.rate || 0;
     const approvalColor = approvalRate >= 70 ? Colors.success : approvalRate >= 50 ? Colors.warning : Colors.error;
-
-    // Helper to get level color and icon
-    const getLevelStyle = (type: string) => {
-        switch (type) {
-            case 'pre': return { color: Colors.levelPre, icon: 'school-outline' as const, border: Colors.levelPre };
-            case 'primary': return { color: Colors.levelPrimary, icon: 'book-outline' as const, border: Colors.levelPrimary };
-            case 'secundary': return { color: Colors.levelSecundary, icon: 'library-outline' as const, border: Colors.levelSecundary };
-            default: return { color: Colors.textSecondary, icon: 'school-outline' as const, border: Colors.borderLight };
-        }
-    };
-
-    // Show skeleton when loading
-    const isLoading = loading || !d;
+    const totalStudents = d?.approvalRate?.total || 0;
+    const approvedStudents = d?.approvalRate?.approved || 0;
+    const failedStudents = totalStudents - approvedStudents;
 
     return (
         <View style={styles.container}>
-            {/* Rendimiento General del Año - Matching Odoo year_performance_overview widget */}
+            {/* 1. Rendimiento General del Año Escolar */}
             <Card title="Rendimiento General del Año Escolar" delay={0}>
                 {isLoading ? (
-                    <View style={styles.levelCardsContainer}>
+                    <View style={styles.levelCardsGrid}>
                         <LevelCardSkeleton />
                         <LevelCardSkeleton />
                         <LevelCardSkeleton />
                     </View>
                 ) : d?.performanceByLevel?.levels?.length ? (
-                    <View style={styles.levelCardsContainer}>
+                    <View style={styles.levelCardsGrid}>
                         {d.performanceByLevel.levels.map((lv, i) => {
                             const style = getLevelStyle(lv.type);
-                            const approvalPct = lv.total_students > 0
-                                ? (lv.approved_students / lv.total_students * 100)
-                                : 0;
+
+                            // Helper: Convert numeric average to literal grade
+                            const getLiteralGrade = (avg: number | undefined) => {
+                                if (avg === undefined || avg === null || avg === 0) return 'A';
+                                if (avg >= 18) return 'A';
+                                if (avg >= 15) return 'B';
+                                if (avg >= 12) return 'C';
+                                if (avg >= 10) return 'D';
+                                return 'E';
+                            };
+
+                            const getLiteralColor = (literal: string) => {
+                                return {
+                                    'A': '#16a34a', // green
+                                    'B': '#0891b2', // cyan
+                                    'C': '#f59e0b', // amber
+                                    'D': '#f97316', // orange
+                                    'E': '#dc2626', // red
+                                }[literal] || '#6b7280';
+                            };
+
                             return (
-                                <View key={i} style={[styles.levelCard, { borderColor: style.border }]}>
-                                    {/* Header */}
-                                    <View style={[styles.levelCardHeader, { backgroundColor: style.color + '10' }]}>
-                                        <Ionicons name={style.icon} size={18} color={style.color} />
-                                        <Text style={[styles.levelCardTitle, { color: style.color }]}>{lv.name}</Text>
-                                    </View>
-
-                                    {/* Stats Row */}
-                                    <View style={styles.levelStatsRow}>
-                                        <View style={styles.levelStatItem}>
-                                            <Text style={styles.levelStatValue}>{lv.total_students}</Text>
-                                            <Text style={styles.levelStatLabel}>Estudiantes</Text>
-                                        </View>
-                                        <View style={styles.levelStatItem}>
-                                            <Text style={[styles.levelStatValue, { color: lv.average >= 10 ? Colors.success : Colors.error }]}>
-                                                {lv.average?.toFixed(1) || '-'}
-                                            </Text>
-                                            <Text style={styles.levelStatLabel}>Promedio</Text>
-                                        </View>
-                                    </View>
-
-                                    {/* Progress Bar */}
-                                    <View style={styles.levelProgressContainer}>
-                                        <View style={styles.levelProgressBg}>
-                                            <View style={[styles.levelProgressFill, { width: `${approvalPct}%`, backgroundColor: Colors.success }]}>
-                                                <Text style={styles.levelProgressText}>{lv.approved_students} aprobados</Text>
+                                <Animated.View
+                                    key={i}
+                                    entering={FadeInUp.delay(i * 100).duration(400)}
+                                    style={styles.levelCardWrapper}
+                                >
+                                    <TouchableOpacity
+                                        style={[styles.levelCard, { borderColor: style.color }]}
+                                        activeOpacity={0.8}
+                                    >
+                                        {/* Header with icon and title */}
+                                        <View style={[styles.levelCardHeader, { backgroundColor: style.color + '15' }]}>
+                                            <View style={[styles.levelIcon, { backgroundColor: style.color }]}>
+                                                <Ionicons name={style.icon} size={16} color="#fff" />
+                                            </View>
+                                            <Text style={styles.levelCardTitle} numberOfLines={2}>{lv.name}</Text>
+                                            <View style={styles.studentBadge}>
+                                                <Text style={styles.studentBadgeText}>{lv.total_students}</Text>
                                             </View>
                                         </View>
-                                    </View>
 
-                                    {/* Footer Stats */}
-                                    <View style={styles.levelFooter}>
-                                        <View style={styles.levelFooterItem}>
-                                            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-                                            <Text style={[styles.levelFooterText, { color: Colors.success }]}>
-                                                {lv.approval_rate?.toFixed(0) || 0}% aprobación
-                                            </Text>
+                                        {/* Main Display - Different per level type */}
+                                        <View style={styles.levelMainDisplay}>
+                                            {lv.type === 'pre' ? (
+                                                // PREESCOLAR: Show "Observación" badge
+                                                <View style={[styles.observationBadge, { backgroundColor: Colors.success + '15' }]}>
+                                                    <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+                                                    <Text style={[styles.observationText, { color: Colors.success }]}>
+                                                        Observación
+                                                    </Text>
+                                                </View>
+                                            ) : lv.type === 'primary' ? (
+                                                // PRIMARIA: average is already a literal string (A-E) from backend
+                                                <View style={[
+                                                    styles.literalBadge,
+                                                    { backgroundColor: getLiteralColor(String(lv.average) || 'A') }
+                                                ]}>
+                                                    <Text style={styles.literalText}>
+                                                        {String(lv.average) || 'A'}
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                // SECUNDARY/TECNICO: Show numeric average
+                                                <View style={styles.numericDisplay}>
+                                                    <Text style={[
+                                                        styles.numericValue,
+                                                        { color: typeof lv.average === 'number' && lv.average >= 10 ? Colors.success : Colors.error }
+                                                    ]}>
+                                                        {typeof lv.average === 'number' ? lv.average.toFixed(1) : '-'}
+                                                    </Text>
+                                                    <Text style={styles.numericMax}>/20</Text>
+                                                </View>
+                                            )}
                                         </View>
-                                        <View style={styles.levelFooterItem}>
-                                            <Ionicons name="close-circle" size={14} color={Colors.error} />
-                                            <Text style={[styles.levelFooterText, { color: Colors.error }]}>
-                                                {lv.failed_students} reprobados
-                                            </Text>
+
+                                        {/* Footer: Approved / Failed */}
+                                        <View style={styles.levelFooter}>
+                                            {lv.type === 'pre' ? (
+                                                // Preescolar: All approved
+                                                <>
+                                                    <View style={styles.levelFooterItem}>
+                                                        <Ionicons name="checkmark" size={12} color={Colors.success} />
+                                                        <Text style={[styles.levelFooterText, { color: Colors.success }]}>
+                                                            {lv.total_students} apr.
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.levelFooterItem}>
+                                                        <Ionicons name="close" size={12} color={Colors.textTertiary} />
+                                                        <Text style={[styles.levelFooterText, { color: Colors.textTertiary }]}>
+                                                            0 rep.
+                                                        </Text>
+                                                    </View>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <View style={styles.levelFooterItem}>
+                                                        <Ionicons name="checkmark" size={12} color={Colors.success} />
+                                                        <Text style={[styles.levelFooterText, { color: Colors.success }]}>
+                                                            {lv.approved_students} apr.
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.levelFooterItem}>
+                                                        <Ionicons name="close" size={12} color={Colors.error} />
+                                                        <Text style={[styles.levelFooterText, { color: Colors.error }]}>
+                                                            {lv.failed_students} rep.
+                                                        </Text>
+                                                    </View>
+                                                </>
+                                            )}
                                         </View>
-                                    </View>
-                                </View>
+                                    </TouchableOpacity>
+                                </Animated.View>
                             );
                         })}
                     </View>
                 ) : <Empty />}
             </Card>
 
+            {/* 2 & 3. Secciones y Profesores - Side by Side */}
             <View style={styles.row}>
-                {/* Distribución Donut */}
                 <View style={styles.halfCol}>
-                    <Card title="Distribución" delay={100} style={styles.fullHeight}>
+                    <Card title="Secciones por Nivel" delay={100} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="donut" size={140} />
-                        ) : distributionData.length > 0 ? (
-                            <DonutChart
-                                data={distributionData}
-                                centerValue={d?.studentsDistribution?.total || 0}
-                                centerLabel="Total"
-                                radius={70}
-                                innerRadius={50}
-                                showLegend={true}
+                            <ChartSkeleton type="donut" size={70} />
+                        ) : sectionsDistributionData.length ? (
+                            <PolarAreaChart
+                                data={sectionsDistributionData}
+                                size={150}
+                                interactive
                             />
-                        ) : <Empty />}
+                        ) : <Empty message="Sin datos" />}
                     </Card>
                 </View>
-
-                {/* Tasa Aprobación Gauge */}
                 <View style={styles.halfCol}>
-                    <Card title="Aprobación" delay={150} style={styles.fullHeight}>
+                    <Card title="Profesores por Nivel" delay={150} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="ring" size={140} />
-                        ) : d?.approvalRate ? (
-                            <View style={styles.gaugeSection}>
-                                <RingGauge
-                                    percentage={approvalRate}
-                                    color={approvalColor}
-                                    label="Tasa"
-                                    size={140}
-                                    strokeWidth={16}
-                                />
-                                <View style={styles.approvalStats}>
-                                    <View style={styles.approvalStatItem}>
-                                        <Text style={styles.approvalStatValue}>{d.approvalRate.total}</Text>
-                                        <Text style={styles.approvalStatLabel}>Total</Text>
-                                    </View>
-                                    <View style={styles.approvalStatItem}>
-                                        <Text style={[styles.approvalStatValue, { color: Colors.success }]}>{d.approvalRate.approved}</Text>
-                                        <Text style={styles.approvalStatLabel}>Aprobados</Text>
-                                    </View>
-                                    <View style={styles.approvalStatItem}>
-                                        <Text style={[styles.approvalStatValue, { color: Colors.error }]}>{d.approvalRate.failed}</Text>
-                                        <Text style={styles.approvalStatLabel}>Reprobados</Text>
-                                    </View>
-                                </View>
-                            </View>
-                        ) : <Empty />}
+                            <ChartSkeleton type="donut" size={70} />
+                        ) : professorsDistributionData.length ? (
+                            <RadarChart
+                                data={professorsDistributionData}
+                                size={165}
+                                interactive
+                            />
+                        ) : <Empty message="Sin datos" />}
                     </Card>
                 </View>
             </View>
 
-            {/* Comparativa Chart */}
-            <Card title="Comparativa de Secciones" delay={200}>
+            {/* 4 & 5. Estudiantes y Aprobación - Side by Side */}
+            <View style={styles.row}>
+                <View style={styles.halfCol}>
+                    <Card title="Estudiantes por Nivel" delay={200} style={styles.fullHeight}>
+                        {isLoading ? (
+                            <ChartSkeleton type="donut" size={70} />
+                        ) : studentsDistributionData.length ? (
+                            <DonutChart
+                                data={studentsDistributionData}
+                                centerValue={d?.kpis?.totalStudentsCount || 0}
+                                centerLabel="Total"
+                                radius={60}
+                                innerRadius={38}
+                                interactive
+                            />
+                        ) : <Empty message="Sin datos" />}
+                    </Card>
+                </View>
+                <View style={styles.halfCol}>
+                    <Card title="Tasa de Aprobación" delay={250} style={styles.fullHeight}>
+                        {isLoading ? (
+                            <ChartSkeleton type="ring" size={80} />
+                        ) : (
+                            <SemiCircleGauge
+                                percentage={approvalRate}
+                                total={totalStudents}
+                                approved={approvedStudents}
+                                failed={failedStudents}
+                                byLevel={d?.approvalRate?.by_level?.map(lv => ({
+                                    name: lv.name,
+                                    type: lv.name === 'Preescolar' ? 'pre' :
+                                        lv.name === 'Primaria' ? 'primary' :
+                                            lv.name === 'Media General' ? 'secundary' : 'tecnico',
+                                    rate: lv.name === 'Preescolar' ? 100 : lv.rate,
+                                })) || []}
+                                size={140}
+                            />
+                        )}
+                    </Card>
+                </View>
+            </View>
+
+            {/* 6. Mejor Sección por Nivel - Cards Layout (Odoo style) */}
+            <Card title="Mejor Sección por Nivel" delay={300}>
                 {isLoading ? (
                     <ChartSkeleton type="bar" height={180} />
-                ) : sectionsGroupedData.length > 0 ? (
-                    <GroupedBarChart
-                        data={sectionsGroupedData}
-                        value1Color={Colors.success}
-                        value2Color={Colors.primary}
-                        value1Label="Promedio"
-                        value2Label="Aprobación"
-                        maxValue1={20}
-                        maxValue2={100}
-                        height={180}
-                    />
-                ) : <Empty />}
-            </Card>
-
-            {/* Detalle de Secciones Table */}
-            <Card title="Detalle de Secciones" delay={300}>
-                {isLoading ? (
-                    <View style={styles.sectionTable}>
-                        <TableRowSkeleton columns={5} />
-                        <TableRowSkeleton columns={5} isAlt />
-                        <TableRowSkeleton columns={5} />
-                        <TableRowSkeleton columns={5} isAlt />
-                        <TableRowSkeleton columns={5} />
-                    </View>
                 ) : d?.sectionsComparison?.sections?.length ? (
-                    <View style={styles.sectionTable}>
-                        {/* Gradient Header */}
-                        <LinearGradient
-                            colors={[Colors.backgroundTertiary, '#fff']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.tableHeader}
-                        >
-                            <Text style={[styles.tableHeaderCell, { flex: 2, paddingLeft: 8 }]}>Sección</Text>
-                            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Nivel</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Est.</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Prom.</Text>
-                            <Text style={[styles.tableHeaderCell, styles.centerText]}>Aprob.</Text>
-                        </LinearGradient>
+                    <View style={styles.sectionsCardsGrid}>
+                        {d.sectionsComparison.sections.slice(0, 4).map((section, index) => {
+                            const levelStyle = getLevelStyle(section.type);
+                            const getLiteralGrade = (avg: number) => {
+                                if (avg >= 18) return 'A';
+                                if (avg >= 15) return 'B';
+                                if (avg >= 12) return 'C';
+                                if (avg >= 10) return 'D';
+                                return 'E';
+                            };
+                            const getLiteralColor = (lit: string) => ({
+                                'A': '#16a34a', 'B': '#0891b2', 'C': '#f59e0b', 'D': '#f97316', 'E': '#dc2626'
+                            }[lit] || '#6b7280');
+                            const approvalColor = section.approval_rate >= 80 ? Colors.success :
+                                section.approval_rate >= 60 ? Colors.warning : Colors.error;
 
-                        {/* Rows */}
-                        {d.sectionsComparison.sections.map((s, i) => (
-                            <View key={i} style={[styles.tableRow, i % 2 !== 0 && styles.tableRowAlt]}>
-                                <Text style={[styles.tableCell, { flex: 2, fontWeight: '600', paddingLeft: 8 }]}>{s.section_name}</Text>
-                                <Text style={[styles.tableCell, { flex: 1, fontSize: 11, color: Colors.textSecondary }]}>
-                                    {s.type === 'secundary' ? 'Media' : s.type === 'primary' ? 'Prim.' : 'Pre'}
-                                </Text>
-                                <Text style={[styles.tableCell, styles.centerText]}>{s.total_students}</Text>
-                                <Text style={[styles.tableCell, styles.centerText, { color: s.average >= 10 ? Colors.success : Colors.error, fontWeight: '600' }]}>
-                                    {s.average?.toFixed(1)}
-                                </Text>
-                                <View style={[styles.pillsContainer, { justifyContent: 'center', flex: 1 }]}>
-                                    <View style={[styles.miniPill, { backgroundColor: (s.approval_rate >= 70 ? Colors.success : Colors.warning) + '20' }]}>
-                                        <Text style={[styles.miniPillText, { color: s.approval_rate >= 70 ? Colors.success : Colors.warning }]}>
-                                            {s.approval_rate}%
+                            return (
+                                <Animated.View
+                                    key={section.section_id}
+                                    entering={FadeInUp.delay(index * 80).duration(400)}
+                                    style={[
+                                        styles.sectionCard,
+                                        { borderLeftColor: levelStyle.color },
+                                        // Técnico Medio: wider and centered when alone
+                                        section.type === 'tecnico' && styles.sectionCardWide
+                                    ]}
+                                >
+                                    <View style={styles.sectionCardHeader}>
+                                        <View style={{ flex: 1 }}>
+                                            <View style={[styles.sectionLevelBadge, { backgroundColor: levelStyle.color }]}>
+                                                <Text style={styles.sectionLevelText}>{levelStyle.name}</Text>
+                                            </View>
+                                            <Text style={[styles.sectionName, section.type === 'tecnico' && { maxWidth: 'auto' }]} numberOfLines={2}>{section.section_name}</Text>
+                                        </View>
+                                        {section.type === 'primary' ? (
+                                            <View style={[styles.sectionAvgBadge, { backgroundColor: getLiteralColor(getLiteralGrade(section.average)) }]}>
+                                                <Text style={styles.sectionAvgText}>{getLiteralGrade(section.average)}</Text>
+                                            </View>
+                                        ) : (
+                                            <View style={[styles.sectionAvgBadge, { backgroundColor: Colors.backgroundTertiary }]}>
+                                                <Text style={[styles.sectionAvgText, { color: Colors.textPrimary }]}>
+                                                    {section.average.toFixed(1)}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                    <View style={styles.sectionCardStats}>
+                                        <Text style={styles.sectionStat}>
+                                            <Ionicons name="people" size={12} color={Colors.textSecondary} /> {section.total_students} est.
+                                        </Text>
+                                        <Text style={[styles.sectionStat, { color: Colors.success }]}>
+                                            <Ionicons name="checkmark" size={12} color={Colors.success} /> {section.approved_students} apr.
                                         </Text>
                                     </View>
-                                </View>
-                            </View>
-                        ))}
+                                    <View style={styles.sectionProgressBg}>
+                                        <View style={[
+                                            styles.sectionProgressFill,
+                                            { width: `${section.approval_rate}%`, backgroundColor: approvalColor }
+                                        ]} />
+                                    </View>
+                                </Animated.View>
+                            );
+                        })}
                     </View>
-                ) : <Empty message="Sin secciones" />}
+                ) : <Empty message="Sin datos de secciones" />}
             </Card>
 
-            {/* Top 10 Estudiantes */}
-            <Card title="Top 10 Mejores Estudiantes" delay={400} glassmorphism>
+            {/* 7. Top 9 Mejores Estudiantes (3 por nivel) */}
+            <Card title="Top 9 Mejores Estudiantes" delay={350}>
                 {isLoading ? (
                     <>
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <ListRowSkeleton key={i} hasAvatar hasBadge />
-                        ))}
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
+                        <ListRowSkeleton hasAvatar hasBadge />
                     </>
-                ) : d?.topStudentsYear?.top_students?.length ? (
-                    d.topStudentsYear.top_students.map((st, i) => (
-                        <ListRow key={i}>
-                            <RankBadge rank={i + 1} />
-                            <View style={styles.topInfo}>
-                                <Text style={styles.topName}>{st.student_name}</Text>
-                                <Text style={styles.topSection}>{st.section}</Text>
-                            </View>
-                            <View style={styles.topScore}>
-                                <Text style={styles.topAvg}>{st.use_literal ? st.literal_average : st.average?.toFixed(1)}</Text>
-                            </View>
-                        </ListRow>
-                    ))
-                ) : <Empty />}
+                ) : (d?.topStudentsYear?.top_primary?.length ||
+                    d?.topStudentsYear?.top_secundary?.length ||
+                    d?.topStudentsYear?.top_tecnico?.length) ? (
+                    <View style={styles.topStudentsContainer}>
+                        {/* Primaria */}
+                        {d?.topStudentsYear?.top_primary?.length ? (
+                            <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                                <View style={styles.levelSection}>
+                                    <View style={[styles.levelBadge, { backgroundColor: Colors.levelPrimary + '15' }]}>
+                                        <Ionicons name="book-outline" size={14} color={Colors.levelPrimary} />
+                                        <Text style={[styles.levelBadgeText, { color: Colors.levelPrimary }]}>Primaria</Text>
+                                    </View>
+                                </View>
+                                {d.topStudentsYear.top_primary.map((st, i) => (
+                                    <ListRow key={`primary-${i}`} borderBottom={i < 2}>
+                                        <RankBadge rank={i + 1} />
+                                        <View style={styles.studentInfo}>
+                                            <Text style={styles.studentName}>{st.student_name}</Text>
+                                            <Text style={styles.studentSection}>{st.section}</Text>
+                                        </View>
+                                        <Text style={styles.studentAvg}>
+                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                        </Text>
+                                    </ListRow>
+                                ))}
+                            </Animated.View>
+                        ) : null}
+
+                        {/* Media General */}
+                        {d?.topStudentsYear?.top_secundary?.length ? (
+                            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+                                <View style={styles.levelSection}>
+                                    <View style={[styles.levelBadge, { backgroundColor: Colors.levelSecundary + '15' }]}>
+                                        <Ionicons name="library-outline" size={14} color={Colors.levelSecundary} />
+                                        <Text style={[styles.levelBadgeText, { color: Colors.levelSecundary }]}>Media General</Text>
+                                    </View>
+                                </View>
+                                {d.topStudentsYear.top_secundary.map((st, i) => (
+                                    <ListRow key={`secundary-${i}`} borderBottom={i < 2}>
+                                        <RankBadge rank={i + 1} />
+                                        <View style={styles.studentInfo}>
+                                            <Text style={styles.studentName}>{st.student_name}</Text>
+                                            <Text style={styles.studentSection}>{st.section}</Text>
+                                        </View>
+                                        <Text style={styles.studentAvg}>
+                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                        </Text>
+                                    </ListRow>
+                                ))}
+                            </Animated.View>
+                        ) : null}
+
+                        {/* Técnico Medio */}
+                        {d?.topStudentsYear?.top_tecnico?.length ? (
+                            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+                                <View style={styles.levelSection}>
+                                    <View style={[styles.levelBadge, { backgroundColor: Colors.levelTecnico + '15' }]}>
+                                        <Ionicons name="construct-outline" size={14} color={Colors.levelTecnico} />
+                                        <Text style={[styles.levelBadgeText, { color: Colors.levelTecnico }]}>Técnico Medio</Text>
+                                    </View>
+                                </View>
+                                {d.topStudentsYear.top_tecnico.map((st, i) => (
+                                    <ListRow key={`tecnico-${i}`} borderBottom={i < 2}>
+                                        <RankBadge rank={i + 1} />
+                                        <View style={styles.studentInfo}>
+                                            <Text style={styles.studentName}>{st.student_name}</Text>
+                                            <Text style={styles.studentSection}>{st.section}</Text>
+                                        </View>
+                                        <Text style={styles.studentAvg}>
+                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                        </Text>
+                                    </ListRow>
+                                ))}
+                            </Animated.View>
+                        ) : null}
+                    </View>
+                ) : <Empty message="Sin datos de estudiantes" />}
             </Card>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { gap: 6 },
-    row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-    halfCol: { flex: 1 },
-    fullHeight: { flex: 1, marginBottom: 0 },
+    container: { gap: 12 },
 
-    // Level Performance Cards (Matching Odoo year_performance_overview)
-    levelCardsContainer: { gap: 12 },
+    // Row layout
+    row: { flexDirection: 'row', gap: 12 },
+    halfCol: { flex: 1 },
+    fullHeight: { flex: 1 },
+
+    // Level Cards Grid
+    levelCardsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    levelCardWrapper: {
+        flexBasis: '48%',
+        flexGrow: 1,
+        minWidth: 140,
+    },
     levelCard: {
-        borderRadius: 12,
-        borderWidth: 1.5,
         backgroundColor: '#fff',
+        borderRadius: 14,
+        borderWidth: 1.5,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 2,
     },
     levelCardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
+        padding: 10,
         gap: 8,
     },
-    levelCardTitle: { fontSize: 14, fontWeight: '700' },
-    levelStatsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingVertical: 12,
-        paddingHorizontal: 14,
-    },
-    levelStatItem: { alignItems: 'center' },
-    levelStatValue: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary },
-    levelStatLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
-    levelProgressContainer: { paddingHorizontal: 14, marginBottom: 10 },
-    levelProgressBg: {
-        height: 24,
-        backgroundColor: Colors.backgroundTertiary,
-        borderRadius: 6,
-        overflow: 'hidden',
-    },
-    levelProgressFill: {
-        height: '100%',
-        borderRadius: 6,
+    levelIcon: {
+        width: 28,
+        height: 28,
+        borderRadius: 8,
         justifyContent: 'center',
-        paddingHorizontal: 10,
-        minWidth: 80,
+        alignItems: 'center',
     },
-    levelProgressText: { fontSize: 11, fontWeight: '700', color: '#fff' },
-    levelFooter: {
+    levelCardTitle: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: Colors.textPrimary,
+        flex: 1,
+    },
+    studentBadge: {
+        backgroundColor: Colors.textSecondary,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
+    },
+    studentBadgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#fff',
+    },
+    levelMainDisplay: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 12,
+        minHeight: 70,
+    },
+    observationBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 6,
+    },
+    observationText: {
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    literalBadge: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    literalText: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#fff',
+    },
+    numericDisplay: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+    },
+    numericValue: {
+        fontSize: 28,
+        fontWeight: '800',
+    },
+    numericMax: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.textTertiary,
+    },
+    levelCardBody: {
+        padding: 12,
+        paddingTop: 4,
+    },
+    levelStatRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 14,
+        marginBottom: 12,
+    },
+    levelStatItem: {
+        alignItems: 'center',
+    },
+    levelStatValue: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: Colors.textPrimary,
+    },
+    levelStatLabel: {
+        fontSize: 10,
+        color: Colors.textSecondary,
+        marginTop: 2,
+    },
+    progressContainer: {
+        marginBottom: 10,
+    },
+    progressBg: {
+        height: 6,
+        backgroundColor: Colors.backgroundTertiary,
+        borderRadius: 3,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        borderRadius: 3,
+    },
+    progressText: {
+        fontSize: 10,
+        fontWeight: '600',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    levelFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
         paddingVertical: 10,
+        paddingHorizontal: 8,
         borderTopWidth: 1,
         borderTopColor: Colors.borderLight,
     },
-    levelFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    levelFooterText: { fontSize: 11, fontWeight: '600' },
+    levelFooterItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    levelFooterText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
 
-    // Gauge section
-    gaugeSection: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-    approvalStats: { flexDirection: 'row', justifyContent: 'center', width: '100%', marginTop: 16, gap: 10 },
-    approvalStatItem: { alignItems: 'center' },
-    approvalStatValue: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary },
-    approvalStatLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
+    // Section Cards (Mejor Sección por Nivel)
+    sectionsCardsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    sectionCard: {
+        width: '48%',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 12,
+        borderLeftWidth: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 1,
+    },
+    sectionCardWide: {
+        width: '100%',
+        alignSelf: 'center',
+    },
+    sectionCardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 8,
+    },
+    sectionLevelBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
+        marginBottom: 4,
+    },
+    sectionLevelText: {
+        fontSize: 9,
+        fontWeight: '700',
+        color: '#fff',
+    },
+    sectionName: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: Colors.textPrimary,
+        maxWidth: 100,
+    },
+    sectionAvgBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    sectionAvgText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#fff',
+    },
+    sectionCardStats: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    sectionStat: {
+        fontSize: 10,
+        color: Colors.textSecondary,
+    },
+    sectionProgressBg: {
+        height: 4,
+        backgroundColor: Colors.backgroundTertiary,
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    sectionProgressFill: {
+        height: '100%',
+        borderRadius: 2,
+    },
 
-    // Top students
-    topInfo: { flex: 1, marginLeft: 12 },
-    topName: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary },
-    topSection: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-    topScore: { backgroundColor: Colors.success + '15', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-    topAvg: { fontSize: 14, fontWeight: '700', color: Colors.success },
-
-    // Section table
-    sectionTable: { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: Colors.borderLight },
-    tableHeader: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 4 },
-    tableHeaderCell: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase' },
-    tableRow: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 4, alignItems: 'center', backgroundColor: '#fff' },
-    tableRowAlt: { backgroundColor: Colors.backgroundTertiary },
-    tableCell: { fontSize: 12, color: Colors.textPrimary },
-    centerText: { textAlign: 'center', flex: 1 },
-    pillsContainer: { flexDirection: 'row', flex: 1 },
-    miniPill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-    miniPillText: { fontSize: 11, fontWeight: '700' },
+    // Top Students
+    topStudentsContainer: {
+        gap: 8,
+    },
+    levelSection: {
+        marginTop: 12,
+        marginBottom: 8,
+    },
+    levelBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        gap: 6,
+    },
+    levelBadgeText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    studentInfo: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    studentName: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.textPrimary,
+    },
+    studentSection: {
+        fontSize: 11,
+        color: Colors.textSecondary,
+    },
+    studentAvg: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: Colors.success,
+    },
 });
 
 export default DashboardGeneralTab;

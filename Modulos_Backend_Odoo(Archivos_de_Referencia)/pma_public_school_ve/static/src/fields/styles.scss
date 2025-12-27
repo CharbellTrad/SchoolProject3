@@ -1074,20 +1074,12 @@ $medal-bronze: #CD7F32;
 
 .o_top_students_list {
 
-    // Medal styling
-    .position-gold {
-        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
-        border-left: 3px solid $medal-gold;
-    }
-
-    .position-silver {
-        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%);
-        border-left: 3px solid $medal-silver;
-    }
-
+    // Medal styling - Clean look without background and left border
+    .position-gold,
+    .position-silver,
     .position-bronze {
-        background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%);
-        border-left: 3px solid $medal-bronze;
+        background: transparent;
+        border-left: none;
     }
 
     .section-card {
@@ -1812,43 +1804,35 @@ $medal-bronze: #CD7F32;
 }
 
 // =============================================================================
-// EVALUATIONS STATS WIDGET - PREMIUM
+// EVALUATIONS STATS WIDGET - PREMIUM (Match professor_dashboard style)
 // =============================================================================
 
 .o_evaluations_stats_widget {
+    width: 100% !important;
+
+    .kpi-row {
+        margin-bottom: var(--spacing-xl);
+        width: 100%;
+    }
+
     .kpi-card {
-        background: #fff;
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-lg);
+        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
         box-shadow: var(--shadow-md);
         text-align: center;
         transition: all var(--transition-base);
         position: relative;
         overflow: hidden;
 
-        &::after {
+        &::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-        }
-
-        &.kpi-total::after {
-            background: $color-info;
-        }
-
-        &.kpi-qualified::after {
-            background: $color-success;
-        }
-
-        &.kpi-partial::after {
-            background: $color-warning;
-        }
-
-        &.kpi-draft::after {
-            background: #9ca3af;
+            height: 4px;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
         }
 
         &:hover {
@@ -1856,23 +1840,52 @@ $medal-bronze: #CD7F32;
             box-shadow: var(--shadow-xl);
         }
 
-        i {
-            font-size: 2rem;
-            margin-bottom: var(--spacing-sm);
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-sm);
+            font-size: 1.1rem;
         }
 
-        h3 {
-            font-size: 2rem;
-            font-weight: 800;
-            font-family: 'Roboto Mono', monospace;
-            animation: countUp 0.8s ease-out;
+        .kpi-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #1f2937;
         }
 
-        small {
+        .kpi-label {
             font-size: 0.85rem;
             color: #6b7280;
             font-weight: 500;
+            margin-top: var(--spacing-xs);
         }
+    }
+
+    // Icon styles matching professor_dashboard
+    .icon-evaluations {
+        background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+        color: #059669;
+    }
+
+    .icon-subjects {
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        color: #D97706;
+    }
+
+    .icon-professor {
+        background: linear-gradient(135deg, #E5E7EB, #D1D5DB);
+        color: #6B7280;
+    }
+
+    .icon-average {
+        background: linear-gradient(135deg, #CFFAFE, #A5F3FC);
+        color: #0891B2;
     }
 
     .completion-section,
@@ -2152,6 +2165,95 @@ $medal-bronze: #CD7F32;
             padding: 0 1rem;
             font-size: 0.875rem;
         }
+    }
+}
+
+// =============================================================================
+// STUDENTS KPI STATS - PREMIUM STYLING (same as professor_dashboard)
+// =============================================================================
+
+.o_students_kpi_stats {
+    width: 100% !important;
+
+    .kpi-row {
+        margin-bottom: var(--spacing-md);
+        width: 100%;
+    }
+
+    .kpi-card {
+        background: #fff;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-sm);
+            font-size: 1.1rem;
+        }
+
+        .kpi-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #1f2937;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-top: var(--spacing-xs);
+        }
+    }
+
+    .kpi-card.professor-kpi {
+        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+    }
+
+    .icon-professor {
+        background: linear-gradient(135deg, #E0E7FF, #C7D2FE);
+        color: #4F46E5;
+    }
+
+    .icon-subjects {
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        color: #2563EB;
+    }
+
+    .icon-evaluations {
+        background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+        color: #059669;
+    }
+
+    .icon-average {
+        background: linear-gradient(135deg, #FEE2E2, #FECACA);
+        color: #DC2626;
     }
 }
 
@@ -2440,6 +2542,27 @@ $medal-bronze: #CD7F32;
             box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
         }
     }
+}
+
+// =============================================================================
+// EVALUATIONS WIDGETS - Full width fix
+// =============================================================================
+
+// Force the Odoo field container to be full width
+.o_field_widget[name="evaluations_stats_json"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+}
+
+.o_evaluations_stats_widget {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.o_evaluations_distribution_widget {
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 // =============================================================================

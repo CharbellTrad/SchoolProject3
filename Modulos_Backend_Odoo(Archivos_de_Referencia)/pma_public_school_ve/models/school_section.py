@@ -234,7 +234,7 @@ class SchoolSection(models.Model):
                     else:
                         failed_count += 1
                 else:
-                    # Media General - require performance data
+                    # Media General - calcular estado basado en promedio >= 10
                     if not perf_data or perf_data.get('total_subjects', 0) == 0:
                         continue
                     
@@ -245,15 +245,19 @@ class SchoolSection(models.Model):
                     else:
                         avg = perf_data.get('general_average', 0)
                     
+                    # Calcular estado basado en promedio >= 10 (aprobado)
+                    min_score = 10
+                    state = 'approve' if avg >= min_score else 'failed'
+                    
                     students_data.append({
                         'student_id': student.student_id.id,
                         'student_name': student.student_id.name,
                         'average': avg,
-                        'state': perf_data.get('general_state', 'failed'),
+                        'state': state,
                     })
                     
                     total_average += avg
-                    if perf_data.get('general_state') == 'approve':
+                    if state == 'approve':
                         approved_count += 1
                     else:
                         failed_count += 1

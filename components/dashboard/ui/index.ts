@@ -25,5 +25,5 @@ export {
     TableRowSkeleton
 } from './DashboardComponents';
 
-
+export { LapsosTimeline } from './LapsosTimeline';
 

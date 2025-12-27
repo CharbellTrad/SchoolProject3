@@ -75,8 +75,8 @@ export class GeneralPerformanceGraphField extends Component {
         this.chart = new Chart(this.canvasRef.el, {
             type: 'pie',
             data: {
-                labels: ['Aprobadas', 'Reprobadas'],
-                datasets: [{ data: [this.data.subjects_approved, this.data.subjects_failed], backgroundColor: [getColor(10, colorScheme, "odoo"), getColor(1, colorScheme, "odoo")], borderColor: '#ffffff', borderWidth: 2 }]
+                labels: ['Aprobados', 'Reprobados'],
+                datasets: [{ data: [this.data.subjects_approved, this.data.subjects_failed], backgroundColor: ['#28a745', '#dc3545'], borderColor: '#ffffff', borderWidth: 2 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,

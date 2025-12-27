@@ -21,6 +21,7 @@ export const SCHOOL_YEAR_BASE_FIELDS = [
     'name',
     'current',
     'state',
+    'current_lapso',
     'start_date_real',
     'end_date_real',
     'is_locked',
@@ -61,9 +62,25 @@ export const SCHOOL_YEAR_KPI_FIELDS = [
 export const DASHBOARD_GENERAL_FIELDS = [
     'performance_by_level_json',
     'students_distribution_json',
+    'sections_distribution_json',      // NEW: Sections by level distribution
+    'professors_distribution_json',    // NEW: Professors by level distribution
     'approval_rate_json',
     'sections_comparison_json',
     'top_students_year_json',
+] as const;
+
+/**
+ * Students tab JSON field
+ */
+export const STUDENTS_TAB_FIELDS = [
+    'students_tab_json',               // NEW: Complete students tab data
+] as const;
+
+/**
+ * Preescolar observations timeline
+ */
+export const PREESCOLAR_FIELDS = [
+    'pre_observations_timeline_json',  // NEW: Preschool observations timeline
 ] as const;
 
 /**
@@ -109,6 +126,8 @@ export const SCHOOL_YEAR_ALL_FIELDS = [
     ...SCHOOL_YEAR_BASE_FIELDS,
     ...SCHOOL_YEAR_KPI_FIELDS,
     ...DASHBOARD_GENERAL_FIELDS,
+    ...STUDENTS_TAB_FIELDS,
+    ...PREESCOLAR_FIELDS,
     ...LEVEL_PERFORMANCE_FIELDS,
     ...LEVEL_DASHBOARD_FIELDS,
     ...PROFESSORS_TAB_FIELDS,

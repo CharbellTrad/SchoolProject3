@@ -28,8 +28,8 @@
                                     <!-- Stats -->
                                     <div class="stats-grid row g-2 mt-3">
                                         <div class="col-4"><div class="stat-item"><span class="stat-value"><t t-esc="performanceInfo.totalSubjects"/></span><span class="stat-label">Total</span></div></div>
-                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobadas</span></div></div>
-                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobadas</span></div></div>
+                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobados</span></div></div>
+                                        <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobados</span></div></div>
                                     </div>
                                 </div>
                             </div>
@@ -56,7 +56,7 @@
                     <!-- NUMERIC TYPE -->
                     <t t-else="">
                         <div class="row">
-                            <t t-if="showChart"><div class="col-md-6"><h6 class="text-muted mb-3"><i class="fa fa-pie-chart me-2"/>Distribución de Materias</h6><div class="chart-container" style="height: 200px;"><canvas t-ref="canvas"/></div></div></t>
+                            <t t-if="showChart"><div class="col-md-6"><h6 class="text-muted mb-3"><i class="fa fa-pie-chart me-2"/>Distribución de Estudiantes</h6><div class="chart-container" style="height: 200px;"><canvas t-ref="canvas"/></div></div></t>
                             <div t-attf-class="{{ showChart ? 'col-md-6' : 'col-12' }}">
                                 <div class="average-display mb-4 p-4 bg-light rounded text-center">
                                     <span class="average-label text-muted d-block mb-1"><t t-esc="performanceInfo.averageLabel"/></span>
@@ -66,8 +66,8 @@
                                 <div class="text-center mb-3"><span t-attf-class="badge {{ performanceInfo.badgeClass }} px-3 py-2"><t t-if="performanceInfo.state === 'approve'"><i class="fa fa-check me-1"/></t><t t-else=""><i class="fa fa-times me-1"/></t><t t-esc="performanceInfo.stateLabel"/></span></div>
                                 <div class="stats-grid row g-2">
                                     <div class="col-4"><div class="stat-item"><span class="stat-value"><t t-esc="performanceInfo.totalSubjects"/></span><span class="stat-label">Total</span></div></div>
-                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobadas</span></div></div>
-                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobadas</span></div></div>
+                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-success"><t t-esc="performanceInfo.subjectsApproved"/></span><span class="stat-label">Aprobados</span></div></div>
+                                    <div class="col-4"><div class="stat-item"><span class="stat-value text-danger"><t t-esc="performanceInfo.subjectsFailed"/></span><span class="stat-label">Reprobados</span></div></div>
                                 </div>
                             </div>
                         </div>

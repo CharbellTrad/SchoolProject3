@@ -26,7 +26,7 @@ import {
   DashboardGeneralTab,
   EvaluationsTab,
   GlassButton,
-  KPICard,
+  LapsosTimeline,
   LevelTab,
   ProfessorsTab,
   StudentsTab,
@@ -213,17 +213,15 @@ export default function AdminDashboard() {
                 <Text style={styles.dateText}>{new Date().toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
               </View>
             </View>
-            {/* Staggered KPI Cards */}
-            <Animated.View>
-              <View style={[styles.kpiRow, { marginBottom: 65, marginTop: 15 }]}>
-                <KPICard icon="people" value={d?.kpis.totalStudentsCount ?? 0} label="Estudiantes" color={Colors.primary} loading={loading} />
-                <KPICard icon="checkmark-circle" value={d?.kpis.approvedStudentsCount ?? 0} label="Aprobados" color={Colors.success} loading={loading} />
-              </View>
-              <View style={styles.kpiRow}>
-                <KPICard icon="layers" value={d?.kpis.totalSectionsCount ?? 0} label="Secciones" color={Colors.info} loading={loading} />
-                <KPICard icon="person" value={d?.kpis.totalProfessorsCount ?? 0} label="Profesores" color={Colors.warning} loading={loading} />
-              </View>
-            </Animated.View>
+            {/* Lapsos Timeline - Matches Odoo's lapsos_timeline widget */}
+            {d?.schoolYear?.state !== 'draft' && (
+              <LapsosTimeline
+                currentLapso={d?.schoolYear?.currentLapso || '1'}
+                state={d?.schoolYear?.state || 'active'}
+                startDate={d?.schoolYear?.startDateReal}
+                endDate={d?.schoolYear?.endDateReal}
+              />
+            )}
           </Animated.View>
         </LinearGradient>
 
@@ -297,7 +295,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     paddingTop: Platform.OS === 'android' ? 44 : 54,
-    paddingBottom: 75, // Extra padding for KPI overlap
+    paddingBottom: 25, // Extra padding for KPI overlap
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',

@@ -37,7 +37,7 @@
                                                     </span>
                                                 </t>
                                                 <t t-else="">
-                                                    <span t-attf-class="badge {{ getGradeBadgeClass(student.average) }} fs-6 px-2">
+                                                    <span t-attf-class="badge {{ getGradeBadgeClass(student.average) }} bg-light border fs-6 px-2">
                                                         <t t-esc="student.average"/>
                                                     </span>
                                                 </t>

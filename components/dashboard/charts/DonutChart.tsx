@@ -1,10 +1,14 @@
 /**
- * DonutChart - Enhanced circular chart
- * Features: Animated entry, flexible legend
+ * DonutChart - Enhanced interactive circular chart
+ * Features: Touch on slices, animated entry, tooltip display
  */
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue
+} from 'react-native-reanimated';
 import Colors from '../../../constants/Colors';
 
 export interface DonutDataItem {
@@ -24,6 +28,8 @@ interface DonutChartProps {
     innerRadius?: number;
     showLegend?: boolean;
     animate?: boolean;
+    interactive?: boolean;
+    onSliceSelect?: (item: DonutDataItem | null, index: number) => void;
 }
 
 export const DonutChart: React.FC<DonutChartProps> = ({
@@ -35,42 +41,128 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     innerRadius = 55,
     showLegend = true,
     animate = true,
+    interactive = true,
+    onSliceSelect,
 }) => {
-    const hasCenter = centerValue !== undefined || centerLabel !== undefined;
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const scale = useSharedValue(1);
+
+    // Calculate total for percentages
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+
+    // Handle slice press
+    const handleSlicePress = (item: DonutDataItem, index: number) => {
+        if (!interactive) return;
+
+        const newIndex = selectedIndex === index ? null : index;
+        setSelectedIndex(newIndex);
+        onSliceSelect?.(newIndex !== null ? item : null, index);
+    };
+
+    // Animated container style
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    // Get display values for center
+    const displayValue = selectedIndex !== null
+        ? data[selectedIndex].value
+        : centerValue;
+    const displayLabel = selectedIndex !== null
+        ? data[selectedIndex].label
+        : centerLabel;
+    const displayColor = selectedIndex !== null
+        ? data[selectedIndex].color
+        : centerColor;
+
+    // Prepare chart data with focus and fading effect
+    const chartData = data.map((item, index) => {
+        const isSelected = selectedIndex === index;
+        const isOther = selectedIndex !== null && selectedIndex !== index;
+
+        return {
+            ...item,
+            // Fade non-selected items by using a lighter color
+            color: isOther ? item.color + '50' : item.color,
+            focused: isSelected,
+            onPress: () => handleSlicePress(item, index),
+        };
+    });
 
     return (
         <View style={styles.container}>
-            <PieChart
-                data={data}
-                donut
-                showGradient
-                sectionAutoFocus={animate}
-                radius={radius}
-                innerRadius={innerRadius}
-                innerCircleColor={'#fff'}
-                strokeWidth={2}
-                strokeColor={'#fff'}
-                centerLabelComponent={hasCenter ? () => (
-                    <View style={styles.center}>
-                        {centerValue !== undefined && (
-                            <Text style={[styles.centerValue, { color: centerColor, fontSize: radius * 0.35 }]}>
-                                {centerValue}
-                            </Text>
-                        )}
-                        {centerLabel && (
-                            <Text style={[styles.centerLabel, { fontSize: radius * 0.15 }]}>{centerLabel}</Text>
-                        )}
-                    </View>
-                ) : undefined}
-            />
+            <Animated.View style={animatedStyle}>
+                <PieChart
+                    data={chartData}
+                    donut
+                    sectionAutoFocus={animate}
+                    focusOnPress={interactive}
+                    radius={radius}
+                    innerRadius={innerRadius}
+                    innerCircleColor={'#fff'}
+                    strokeWidth={2}
+                    strokeColor={'#fff'}
+                    centerLabelComponent={() => (
+                        <View style={styles.center}>
+                            {displayValue !== undefined && (
+                                <Text style={[styles.centerValue, { color: displayColor, fontSize: radius * 0.35 }]}>
+                                    {displayValue}
+                                </Text>
+                            )}
+                            {displayLabel && (
+                                <Text style={[styles.centerLabel, { fontSize: radius * 0.13 }]} numberOfLines={1}>
+                                    {displayLabel}
+                                </Text>
+                            )}
+                            {selectedIndex !== null && total > 0 && (
+                                <Text style={[styles.percentage, { color: displayColor }]}>
+                                    {((data[selectedIndex].value / total) * 100).toFixed(0)}%
+                                </Text>
+                            )}
+                        </View>
+                    )}
+                />
+            </Animated.View>
+
+            {/* Legend - Odoo style with left border */}
             {showLegend && data.some(d => d.label) && (
                 <View style={styles.legend}>
-                    {data.filter(d => d.label).map((item, i) => (
-                        <View key={i} style={styles.legendItem}>
-                            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                            <Text style={styles.legendText}>{item.label}</Text>
-                        </View>
-                    ))}
+                    {data.filter(d => d.label).map((item, i) => {
+                        const isSelected = selectedIndex === i;
+                        const percentage = total > 0 ? ((item.value / total) * 100).toFixed(0) : 0;
+
+                        return (
+                            <TouchableOpacity
+                                key={i}
+                                style={[
+                                    styles.legendItem,
+                                    {
+                                        backgroundColor: isSelected ? item.color + '30' : item.color + '15',
+                                        borderLeftColor: item.color,
+                                        borderLeftWidth: isSelected ? 4 : 3,
+                                        transform: [{ scale: isSelected ? 1.02 : 1 }]
+                                    },
+                                    isSelected && styles.legendItemSelected
+                                ]}
+                                onPress={() => handleSlicePress(item, i)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[
+                                    styles.legendText,
+                                    isSelected && { fontWeight: '700', color: item.color }
+                                ]} numberOfLines={1}>{item.label}</Text>
+                                <Text style={[
+                                    styles.legendValue,
+                                    isSelected && { color: item.color }
+                                ]}>{item.value}</Text>
+                                {isSelected && (
+                                    <Text style={[styles.legendPercent, { color: item.color }]}>
+                                        {percentage}%
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             )}
         </View>
@@ -78,14 +170,60 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: { alignItems: 'center', paddingVertical: 8 },
+    container: { alignItems: 'center', marginTop: -15 },
     center: { alignItems: 'center', justifyContent: 'center' },
     centerValue: { fontWeight: '800' },
-    centerLabel: { color: Colors.textSecondary, marginTop: 2, fontWeight: '600' },
-    legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 16 },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    legendDot: { width: 8, height: 8, borderRadius: 4 },
-    legendText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
+    centerLabel: { color: Colors.textSecondary, marginTop: 2, fontWeight: '600', maxWidth: 80, textAlign: 'center' },
+    percentage: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+
+    // Total Header
+    totalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        marginTop: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderLight,
+        width: '100%',
+    },
+    totalValue: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: Colors.textPrimary,
+    },
+    totalLabel: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+    },
+    // Legend styles
+    legend: {
+        flexDirection: 'column',
+        gap: 4,
+        marginTop: 8,
+        width: '100%',
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        borderLeftWidth: 3,
+    },
+    legendItemSelected: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    legendText: { flex: 1, fontSize: 11, fontWeight: '500', color: Colors.textPrimary },
+    legendValue: { fontSize: 11, fontWeight: '700', color: Colors.textPrimary },
+    legendPercent: { fontSize: 10, fontWeight: '600', marginLeft: 4 },
 });
 
 export default DonutChart;
