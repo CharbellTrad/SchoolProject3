@@ -156,10 +156,10 @@ export default function AdminDashboard() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardGeneralTab data={d} loading={loading} />;
-      case 'secundary': return <LevelTab level="secundary" levelName="Media General" data={d} color={Colors.primary} loading={loading} />;
+      case 'secundary': return <LevelTab level="secundary" levelName="Media General" data={d} color={Colors.levelSecundary} loading={loading} />;
       case 'tecnico': return <TecnicoMedioTab data={d} loading={loading} />;
-      case 'primary': return <LevelTab level="primary" levelName="Primaria" data={d} color={Colors.success} loading={loading} />;
-      case 'pre': return <LevelTab level="pre" levelName="Preescolar" data={d} color="#ec4899" loading={loading} />;
+      case 'primary': return <LevelTab level="primary" levelName="Primaria" data={d} color={Colors.levelPrimary} loading={loading} />;
+      case 'pre': return <LevelTab level="pre" levelName="Preescolar" data={d} color={Colors.levelPre} loading={loading} />;
       case 'students': return <StudentsTab data={d} loading={loading} />;
       case 'professors': return <ProfessorsTab data={d} loading={loading} />;
       case 'evaluations': return <EvaluationsTab data={d} loading={loading} />;

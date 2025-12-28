@@ -258,6 +258,13 @@ export interface LevelPerformanceJson {
     use_literal: boolean;
     literal_average?: string;
     approval_percentage: number;
+    literal_distribution?: {
+        A: number;
+        B: number;
+        C: number;
+        D: number;
+        E: number;
+    };
 }
 
 /**

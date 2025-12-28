@@ -100,7 +100,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     radius={radius}
                     innerRadius={innerRadius}
                     innerCircleColor={'#fff'}
-                    strokeWidth={2}
+                    strokeWidth={0.5}
                     strokeColor={'#fff'}
                     centerLabelComponent={() => (
                         <View style={styles.center}>

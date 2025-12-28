@@ -192,7 +192,7 @@ const normalizeDashboardData = (raw: any): DashboardData => {
 /**
  * Fetches section previews for a specific level
  */
-const fetchSectionPreviews = async (yearId: number, levelType: string, limit: number = 5): Promise<SectionPreview[]> => {
+const fetchSectionPreviews = async (yearId: number, levelType: string, limit: number = 100): Promise<SectionPreview[]> => {
     try {
         const result = await odooApi.searchRead(
             MODELS.SCHOOL_SECTION,

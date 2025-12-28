@@ -85,7 +85,7 @@ export const PolarAreaChart: React.FC<PolarAreaChartProps> = ({
                                     fill={item.color}
                                     opacity={isOther ? 0.3 : isSelected ? 1 : 0.85}
                                     stroke={isSelected ? item.color : '#fff'}
-                                    strokeWidth={isSelected ? 3 : 2}
+                                    strokeWidth={0.5}
                                     onPress={interactive ? () => setSelectedIndex(isSelected ? null : index) : undefined}
                                 />
                             </G>

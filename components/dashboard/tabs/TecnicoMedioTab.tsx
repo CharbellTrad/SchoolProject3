@@ -1,15 +1,18 @@
 /**
  * TecnicoMedioTab - Odoo-style Técnico Medio dashboard
- * Features: 4 KPI cards, approval progress bar, mentions tags, table-style Top 3
+ * Uses levelDashboard data directly for KPIs (matching Odoo's level_dashboard_kpi widget)
+ * Features: 4 KPI cards, approval progress bar, mentions tags, table-style Top 3 by mention
  */
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
-import { DashboardData } from '../../../services-odoo/dashboardService';
+import { DashboardData, LevelDashboard } from '../../../services-odoo/dashboardService';
 import { slideUpFadeIn } from '../animations';
+import { DonutChart } from '../charts';
 import {
     Card,
+    ChartSkeleton,
     ConfigRowSkeleton,
     Empty,
     ListRowSkeleton,
@@ -21,12 +24,19 @@ interface Props {
 }
 
 export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
-    const students = d?.studentsByLevel.tecnicoCount ?? 0;
-    const approved = d?.approvedByLevel.tecnicoCount ?? 0;
-    const failed = students - approved;
-    const sections = d?.sectionsByLevel.secundaryCount ?? 0;
-    const approvalPct = students > 0 ? (approved / students) * 100 : 0;
-    const levelDashboard = d?.secundaryTecnicoDashboard;
+    // Get Técnico Medio dashboard directly
+    const levelDashboard: LevelDashboard | undefined = d?.secundaryTecnicoDashboard;
+
+    // Get KPIs from levelDashboard first, fallback to individual counts
+    const students = levelDashboard?.total_students ?? d?.studentsByLevel.tecnicoCount ?? 0;
+    const approved = levelDashboard?.approved_count ?? d?.approvedByLevel.tecnicoCount ?? 0;
+    const failed = levelDashboard?.failed_count ?? (students - approved);
+    const approvalPct = levelDashboard?.approval_rate ?? (students > 0 ? (approved / students) * 100 : 0);
+
+    // Get performance data for average - find from levels array
+    const tecnicoPerformance = d?.performanceByLevel?.levels?.find(l => l.type === 'tecnico');
+    const generalAverage = tecnicoPerformance?.average ?? 0;
+
     const isLoading = loading || !d;
 
     // Get unique mentions from tecnicoStudentPreviews
@@ -70,16 +80,24 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
         return name.substring(0, 2).toUpperCase();
     };
 
+    // Get display value for student average
+    const getDisplayValue = (student: { average: string | number; use_literal?: boolean }) => {
+        if (student.use_literal) {
+            return student.average;
+        }
+        return typeof student.average === 'number' ? student.average.toFixed(1) : student.average;
+    };
+
     return (
         <View style={styles.container}>
-            {/* 1. Configuración de Evaluación */}
+            {/* Configuración de Evaluación */}
             <Card title="Configuración de Evaluación" delay={0}>
                 {isLoading ? (
                     <ConfigRowSkeleton />
                 ) : d?.evaluationConfigs.secundary ? (
                     <View style={styles.configRow}>
-                        <View style={[styles.configIcon, { backgroundColor: Colors.warning + '15' }]}>
-                            <Ionicons name="construct-outline" size={20} color={Colors.warning} />
+                        <View style={[styles.configIcon, { backgroundColor: Colors.levelTecnico + '15' }]}>
+                            <Ionicons name="construct-outline" size={20} color={Colors.levelTecnico} />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.configText}>{d.evaluationConfigs.secundary.name}</Text>
@@ -92,7 +110,7 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
                 )}
             </Card>
 
-            {/* 2. KPI Cards Row - Odoo style */}
+            {/* 4 KPI Cards Row - Using levelDashboard data */}
             <Animated.View style={[styles.kpiRow, { transform: [{ translateY: kpiAnim }], opacity: kpiOpacity }]}>
                 {/* Total Estudiantes */}
                 <View style={styles.kpiCard}>
@@ -123,15 +141,15 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
 
                 {/* Menciones */}
                 <View style={styles.kpiCard}>
-                    <View style={[styles.kpiIcon, { backgroundColor: Colors.warning + '20' }]}>
-                        <Ionicons name="school" size={18} color={Colors.warning} />
+                    <View style={[styles.kpiIcon, { backgroundColor: Colors.primary + '20' }]}>
+                        <Ionicons name="school" size={18} color={Colors.primary} />
                     </View>
-                    <Text style={[styles.kpiValue, { color: Colors.warning }]}>{isLoading ? '-' : mentionNames.length}</Text>
+                    <Text style={[styles.kpiValue, { color: Colors.primary }]}>{isLoading ? '-' : mentionNames.length}</Text>
                     <Text style={styles.kpiLabel}>Menciones</Text>
                 </View>
             </Animated.View>
 
-            {/* 3. Approval Progress Bar - Odoo style */}
+            {/* Approval Progress Bar */}
             <View style={styles.progressContainer}>
                 <View style={styles.progressHeader}>
                     <Text style={styles.progressLabel}>Tasa de Aprobación</Text>
@@ -152,7 +170,7 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
                 </View>
             </View>
 
-            {/* 4. Menciones de Técnico Medio - TAGS */}
+            {/* Menciones de Técnico Medio - TAGS */}
             <Card title="Menciones de Técnico Medio" delay={100}>
                 {isLoading ? (
                     <View style={styles.tagsContainer}>
@@ -163,16 +181,75 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
                 ) : mentionNames.length > 0 ? (
                     <View style={styles.tagsContainer}>
                         {mentionNames.map((mention, i) => (
-                            <View key={i} style={[styles.mentionTag, { backgroundColor: Colors.warning + '15' }]}>
-                                <Ionicons name="school" size={14} color={Colors.warning} />
-                                <Text style={[styles.mentionTagText, { color: Colors.warning }]}>{mention}</Text>
+                            <View key={i} style={[styles.mentionTag, { backgroundColor: Colors.levelTecnico + '15' }]}>
+                                <Ionicons name="school" size={14} color={Colors.levelTecnico} />
+                                <Text style={[styles.mentionTagText, { color: Colors.levelTecnico }]}>{mention}</Text>
                             </View>
                         ))}
                     </View>
                 ) : <Empty message="Sin menciones registradas" />}
             </Card>
 
-            {/* 5. Top 3 Estudiantes por Mención - TABLE style like Odoo */}
+            {/* Rendimiento de Técnico Medio - Matches LevelTab layout */}
+            <Card title="Rendimiento de Técnico Medio" delay={150}>
+                {isLoading ? (
+                    <ChartSkeleton type="ring" size={100} />
+                ) : (
+                    <View style={styles.numericDisplay}>
+                        {/* Side by side: Chart Left, Stats Right */}
+                        <View style={styles.rendimientoRow}>
+                            {/* Left: Chart with Total in center and legend below */}
+                            <View style={styles.chartColumn}>
+                                <DonutChart
+                                    data={[
+                                        { label: 'Aprobados', value: approved || 0, color: Colors.success },
+                                        { label: 'Reprobados', value: failed || 0, color: Colors.error },
+                                    ]}
+                                    centerValue={students || 0}
+                                    centerLabel="Total"
+                                    radius={60}
+                                    innerRadius={35}
+                                    showLegend={true}
+                                />
+                            </View>
+
+                            {/* Right: Average + State Badge */}
+                            <View style={styles.statsColumn}>
+                                {/* Average Display */}
+                                <View style={styles.averageContainer}>
+                                    <Text style={styles.averageLabel}>Promedio General</Text>
+                                    <View style={styles.averageRow}>
+                                        <Text style={[
+                                            styles.averageValue,
+                                            { color: generalAverage >= 10 ? Colors.success : Colors.error }
+                                        ]}>
+                                            {generalAverage.toFixed(1)}
+                                        </Text>
+                                        <Text style={styles.averageSuffix}>/20</Text>
+                                    </View>
+                                </View>
+
+                                {/* State Badge */}
+                                <View style={[
+                                    styles.stateBadge,
+                                    { backgroundColor: generalAverage >= 10 ? Colors.success : Colors.error }
+                                ]}>
+                                    <Ionicons
+                                        name={generalAverage >= 10 ? 'checkmark' : 'close'}
+                                        size={14}
+                                        color="#fff"
+                                    />
+                                    <Text style={styles.stateBadgeText}>
+                                        {generalAverage >= 10 ? 'Aprobado' : 'Reprobado'}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                )}
+            </Card>
+
+            {/* Top 3 Estudiantes por Mención - TABLE style like Odoo */}
             <Card title="Top 3 Estudiantes por Mención" delay={200}>
                 {isLoading ? (
                     <>
@@ -183,7 +260,7 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
                 ) : levelDashboard?.top_students_by_section?.length ? (
                     <View style={styles.tableContainer}>
                         {/* Table Header */}
-                        <View style={[styles.tableHeader, { backgroundColor: Colors.warning }]}>
+                        <View style={[styles.tableHeader, { backgroundColor: Colors.levelTecnico }]}>
                             <Text style={[styles.tableHeaderText, { width: 40 }]}>Pos.</Text>
                             <Text style={[styles.tableHeaderText, { flex: 1 }]}>Estudiante</Text>
                             <Text style={[styles.tableHeaderText, { width: 70, textAlign: 'right' }]}>Promedio</Text>
@@ -192,9 +269,9 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
                         {/* Table Body */}
                         {levelDashboard.top_students_by_section.map((sec, secIndex) => (
                             <View key={secIndex}>
-                                {/* Section Header Row */}
+                                {/* Section/Mention Header Row */}
                                 <View style={styles.sectionHeaderRow}>
-                                    <Ionicons name="school" size={12} color={Colors.warning} style={{ marginRight: 6 }} />
+                                    <Ionicons name="school" size={12} color={Colors.levelTecnico} style={{ marginRight: 6 }} />
                                     <Text style={styles.sectionHeaderText}>{sec.section_name}</Text>
                                 </View>
 
@@ -230,9 +307,7 @@ export const TecnicoMedioTab: React.FC<Props> = ({ data: d, loading }) => {
 
                                         {/* Average Badge */}
                                         <View style={styles.averageBadge}>
-                                            <Text style={styles.averageText}>
-                                                {typeof st.average === 'number' ? st.average.toFixed(1) : st.average}
-                                            </Text>
+                                            <Text style={styles.averageText}>{getDisplayValue(st)}</Text>
                                         </View>
                                     </View>
                                 ))}
@@ -255,7 +330,7 @@ const styles = StyleSheet.create({
     configSub: { fontSize: 12, color: Colors.textSecondary },
     configEmpty: { fontSize: 13, color: Colors.textTertiary, fontStyle: 'italic' },
 
-    // KPI Cards Row - Odoo style
+    // KPI Cards Row
     kpiRow: {
         flexDirection: 'row',
         gap: 8,
@@ -293,7 +368,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
 
-    // Progress Bar - Odoo style
+    // Progress Bar
     progressContainer: {
         backgroundColor: '#fff',
         borderRadius: 12,
@@ -331,7 +406,7 @@ const styles = StyleSheet.create({
     },
 
     // Mentions Tags
-    tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-around' },
     mentionTag: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -348,7 +423,64 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.skeleton.base
     },
 
-    // Table styles - Odoo style
+    // Performance - Numeric (matches Odoo general_performance_graph)
+    numericDisplay: {
+        paddingVertical: 8,
+    },
+    rendimientoRow: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    chartColumn: {
+        flex: 1,
+    },
+    statsColumn: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    averageContainer: {
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    averageLabel: {
+        fontSize: 12,
+        color: Colors.textSecondary,
+        marginBottom: 4,
+    },
+    averageRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+    },
+    averageValue: {
+        fontSize: 32,
+        fontWeight: '800',
+    },
+    averageSuffix: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.textSecondary,
+        marginLeft: 2,
+    },
+    stateBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 6,
+    },
+    stateBadgeText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#fff',
+    },
+
+    // Table styles
     tableContainer: {
         borderRadius: 8,
         overflow: 'hidden',
