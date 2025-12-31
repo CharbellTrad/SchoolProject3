@@ -51,7 +51,18 @@ const generateUUID = (): string => {
  */
 const getPersistentDeviceUUID = async (): Promise<string> => {
   try {
-    // Intentar recuperar UUID existente
+    // En web, usar localStorage en lugar de SecureStore
+    if (Platform.OS === 'web') {
+      const existingUUID = localStorage.getItem(DEVICE_UUID_KEY);
+      if (existingUUID) {
+        return existingUUID;
+      }
+      const newUUID = generateUUID();
+      localStorage.setItem(DEVICE_UUID_KEY, newUUID);
+      return newUUID;
+    }
+
+    // Intentar recuperar UUID existente (móvil)
     const existingUUID = await SecureStore.getItemAsync(DEVICE_UUID_KEY);
 
     if (existingUUID) {

@@ -14,14 +14,14 @@ const USER_SESSION_KEY = '@odoo_user_session';
 export const saveUserSession = async (session: UserSession): Promise<boolean> => {
   try {
     await AsyncStorage.setItem(USER_SESSION_KEY, JSON.stringify(session));
-    
+
     if (__DEV__) {
       console.log('💾 Sesión guardada:', {
         username: session.username,
         role: session.role,
       });
     }
-    
+
     return true;
   } catch (error) {
     if (__DEV__) {
@@ -91,7 +91,7 @@ export const updateUserSession = async (
     if (__DEV__) {
       console.log('✅ Sesión actualizada');
     }
-    
+
     return true;
   } catch (error) {
     if (__DEV__) {
@@ -107,7 +107,7 @@ export const updateUserSession = async (
 export const clearUserSession = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(USER_SESSION_KEY);
-    
+
     if (__DEV__) {
       console.log('🗑️ Sesión local eliminada');
     }

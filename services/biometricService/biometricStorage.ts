@@ -11,6 +11,39 @@ import { BiometricCredentials } from './types';
 const BIOMETRIC_KEY = 'biometric_credentials';
 const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
 
+// Helper: SecureStore no está disponible en web
+const isWeb = Platform.OS === 'web';
+
+// Funciones de almacenamiento compatible con web (usando localStorage como fallback)
+const secureGetItem = async (key: string): Promise<string | null> => {
+  if (isWeb) {
+    // En web, la biometría no está soportada de la misma manera
+    // Retornamos null para indicar "no disponible"
+    if (__DEV__) {
+      console.log('⚠️ SecureStore no disponible en web, usando null');
+    }
+    return null;
+  }
+  return SecureStore.getItemAsync(key);
+};
+
+const secureSetItem = async (key: string, value: string): Promise<void> => {
+  if (isWeb) {
+    if (__DEV__) {
+      console.log('⚠️ SecureStore no disponible en web, ignorando setItem');
+    }
+    return;
+  }
+  return SecureStore.setItemAsync(key, value);
+};
+
+const secureDeleteItem = async (key: string): Promise<void> => {
+  if (isWeb) {
+    return;
+  }
+  return SecureStore.deleteItemAsync(key);
+};
+
 /**
  * Guarda las credenciales biométricas de forma segura
  * @param username - Nombre de usuario
@@ -19,14 +52,22 @@ const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
   */
 export const saveBiometricCredentials = async (
   username: string,
-  password: string, // 🆕 Ahora también guardamos la contraseña
+  password: string,
   fullName: string,
-  imageUrl?: string // Foto del usuario
+  imageUrl?: string
 ): Promise<boolean> => {
+  // Biometría no soportada en web
+  if (isWeb) {
+    if (__DEV__) {
+      console.log('⚠️ Biometría no disponible en web');
+    }
+    return false;
+  }
+
   try {
     const credentials: BiometricCredentials = {
       username,
-      password, // 🆕 SecureStore la encripta automáticamente
+      password,
       fullName,
       imageUrl,
       isEnabled: true,
@@ -38,7 +79,6 @@ export const saveBiometricCredentials = async (
       BIOMETRIC_KEY,
       JSON.stringify(credentials),
       {
-        // 🆕 Requerir autenticación para acceder (extra seguridad)
         ...(Platform.OS === 'ios' && !__DEV__ && { requireAuthentication: true }),
       }
     );
@@ -63,9 +103,13 @@ export const saveBiometricCredentials = async (
  * @returns Credenciales o null si no existen
  */
 export const getBiometricCredentials = async (): Promise<BiometricCredentials | null> => {
+  // Biometría no soportada en web
+  if (isWeb) {
+    return null;
+  }
+
   try {
     const credentialsJson = await SecureStore.getItemAsync(BIOMETRIC_KEY, {
-      // 🆕 Requerir autenticación biométrica para leer (extra seguridad)
       ...(Platform.OS === 'ios' && !__DEV__ && { requireAuthentication: true }),
     });
 
@@ -75,7 +119,6 @@ export const getBiometricCredentials = async (): Promise<BiometricCredentials | 
 
     const credentials: BiometricCredentials = JSON.parse(credentialsJson);
 
-    // Validar integridad
     if (!credentials.username || !credentials.password || !credentials.isEnabled) {
       if (__DEV__) {
         console.warn('⚠️ Credenciales biométricas inválidas, limpiando...');
@@ -97,6 +140,8 @@ export const getBiometricCredentials = async (): Promise<BiometricCredentials | 
  * Actualiza el timestamp de último uso
  */
 export const updateLastUsed = async (): Promise<void> => {
+  if (isWeb) return;
+
   try {
     const credentials = await getBiometricCredentials();
 
@@ -122,6 +167,8 @@ export const updateLastUsed = async (): Promise<void> => {
  * @returns true si está habilitada
  */
 export const isBiometricEnabled = async (): Promise<boolean> => {
+  if (isWeb) return false;
+
   try {
     const enabled = await SecureStore.getItemAsync(BIOMETRIC_ENABLED_KEY);
     const credentials = await getBiometricCredentials();
@@ -187,6 +234,8 @@ export const getBiometricUserImage = async (): Promise<string | null> => {
  * Elimina todas las credenciales biométricas
  */
 export const clearBiometricCredentials = async (): Promise<void> => {
+  if (isWeb) return;
+
   try {
     await SecureStore.deleteItemAsync(BIOMETRIC_KEY);
     await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);
@@ -206,6 +255,8 @@ export const clearBiometricCredentials = async (): Promise<void> => {
  * (útil para pausar temporalmente)
  */
 export const disableBiometric = async (): Promise<void> => {
+  if (isWeb) return;
+
   try {
     const credentials = await getBiometricCredentials();
 

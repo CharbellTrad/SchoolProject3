@@ -69,10 +69,15 @@ export const authenticate = async (
     }
 
     let sid = extractSessionId(response.headers.get('set-cookie'));
-    
+
     // Si no se pudo extraer del header (caso web), intentar del result
     if (!sid && responseJson.result && responseJson.result.session_id) {
       sid = responseJson.result.session_id;
+    }
+
+    // Fallback: leer de X-Session-Id (expuesto por nginx/lua)
+    if (!sid) {
+      sid = response.headers.get('X-Session-Id') || '';
     }
 
     if (sid) {
