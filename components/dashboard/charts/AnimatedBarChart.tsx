@@ -24,6 +24,7 @@ interface AnimatedBarChartProps {
     height?: number;
     noOfSections?: number;
     yAxisSuffix?: string;
+    horizontal?: boolean;
 }
 
 export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
@@ -35,6 +36,7 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
     height = 180,
     noOfSections = 4,
     yAxisSuffix = '%',
+    horizontal = false,
 }) => {
     // Add top label component if showValuesOnTop
     const enhancedData = showValuesOnTop ? data.map(item => ({
@@ -66,6 +68,7 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                 frontColor={Colors.primary}
                 gradientColor={'#60a5fa'}
                 height={height}
+                horizontal={horizontal}
             />
         </View>
     );

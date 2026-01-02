@@ -3,7 +3,7 @@
  * Matches Odoo's Dashboard General structure with 7 widgets
  */
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     FadeInDown,
@@ -14,21 +14,26 @@ import { DashboardData } from '../../../services-odoo/dashboardService';
 import { DonutChart, PolarAreaChart, RadarChart, SemiCircleGauge } from '../charts';
 import {
     Card,
-    ChartSkeleton,
     Empty,
-    LevelCardSkeleton,
+    LevelCardGridSkeleton,
     ListRow,
-    ListRowSkeleton,
-    RankBadge
+    PolarAreaSkeleton,
+    RankBadge,
+    SectionCardsSkeleton,
+    SemiCircleGaugeSkeleton,
+    Top9StudentsSkeleton
 } from '../ui';
 
 interface Props {
     data: DashboardData | null;
     loading?: boolean;
+    skipAnimations?: boolean;
 }
 
-export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
-    const isLoading = loading || !d;
+export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading, skipAnimations }) => {
+    // DEBUG: Toggle skeleton visibility
+    const [forceSkeletons, setForceSkeletons] = useState(false);
+    const isLoading = forceSkeletons || loading || !d;
 
     // Helper for level styling
     const getLevelStyle = (type: string) => {
@@ -39,6 +44,33 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
             case 'tecnico': return { color: Colors.levelTecnico, icon: 'construct-outline' as const, name: 'Técnico Medio' };
             default: return { color: Colors.textSecondary, icon: 'school-outline' as const, name: type };
         }
+    };
+
+    // Get grade badge color based on average (matching Odoo)
+    // For literals: colored background
+    // For numeric: light background with colored text
+    const getGradeBadgeStyle = (average: number | string | undefined, useLiteral: boolean) => {
+        if (useLiteral && typeof average === 'string') {
+            // Literal grades get colored backgrounds like Odoo
+            const literalColors: { [key: string]: string } = {
+                'A': '#16a34a', // green
+                'B': '#0891b2', // cyan
+                'C': '#f59e0b', // amber
+                'D': '#f97316', // orange
+                'E': '#dc2626', // red
+            };
+            return {
+                backgroundColor: literalColors[average] || Colors.info,
+                textColor: '#fff',
+                borderColor: 'transparent',
+            };
+        }
+        // Numeric grades get light background with border (Odoo style)
+        return {
+            backgroundColor: '#F3F4F6',
+            textColor: Colors.textPrimary,
+            borderColor: '#E5E7EB',
+        };
     };
 
     // Prepare chart data
@@ -81,11 +113,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
             {/* 1. Rendimiento General del Año Escolar */}
             <Card title="Rendimiento General del Año Escolar" delay={0}>
                 {isLoading ? (
-                    <View style={styles.levelCardsGrid}>
-                        <LevelCardSkeleton />
-                        <LevelCardSkeleton />
-                        <LevelCardSkeleton />
-                    </View>
+                    <LevelCardGridSkeleton />
                 ) : d?.performanceByLevel?.levels?.length ? (
                     <View style={styles.levelCardsGrid}>
                         {d.performanceByLevel.levels.map((lv, i) => {
@@ -114,7 +142,6 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                             return (
                                 <Animated.View
                                     key={i}
-                                    entering={FadeInUp.delay(i * 100).duration(400)}
                                     style={styles.levelCardWrapper}
                                 >
                                     <TouchableOpacity
@@ -214,7 +241,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 <View style={styles.halfCol}>
                     <Card title="Secciones por Nivel" delay={100} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="donut" size={70} />
+                            <PolarAreaSkeleton size={130} legendItems={3} />
                         ) : sectionsDistributionData.length ? (
                             <PolarAreaChart
                                 data={sectionsDistributionData}
@@ -227,7 +254,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 <View style={styles.halfCol}>
                     <Card title="Profesores por Nivel" delay={150} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="donut" size={70} />
+                            <PolarAreaSkeleton size={130} legendItems={4} />
                         ) : professorsDistributionData.length ? (
                             <RadarChart
                                 data={professorsDistributionData}
@@ -244,7 +271,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                 <View style={styles.halfCol}>
                     <Card title="Estudiantes por Nivel" delay={200} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="donut" size={70} />
+                            <PolarAreaSkeleton size={120} legendItems={4} />
                         ) : studentsDistributionData.length ? (
                             <DonutChart
                                 data={studentsDistributionData}
@@ -258,9 +285,9 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                     </Card>
                 </View>
                 <View style={styles.halfCol}>
-                    <Card title="Tasa de Aprobación" delay={250} style={styles.fullHeight}>
+                    <Card title="Índice de Aprobación" delay={250} style={styles.fullHeight}>
                         {isLoading ? (
-                            <ChartSkeleton type="ring" size={80} />
+                            <SemiCircleGaugeSkeleton />
                         ) : (
                             <SemiCircleGauge
                                 percentage={approvalRate}
@@ -284,7 +311,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
             {/* 6. Mejor Sección por Nivel - Cards Layout (Odoo style) */}
             <Card title="Mejor Sección por Nivel" delay={300}>
                 {isLoading ? (
-                    <ChartSkeleton type="bar" height={180} />
+                    <SectionCardsSkeleton />
                 ) : d?.sectionsComparison?.sections?.length ? (
                     <View style={styles.sectionsCardsGrid}>
                         {d.sectionsComparison.sections.slice(0, 4).map((section, index) => {
@@ -305,7 +332,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                             return (
                                 <Animated.View
                                     key={section.section_id}
-                                    entering={FadeInUp.delay(index * 80).duration(400)}
+                                    entering={skipAnimations ? undefined : FadeInUp.delay(index * 80).duration(400)}
                                     style={[
                                         styles.sectionCard,
                                         { borderLeftColor: levelStyle.color },
@@ -356,18 +383,14 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
             {/* 7. Top 9 Mejores Estudiantes (3 por nivel) */}
             <Card title="Top 9 Mejores Estudiantes" delay={350}>
                 {isLoading ? (
-                    <>
-                        <ListRowSkeleton hasAvatar hasBadge />
-                        <ListRowSkeleton hasAvatar hasBadge />
-                        <ListRowSkeleton hasAvatar hasBadge />
-                    </>
+                    <Top9StudentsSkeleton />
                 ) : (d?.topStudentsYear?.top_primary?.length ||
                     d?.topStudentsYear?.top_secundary?.length ||
                     d?.topStudentsYear?.top_tecnico?.length) ? (
                     <View style={styles.topStudentsContainer}>
                         {/* Primaria */}
                         {d?.topStudentsYear?.top_primary?.length ? (
-                            <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                            <Animated.View entering={skipAnimations ? undefined : FadeInDown.delay(100).duration(400)}>
                                 <View style={styles.levelSection}>
                                     <View style={[styles.levelBadge, { backgroundColor: Colors.levelPrimary + '15' }]}>
                                         <Ionicons name="book-outline" size={14} color={Colors.levelPrimary} />
@@ -381,9 +404,21 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                                             <Text style={styles.studentName}>{st.student_name}</Text>
                                             <Text style={styles.studentSection}>{st.section}</Text>
                                         </View>
-                                        <Text style={styles.studentAvg}>
-                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
-                                        </Text>
+                                        <View style={[
+                                            styles.gradeBadge,
+                                            {
+                                                backgroundColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).backgroundColor,
+                                                borderColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).borderColor,
+                                                borderWidth: st.use_literal ? 0 : 1,
+                                            }
+                                        ]}>
+                                            <Text style={[
+                                                styles.gradeBadgeText,
+                                                { color: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).textColor }
+                                            ]}>
+                                                {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                            </Text>
+                                        </View>
                                     </ListRow>
                                 ))}
                             </Animated.View>
@@ -391,7 +426,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
 
                         {/* Media General */}
                         {d?.topStudentsYear?.top_secundary?.length ? (
-                            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+                            <Animated.View entering={skipAnimations ? undefined : FadeInDown.delay(200).duration(400)}>
                                 <View style={styles.levelSection}>
                                     <View style={[styles.levelBadge, { backgroundColor: Colors.levelSecundary + '15' }]}>
                                         <Ionicons name="library-outline" size={14} color={Colors.levelSecundary} />
@@ -405,9 +440,21 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                                             <Text style={styles.studentName}>{st.student_name}</Text>
                                             <Text style={styles.studentSection}>{st.section}</Text>
                                         </View>
-                                        <Text style={styles.studentAvg}>
-                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
-                                        </Text>
+                                        <View style={[
+                                            styles.gradeBadge,
+                                            {
+                                                backgroundColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).backgroundColor,
+                                                borderColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).borderColor,
+                                                borderWidth: st.use_literal ? 0 : 1,
+                                            }
+                                        ]}>
+                                            <Text style={[
+                                                styles.gradeBadgeText,
+                                                { color: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).textColor }
+                                            ]}>
+                                                {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                            </Text>
+                                        </View>
                                     </ListRow>
                                 ))}
                             </Animated.View>
@@ -415,7 +462,7 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
 
                         {/* Técnico Medio */}
                         {d?.topStudentsYear?.top_tecnico?.length ? (
-                            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+                            <Animated.View entering={skipAnimations ? undefined : FadeInDown.delay(300).duration(400)}>
                                 <View style={styles.levelSection}>
                                     <View style={[styles.levelBadge, { backgroundColor: Colors.levelTecnico + '15' }]}>
                                         <Ionicons name="construct-outline" size={14} color={Colors.levelTecnico} />
@@ -429,9 +476,21 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                                             <Text style={styles.studentName}>{st.student_name}</Text>
                                             <Text style={styles.studentSection}>{st.section}</Text>
                                         </View>
-                                        <Text style={styles.studentAvg}>
-                                            {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
-                                        </Text>
+                                        <View style={[
+                                            styles.gradeBadge,
+                                            {
+                                                backgroundColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).backgroundColor,
+                                                borderColor: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).borderColor,
+                                                borderWidth: st.use_literal ? 0 : 1,
+                                            }
+                                        ]}>
+                                            <Text style={[
+                                                styles.gradeBadgeText,
+                                                { color: getGradeBadgeStyle(st.use_literal ? st.literal_average : st.average, st.use_literal).textColor }
+                                            ]}>
+                                                {st.use_literal ? st.literal_average : (typeof st.average === 'number' ? st.average.toFixed(1) : '-')}
+                                            </Text>
+                                        </View>
                                     </ListRow>
                                 ))}
                             </Animated.View>
@@ -439,6 +498,22 @@ export const DashboardGeneralTab: React.FC<Props> = ({ data: d, loading }) => {
                     </View>
                 ) : <Empty message="Sin datos de estudiantes" />}
             </Card>
+
+            {/* DEBUG: Toggle Skeletons Button - REMOVE AFTER TESTING */}
+            {/* <TouchableOpacity
+                onPress={() => setForceSkeletons(!forceSkeletons)}
+                style={{
+                    backgroundColor: forceSkeletons ? Colors.error : Colors.success,
+                    padding: 12,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                    marginTop: 8,
+                }}
+            >
+                <Text style={{ color: '#fff', fontWeight: '700' }}>
+                    {forceSkeletons ? '🔴 Skeletons ON' : '🟢 Skeletons OFF'}
+                </Text>
+            </TouchableOpacity> */}
         </View>
     );
 };
@@ -610,10 +685,10 @@ const styles = StyleSheet.create({
     sectionsCardsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        rowGap: 10,
     },
     sectionCard: {
-        width: '48%',
+        width: '50%',
         backgroundColor: '#fff',
         borderRadius: 10,
         padding: 12,
@@ -716,10 +791,17 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: Colors.textSecondary,
     },
-    studentAvg: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: Colors.success,
+    gradeBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 6,
+        minWidth: 52,
+        alignItems: 'center',
+    },
+    gradeBadgeText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#fff',
     },
 });
 

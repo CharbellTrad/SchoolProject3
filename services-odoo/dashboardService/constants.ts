@@ -106,8 +106,9 @@ export const LEVEL_DASHBOARD_FIELDS = [
  * Professors tab JSON fields
  */
 export const PROFESSORS_TAB_FIELDS = [
+    'professor_dashboard_json',       // Main dashboard data (KPIs, top5, distribution)
     'professor_summary_json',
-    'professor_detailed_stats_json',  // NEW: Stats by student type
+    'professor_detailed_stats_json',  // Stats by student type
     'difficult_subjects_json',
 ] as const;
 

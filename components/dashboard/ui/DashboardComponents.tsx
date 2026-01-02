@@ -10,6 +10,7 @@ import {
     Animated,
     Platform,
     Pressable,
+    StyleProp,
     StyleSheet,
     Text,
     View,
@@ -29,10 +30,11 @@ interface ShimmerProps {
     width: number | string;
     height: number;
     borderRadius?: number;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
+    highlightColor?: string; // Restore highlightColor prop
 }
 
-export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 8, style }) => {
+export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 8, style, highlightColor }) => {
     const translateX = useRef(new Animated.Value(-150)).current;
 
     useEffect(() => {
@@ -60,6 +62,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 
             <Animated.View
                 style={[
                     styles.shimmerWave,
+                    highlightColor && { backgroundColor: highlightColor }, // Allow custom highlight
                     {
                         transform: [{ translateX }],
                     },
@@ -71,14 +74,28 @@ export const Shimmer: React.FC<ShimmerProps> = ({ width, height, borderRadius = 
 
 // ==================== SKELETON COMPOSITE COMPONENTS ====================
 
+// Specific Shimmer for Dark Backgrounds (White/Transparent)
+export const DarkShimmer: React.FC<ShimmerProps> = (props) => (
+    <Shimmer
+        {...props}
+        style={[{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }, props.style]}
+        highlightColor="rgba(255, 255, 255, 0.12)"
+    />
+);
+
 // Circle shimmer for icons/avatars
 interface CircleShimmerProps {
     size: number;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 }
 
 export const CircleShimmer: React.FC<CircleShimmerProps> = ({ size, style }) => (
     <Shimmer width={size} height={size} borderRadius={size / 2} style={style} />
+);
+
+// Specific CircleShimmer for Dark Backgrounds
+export const DarkCircleShimmer: React.FC<CircleShimmerProps> = ({ size, style }) => (
+    <DarkShimmer width={size} height={size} borderRadius={size / 2} style={style} />
 );
 
 // KPI Card Skeleton (for dashboard header KPIs)
@@ -99,35 +116,111 @@ export const KPICardSkeleton: React.FC = () => {
     );
 };
 
-// Stat Card Skeleton (for level tabs stats row)
+// Stat Card Skeleton (for level tabs stats row) - Matches new KPI card structure
 export const StatCardSkeleton: React.FC = () => {
     return (
-        <View style={[styles.statCard, { flex: 1 }]}>
-            <Shimmer width={50} height={28} borderRadius={8} style={{ marginBottom: 6 }} />
-            <Shimmer width={70} height={12} borderRadius={6} />
+        <View style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            borderRadius: 12,
+            padding: 12,
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 2,
+        }}>
+            {/* Icon shimmer */}
+            <CircleShimmer size={32} style={{ marginBottom: 6 }} />
+            {/* Value shimmer */}
+            <Shimmer width={40} height={18} borderRadius={6} style={{ marginBottom: 4 }} />
+            {/* Label shimmer */}
+            <Shimmer width={50} height={10} borderRadius={4} />
         </View>
     );
 };
 
-// Chart Skeleton (for donut, ring gauge, bar charts)
+// Chart Skeleton - Enhanced to match actual chart structures
 interface ChartSkeletonProps {
-    type: 'ring' | 'donut' | 'bar';
+    type: 'ring' | 'donut' | 'bar' | 'distribution';
     size?: number;
     height?: number;
+    showLegend?: boolean;
 }
 
-export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({ type, size = 120, height = 140 }) => {
+export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({ type, size = 120, height = 140, showLegend = true }) => {
     if (type === 'bar') {
+        // Horizontal bar chart skeleton (like Materias con Mayor Dificultad)
         return (
-            <View style={{ height, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', paddingHorizontal: 20 }}>
-                {[0.6, 0.8, 0.5, 0.9, 0.7, 0.4].map((h, i) => (
-                    <Shimmer key={i} width={24} height={height * h} borderRadius={4} />
+            <View style={{ gap: 8, paddingVertical: 8 }}>
+                {[0.85, 0.7, 0.6, 0.5, 0.4].map((w, i) => (
+                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Shimmer width={80} height={10} borderRadius={4} />
+                        <View style={{ flex: 1 }}>
+                            <Shimmer width={`${w * 100}%`} height={16} borderRadius={4} />
+                        </View>
+                        <Shimmer width={30} height={10} borderRadius={4} />
+                    </View>
                 ))}
             </View>
         );
     }
 
-    // Ring or Donut
+    if (type === 'distribution') {
+        // Distribution with donut + legend (like Distribución de Evaluaciones)
+        return (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                {/* Donut */}
+                <View style={{ alignItems: 'center' }}>
+                    <View style={{
+                        width: size,
+                        height: size,
+                        borderRadius: size / 2,
+                        backgroundColor: Colors.skeleton.base,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                        <View style={{
+                            width: size - 30,
+                            height: size - 30,
+                            borderRadius: (size - 30) / 2,
+                            backgroundColor: '#fff',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}>
+                            <Shimmer width={30} height={20} borderRadius={6} />
+                            <Shimmer width={24} height={8} borderRadius={3} style={{ marginTop: 4 }} />
+                        </View>
+                    </View>
+                </View>
+                {/* Legend */}
+                {showLegend && (
+                    <View style={{ flex: 1, gap: 6 }}>
+                        {[1, 2, 3, 4].map((_, i) => (
+                            <View key={i} style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: 8,
+                                borderRadius: 6,
+                                backgroundColor: Colors.skeleton.base + '30',
+                                borderLeftWidth: 4,
+                                borderLeftColor: Colors.skeleton.base,
+                                gap: 6,
+                            }}>
+                                <CircleShimmer size={14} />
+                                <Shimmer width={60} height={10} borderRadius={4} style={{ flex: 1 }} />
+                                <Shimmer width={20} height={10} borderRadius={4} />
+                                <Shimmer width={28} height={10} borderRadius={4} />
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </View>
+        );
+    }
+
+    // Ring or Donut (with centered value)
     return (
         <View style={{ alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <View style={{
@@ -143,7 +236,13 @@ export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({ type, size = 120, 
                     height: size - 32,
                     borderRadius: (size - 32) / 2,
                     backgroundColor: '#fff',
-                }} />
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                    {/* Center content shimmer */}
+                    <Shimmer width={size / 3} height={size / 5} borderRadius={6} />
+                    <Shimmer width={size / 4} height={8} borderRadius={3} style={{ marginTop: 4 }} />
+                </View>
             </View>
         </View>
     );
@@ -171,53 +270,94 @@ export const TableRowSkeleton: React.FC<TableRowSkeletonProps> = ({ columns = 4,
     );
 };
 
-// List Row Skeleton (for student/professors lists)
+// List Row Skeleton (for Top student/professors lists)
+// Matches: RankBadge | Avatar | Name + Section | Score
 interface ListRowSkeletonProps {
     hasAvatar?: boolean;
     hasBadge?: boolean;
+    hasRank?: boolean;
 }
 
-export const ListRowSkeleton: React.FC<ListRowSkeletonProps> = ({ hasAvatar = true, hasBadge = false }) => {
+export const ListRowSkeleton: React.FC<ListRowSkeletonProps> = ({ hasAvatar = true, hasBadge = false, hasRank = true }) => {
     return (
-        <View style={styles.listRowSkeleton}>
-            {hasAvatar && <CircleShimmer size={40} />}
-            <View style={{ flex: 1, marginLeft: hasAvatar ? 12 : 0, gap: 6 }}>
-                <Shimmer width="70%" height={14} borderRadius={6} />
-                <Shimmer width="50%" height={10} borderRadius={4} />
+        <View style={[styles.listRowSkeleton, { borderBottomWidth: 1, borderBottomColor: Colors.borderLight }]}>
+            {/* Rank Badge */}
+            {hasRank && (
+                <View style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    backgroundColor: Colors.skeleton.base,
+                    marginRight: 12,
+                }} />
+            )}
+            {/* Avatar */}
+            {hasAvatar && <CircleShimmer size={36} />}
+            {/* Name + Section */}
+            <View style={{ flex: 1, marginLeft: 12, gap: 4 }}>
+                <Shimmer width="65%" height={13} borderRadius={6} />
+                <Shimmer width="40%" height={10} borderRadius={4} />
             </View>
-            {hasBadge && <Shimmer width={60} height={24} borderRadius={8} />}
+            {/* Score Badge */}
+            {hasBadge && (
+                <View style={{
+                    width: 42,
+                    height: 28,
+                    borderRadius: 8,
+                    backgroundColor: Colors.skeleton.base,
+                }} />
+            )}
         </View>
     );
 };
 
 // Level Card Skeleton (for DashboardGeneralTab performance cards)
+// Uses same layout as actual levelCardWrapper: flexBasis 48%, 2 cards per row
 export const LevelCardSkeleton: React.FC = () => {
     return (
-        <View style={styles.levelCardSkeleton}>
-            {/* Header */}
-            <View style={styles.levelCardSkeletonHeader}>
-                <CircleShimmer size={24} />
-                <Shimmer width={100} height={14} borderRadius={6} style={{ marginLeft: 8 }} />
-            </View>
-            {/* Stats row */}
-            <View style={styles.levelCardSkeletonStats}>
-                <View style={{ alignItems: 'center' }}>
-                    <Shimmer width={40} height={22} borderRadius={6} />
-                    <Shimmer width={60} height={10} borderRadius={4} style={{ marginTop: 4 }} />
+        <View style={{
+            flexBasis: '48%',
+            flexGrow: 1,
+            minWidth: 140,
+        }}>
+            <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 14,
+                borderWidth: 1.5,
+                borderColor: Colors.borderLight,
+                overflow: 'hidden',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+                elevation: 2,
+            }}>
+                {/* Header */}
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 10,
+                    backgroundColor: Colors.skeleton.base + '30',
+                }}>
+                    <CircleShimmer size={28} />
+                    <Shimmer width={80} height={12} borderRadius={6} style={{ marginLeft: 8, flex: 1 }} />
+                    <Shimmer width={28} height={20} borderRadius={10} />
                 </View>
-                <View style={{ alignItems: 'center' }}>
-                    <Shimmer width={40} height={22} borderRadius={6} />
-                    <Shimmer width={50} height={10} borderRadius={4} style={{ marginTop: 4 }} />
+                {/* Main Display */}
+                <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+                    <Shimmer width={50} height={38} borderRadius={10} />
                 </View>
-            </View>
-            {/* Progress bar */}
-            <View style={{ paddingHorizontal: 14, marginBottom: 10 }}>
-                <Shimmer width="100%" height={24} borderRadius={6} />
-            </View>
-            {/* Footer */}
-            <View style={styles.levelCardSkeletonFooter}>
-                <Shimmer width={80} height={12} borderRadius={4} />
-                <Shimmer width={70} height={12} borderRadius={4} />
+                {/* Footer */}
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-around',
+                    paddingVertical: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: Colors.borderLight,
+                }}>
+                    <Shimmer width={60} height={12} borderRadius={4} />
+                    <Shimmer width={60} height={12} borderRadius={4} />
+                </View>
             </View>
         </View>
     );
@@ -262,12 +402,70 @@ export const DistributionRowSkeleton: React.FC = () => {
     );
 };
 
+// Top Table Skeleton (for tables with header like Top Estudiantes)
+interface TopTableSkeletonProps {
+    rows?: number;
+    color?: string;
+}
 
+export const TopTableSkeleton: React.FC<TopTableSkeletonProps> = ({ rows = 5, color = Colors.primary }) => {
+    return (
+        <View style={{ borderRadius: 8, overflow: 'hidden' }}>
+            {/* Table Header */}
+            <View style={{
+                flexDirection: 'row',
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                backgroundColor: color,
+            }}>
+                <Shimmer width={36} height={10} borderRadius={4} style={{ opacity: 0.5 }} />
+                <Shimmer width={80} height={10} borderRadius={4} style={{ flex: 1, marginLeft: 12, opacity: 0.5 }} />
+                <Shimmer width={50} height={10} borderRadius={4} style={{ opacity: 0.5 }} />
+                <Shimmer width={40} height={10} borderRadius={4} style={{ marginLeft: 8, opacity: 0.5 }} />
+            </View>
+            {/* Table Rows */}
+            {Array.from({ length: rows }).map((_, i) => (
+                <View key={i} style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 10,
+                    paddingHorizontal: 12,
+                    backgroundColor: i % 2 === 0 ? '#FAFAFA' : '#fff',
+                    borderBottomWidth: 1,
+                    borderBottomColor: Colors.borderLight,
+                }}>
+                    {/* Rank */}
+                    <View style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
+                        backgroundColor: i < 3 ? Colors.skeleton.base : 'transparent',
+                    }} />
+                    {/* Avatar + Name */}
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: 12 }}>
+                        <CircleShimmer size={28} />
+                        <Shimmer width="60%" height={12} borderRadius={4} style={{ marginLeft: 10 }} />
+                    </View>
+                    {/* Section */}
+                    <Shimmer width={50} height={10} borderRadius={4} />
+                    {/* Average */}
+                    <View style={{
+                        width: 36,
+                        height: 22,
+                        borderRadius: 6,
+                        backgroundColor: Colors.skeleton.base,
+                        marginLeft: 8,
+                    }} />
+                </View>
+            ))}
+        </View>
+    );
+};
 // ==================== CARD ====================
 interface CardProps {
     title?: string;
     children: React.ReactNode;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     glassmorphism?: boolean;
     animate?: boolean;
     delay?: number;
@@ -549,10 +747,12 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({ name, color = Colo
 // ==================== RANK BADGE ====================
 interface RankBadgeProps {
     rank: number;
+    showIcon?: boolean;
+    highlightTop?: boolean; // If false, top 3 positions won't have special styling
 }
 
-export const RankBadge: React.FC<RankBadgeProps> = ({ rank }) => {
-    const isTop3 = rank <= 3;
+export const RankBadge: React.FC<RankBadgeProps> = ({ rank, showIcon = true, highlightTop = true }) => {
+    const isTop3 = rank <= 3 && highlightTop;
     const medals = ['🥇', '🥈', '🥉'];
     const colors = [Colors.warning, Colors.textTertiary, '#cd7f32'];
 
@@ -563,7 +763,7 @@ export const RankBadge: React.FC<RankBadgeProps> = ({ rank }) => {
             isTop3 && { backgroundColor: colors[rank - 1] + '20' }
         ]}>
             <Text style={[styles.rankText, isTop3 && styles.rankTextTop]}>
-                {isTop3 ? medals[rank - 1] : rank}
+                {isTop3 && showIcon ? medals[rank - 1] : rank}
             </Text>
         </View>
     );

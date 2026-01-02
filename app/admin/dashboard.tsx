@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserAvatar } from '../../components/common/UserAvatar';
 import {
   AnimatedBadge,
@@ -27,6 +27,7 @@ import {
   EvaluationsTab,
   GlassButton,
   LapsosTimeline,
+  LapsosTimelineSkeleton,
   LevelTab,
   ProfessorsTab,
   StudentsTab,
@@ -78,11 +79,43 @@ export default function AdminDashboard() {
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState<string>('');
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
+  const [forceSkeletons, setForceSkeletons] = useState(false); // Debug state
+  const insets = useSafeAreaInsets();
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const isInitialLoadRef = useRef(true); // Track if this is the first load
 
   // Animation refs
   const headerOpacity = useRef(new Animated.Value(0)).current;
   const kpiTranslateY = useRef(new Animated.Value(30)).current;
   const kpiOpacity = useRef(new Animated.Value(0)).current;
+
+  // Scroll Animation for LapsosTimelinee
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const timelineHeight = scrollY.interpolate({
+    inputRange: [0, 250], // Extended range for ultra-smooth animation
+    outputRange: [100, 0],
+    extrapolate: 'clamp',
+  });
+
+  const timelineOpacity = scrollY.interpolate({
+    inputRange: [0, 180], // Stays visible longer
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const timelineTranslateY = scrollY.interpolate({
+    inputRange: [0, 250],
+    outputRange: [0, -30], // Slightly more movement for parallax feel
+    extrapolate: 'clamp',
+  });
+
+  const timelineMargin = scrollY.interpolate({
+    inputRange: [0, 250],
+    outputRange: [8, 0],
+    extrapolate: 'clamp',
+  });
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -100,6 +133,12 @@ export default function AdminDashboard() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    // User requested "enter from zero" experience:
+    setLoading(true);
+    setForceSkeletons(false);
+    scrollY.setValue(0);
+    isInitialLoadRef.current = false; // Mark as NOT initial load for animations
+
     try {
       const serverHealth = await authService.checkServerHealth();
       if (!serverHealth.ok) {
@@ -122,6 +161,7 @@ export default function AdminDashboard() {
       setIsOfflineMode(true);
     } finally {
       setRefreshing(false);
+      setLoading(false); // Ensure skeletons turn off even if checks fail early
     }
   }, [updateUser, loadDashboardData]);
 
@@ -145,6 +185,11 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
+  // Scroll to top when switching tabs
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  }, [activeTab]);
+
   const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
   const handleLogout = async () => { await logout(); router.push('/login'); };
 
@@ -154,15 +199,16 @@ export default function AdminDashboard() {
   const d = dashboardData;
 
   const renderTabContent = () => {
+    const skipAnimations = !isInitialLoadRef.current;
     switch (activeTab) {
-      case 'dashboard': return <DashboardGeneralTab data={d} loading={loading} />;
-      case 'secundary': return <LevelTab level="secundary" levelName="Media General" data={d} color={Colors.levelSecundary} loading={loading} />;
-      case 'tecnico': return <TecnicoMedioTab data={d} loading={loading} />;
-      case 'primary': return <LevelTab level="primary" levelName="Primaria" data={d} color={Colors.levelPrimary} loading={loading} />;
-      case 'pre': return <LevelTab level="pre" levelName="Preescolar" data={d} color={Colors.levelPre} loading={loading} />;
-      case 'students': return <StudentsTab data={d} loading={loading} />;
-      case 'professors': return <ProfessorsTab data={d} loading={loading} />;
-      case 'evaluations': return <EvaluationsTab data={d} loading={loading} />;
+      case 'dashboard': return <DashboardGeneralTab data={d} loading={loading} skipAnimations={skipAnimations} />;
+      case 'secundary': return <LevelTab level="secundary" levelName="Media General" data={d} color={Colors.levelSecundary} loading={loading} skipAnimations={skipAnimations} />;
+      case 'tecnico': return <TecnicoMedioTab data={d} loading={loading} skipAnimations={skipAnimations} />;
+      case 'primary': return <LevelTab level="primary" levelName="Primaria" data={d} color={Colors.levelPrimary} loading={loading} skipAnimations={skipAnimations} />;
+      case 'pre': return <LevelTab level="pre" levelName="Preescolar" data={d} color={Colors.levelPre} loading={loading} skipAnimations={skipAnimations} />;
+      case 'students': return <StudentsTab data={d} loading={loading} skipAnimations={skipAnimations} />;
+      case 'professors': return <ProfessorsTab data={d} loading={loading} skipAnimations={skipAnimations} />;
+      case 'evaluations': return <EvaluationsTab data={d} loading={loading} skipAnimations={skipAnimations} />;
       default: return null;
     }
   };
@@ -177,7 +223,7 @@ export default function AdminDashboard() {
           colors={[Colors.primary, '#1e3a8a']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.header}
+          style={[styles.header, { paddingTop: insets.top }]}
         >
           {/* Background Texture/Pattern */}
           <View style={styles.headerPattern} />
@@ -215,13 +261,35 @@ export default function AdminDashboard() {
             </View>
             {/* Lapsos Timeline - Matches Odoo's lapsos_timeline widget */}
             {d?.schoolYear?.state !== 'draft' && (
-              <LapsosTimeline
-                currentLapso={d?.schoolYear?.currentLapso || '1'}
-                state={d?.schoolYear?.state || 'active'}
-                startDate={d?.schoolYear?.startDateReal}
-                endDate={d?.schoolYear?.endDateReal}
-              />
+              <Animated.View style={{
+                height: timelineHeight,
+                opacity: timelineOpacity,
+                transform: [{ translateY: timelineTranslateY }],
+                marginTop: timelineMargin,
+                overflow: 'hidden'
+              }}>
+                {loading || !d || forceSkeletons ? (
+                  <LapsosTimelineSkeleton />
+                ) : (
+                  <LapsosTimeline
+                    currentLapso={d?.schoolYear?.currentLapso || '1'}
+                    state={d?.schoolYear?.state || 'active'}
+                    startDate={d?.schoolYear?.startDateReal}
+                    endDate={d?.schoolYear?.endDateReal}
+                  />
+                )}
+              </Animated.View>
             )}
+
+            {/* DEBUG: Toggle Skeleton Button */}
+            {/* <TouchableOpacity
+              onPress={() => setForceSkeletons(!forceSkeletons)}
+              style={{ padding: 4, backgroundColor: 'rgba(0,0,0,0.2)', alignSelf: 'center', borderRadius: 8, marginTop: 4, marginBottom: -4 }}
+            >
+              <Text style={{ fontSize: 10, color: '#fff', fontWeight: 'bold' }}>
+                {forceSkeletons ? '🔴 Hide Skeleton' : '🟢 Show Skeleton'}
+              </Text>
+            </TouchableOpacity> */}
           </Animated.View>
         </LinearGradient>
 
@@ -253,9 +321,15 @@ export default function AdminDashboard() {
 
           {/* Content Area */}
           <ScrollView
+            ref={scrollViewRef}
             style={styles.content}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} tintColor={Colors.primary} />}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: false } // height animation requires useNativeDriver: false
+            )}
+            scrollEventThrottle={16}
           >
             <View style={styles.contentInner}>
               {isOfflineMode && (
@@ -285,7 +359,7 @@ export default function AdminDashboard() {
           </ScrollView>
         </View>
       </View>
-    </SafeAreaProvider>
+    </SafeAreaProvider >
   );
 }
 
@@ -294,10 +368,10 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    paddingTop: Platform.OS === 'android' ? 44 : 54,
-    paddingBottom: 25, // Extra padding for KPI overlap
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    // paddingTop: Platform.OS === 'android' ? 44 : 54, // Reduced top padding
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24, // Slightly smaller radius
+    borderBottomRightRadius: 24,
     overflow: 'hidden',
     zIndex: 1,
   },
@@ -307,17 +381,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     opacity: 0.1,
-    backgroundColor: Colors.primary, // Could be replaced with an image pattern
+    backgroundColor: Colors.primary,
   },
-  headerContent: { paddingHorizontal: 20, zIndex: 1 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, zIndex: 1 },
+  headerContent: { paddingHorizontal: 16, zIndex: 1 }, // Reduced horizontal padding
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, zIndex: 1 },
   headerCenter: { alignItems: 'center', flex: 1, zIndex: 1 },
-  yearName: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 4, zIndex: 1 },
-  greetingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 4, zIndex: 1 },
-  greeting: { fontSize: 26, fontWeight: '800', color: '#fff', zIndex: 1 },
-  subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 4, zIndex: 1 },
-  dateBadge: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', zIndex: 1 },
-  dateText: { fontSize: 12, fontWeight: '600', color: '#fff', zIndex: 1 },
+  yearName: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 2, zIndex: 1 }, // Smaller year font
+  greetingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4, zIndex: 1 },
+  greeting: { fontSize: 20, fontWeight: '800', color: '#fff', zIndex: 1 }, // Smaller greeting font (26 -> 20)
+  subtitle: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 4, zIndex: 1 },
+  dateBadge: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', zIndex: 1 },
+  dateText: { fontSize: 11, fontWeight: '600', color: '#fff', zIndex: 1 },
 
   // Main Container & KPI overlap
   mainContainer: { flex: 1 },
@@ -328,33 +402,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
-    paddingTop: 13,
-    marginTop: -10,
-    paddingVertical: 4,
+    paddingTop: 8, // Reduced padding
+    marginTop: -8, // Tighter overlap
+    paddingVertical: 2, // Reduced vertical padding
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4 },
       android: { elevation: 2 }
     })
   },
-  tabScroll: { paddingHorizontal: 16, gap: 4 },
+  tabScroll: { paddingHorizontal: 12, gap: 4 }, // Reduced horizontal padding
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12, // Reduced tap padding
+    paddingVertical: 10,
     borderRadius: 12,
-    gap: 8,
+    gap: 6,
     position: 'relative',
   },
   tabActive: { backgroundColor: Colors.primary + '08' },
-  activeIcon: { transform: [{ scale: 1.1 }] },
-  tabText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
+  activeIcon: { transform: [{ scale: 1.05 }] }, // Slightly smaller scale
+  tabText: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary }, // Smaller tab text
   tabTextActive: { color: Colors.primary, fontWeight: '700' },
   activeIndicator: {
     position: 'absolute',
     bottom: 0,
-    left: 16,
-    right: 16,
+    left: 12,
+    right: 12,
     height: 3,
     backgroundColor: Colors.primary,
     borderTopLeftRadius: 3,
@@ -363,24 +437,24 @@ const styles = StyleSheet.create({
 
   // Content
   content: { flex: 1 },
-  contentInner: { padding: 16, paddingBottom: 100 },
+  contentInner: { padding: 12, paddingBottom: 100 }, // Compact content padding
 
   // Offline
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f59e0b',
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 20,
-    gap: 10,
+    padding: 10, // Compact banner
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
     shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3
   },
-  offlineText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  offlineText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 
   // Footer
   footer: {
@@ -388,16 +462,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 20,
-    marginTop: 20,
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 16,
     borderWidth: 1,
     borderColor: Colors.borderLight,
   },
-  sessionInfo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  sessionText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '500' },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.error + '10', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
-  logoutText: { fontSize: 13, fontWeight: '700', color: Colors.error },
-  versionText: { textAlign: 'center', marginTop: 16, color: Colors.textTertiary, fontSize: 11 },
+  sessionInfo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  sessionText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.error + '10', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+  logoutText: { fontSize: 12, fontWeight: '700', color: Colors.error },
+  versionText: { textAlign: 'center', marginTop: 12, color: Colors.textTertiary, fontSize: 10 },
 });

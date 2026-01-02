@@ -4,7 +4,7 @@
  * Features: 4 KPI cards, approval progress bar, Grados tags, Rendimiento by type, table-style Top 3 students
  */
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData, LevelDashboard, PreObservationItem, SectionPreview } from '../../../services-odoo/dashboardService';
@@ -12,10 +12,14 @@ import { slideUpFadeIn } from '../animations';
 import { DonutChart } from '../charts';
 import {
     Card,
-    ChartSkeleton,
     ConfigRowSkeleton,
     Empty,
-    ListRowSkeleton,
+    GradeTagsSkeleton,
+    KPIRowSkeleton,
+    ProgressBarSkeleton,
+    RendimientoSkeleton,
+    TimelineSkeleton,
+    TopTableSkeletonPro as TopTableSkeleton
 } from '../ui';
 
 interface Props {
@@ -24,9 +28,10 @@ interface Props {
     data: DashboardData | null;
     color: string;
     loading?: boolean;
+    skipAnimations?: boolean;
 }
 
-export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, loading }) => {
+export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, loading, skipAnimations }) => {
     // Get level-specific dashboard directly (contains all KPI data as per Odoo)
     const levelDashboard: LevelDashboard | undefined = level === 'secundary'
         ? d?.secundaryGeneralDashboard
@@ -76,7 +81,9 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
     // Preschool observations timeline
     const preObservations = level === 'pre' ? d?.preObservationsTimeline : null;
 
-    const isLoading = loading || !d;
+    // DEBUG: Toggle skeleton visibility
+    const [forceSkeletons, setForceSkeletons] = useState(false);
+    const isLoading = forceSkeletons || loading || !d;
 
     // Level title for Grados section
     const gradosTitle = level === 'secundary' ? 'Grados de Media General'
@@ -89,8 +96,13 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
     const kpiOpacity = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        slideUpFadeIn(kpiAnim, kpiOpacity, 300, 100).start();
-    }, []);
+        if (skipAnimations) {
+            kpiAnim.setValue(0);
+            kpiOpacity.setValue(1);
+        } else {
+            slideUpFadeIn(kpiAnim, kpiOpacity, 300, 100).start();
+        }
+    }, [skipAnimations]);
 
     // Get progress bar color based on approval rate
     const getProgressColor = (rate: number) => {
@@ -158,73 +170,81 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
             </Card>
 
             {/* 4 KPI Cards Row - Using levelDashboard data directly */}
-            <Animated.View style={[styles.kpiRow, { transform: [{ translateY: kpiAnim }], opacity: kpiOpacity }]}>
-                {/* Total Estudiantes */}
-                <View style={styles.kpiCard}>
-                    <View style={[styles.kpiIcon, { backgroundColor: '#6B7280' + '20' }]}>
-                        <Ionicons name="people" size={18} color="#6B7280" />
-                    </View>
-                    <Text style={styles.kpiValue}>{isLoading ? '-' : students ?? 0}</Text>
-                    <Text style={styles.kpiLabel}>Total Estudiantes</Text>
-                </View>
+            <Card title="Estadísticas de Estudiantes" delay={50}>
+                {isLoading ? (
+                    <KPIRowSkeleton count={4} />
+                ) : (
+                    <Animated.View style={[styles.kpiRow, { transform: [{ translateY: kpiAnim }], opacity: kpiOpacity }]}>
+                        {/* Total Estudiantes */}
+                        <View style={styles.kpiCard}>
+                            <View style={[styles.kpiIcon, { backgroundColor: '#6B7280' + '20' }]}>
+                                <Ionicons name="people" size={18} color="#6B7280" />
+                            </View>
+                            <Text style={styles.kpiValue}>{isLoading ? '-' : students ?? 0}</Text>
+                            <Text style={styles.kpiLabel}>Total Estudiantes</Text>
+                        </View>
 
-                {/* Aprobados */}
-                <View style={styles.kpiCard}>
-                    <View style={[styles.kpiIcon, { backgroundColor: Colors.success + '20' }]}>
-                        <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-                    </View>
-                    <Text style={[styles.kpiValue, { color: Colors.success }]}>{isLoading ? '-' : approved ?? 0}</Text>
-                    <Text style={styles.kpiLabel}>Aprobados</Text>
-                </View>
+                        {/* Aprobados */}
+                        <View style={styles.kpiCard}>
+                            <View style={[styles.kpiIcon, { backgroundColor: Colors.success + '20' }]}>
+                                <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+                            </View>
+                            <Text style={[styles.kpiValue, { color: Colors.success }]}>{isLoading ? '-' : approved ?? 0}</Text>
+                            <Text style={styles.kpiLabel}>Aprobados</Text>
+                        </View>
 
-                {/* Reprobados */}
-                <View style={styles.kpiCard}>
-                    <View style={[styles.kpiIcon, { backgroundColor: Colors.error + '20' }]}>
-                        <Ionicons name="close-circle" size={18} color={Colors.error} />
-                    </View>
-                    <Text style={[styles.kpiValue, { color: Colors.error }]}>{isLoading ? '-' : failed}</Text>
-                    <Text style={styles.kpiLabel}>Reprobados</Text>
-                </View>
+                        {/* Reprobados */}
+                        <View style={styles.kpiCard}>
+                            <View style={[styles.kpiIcon, { backgroundColor: Colors.error + '20' }]}>
+                                <Ionicons name="close-circle" size={18} color={Colors.error} />
+                            </View>
+                            <Text style={[styles.kpiValue, { color: Colors.error }]}>{isLoading ? '-' : failed}</Text>
+                            <Text style={styles.kpiLabel}>Reprobados</Text>
+                        </View>
 
-                {/* Secciones */}
-                <View style={styles.kpiCard}>
-                    <View style={[styles.kpiIcon, { backgroundColor: Colors.primary + '20' }]}>
-                        <Ionicons name="grid" size={18} color={Colors.primary} />
-                    </View>
-                    <Text style={[styles.kpiValue, { color: Colors.primary }]}>{isLoading ? '-' : sections ?? 0}</Text>
-                    <Text style={styles.kpiLabel}>{sectionsLabel}</Text>
-                </View>
-            </Animated.View>
+                        {/* Secciones */}
+                        <View style={styles.kpiCard}>
+                            <View style={[styles.kpiIcon, { backgroundColor: Colors.primary + '20' }]}>
+                                <Ionicons name="grid" size={18} color={Colors.primary} />
+                            </View>
+                            <Text style={[styles.kpiValue, { color: Colors.primary }]}>{isLoading ? '-' : sections ?? 0}</Text>
+                            <Text style={styles.kpiLabel}>{sectionsLabel}</Text>
+                        </View>
+                    </Animated.View>
+                )}
+            </Card>
 
             {/* Approval Progress Bar */}
-            <View style={styles.progressContainer}>
-                <View style={styles.progressHeader}>
-                    <Text style={styles.progressLabel}>Tasa de Aprobación</Text>
-                    <Text style={[styles.progressPercent, { color: getProgressColor(approvalPct) }]}>
-                        {isLoading ? '-' : approvalPct.toFixed(1)}%
-                    </Text>
-                </View>
-                <View style={styles.progressBar}>
-                    <View
-                        style={[
-                            styles.progressFill,
-                            {
-                                width: isLoading ? '0%' : `${approvalPct}%`,
-                                backgroundColor: getProgressColor(approvalPct)
-                            }
-                        ]}
-                    />
-                </View>
-            </View>
+            <Card title="Tasa de Aprobación" delay={75}>
+                {isLoading ? (
+                    <ProgressBarSkeleton />
+                ) : (
+                    <View>
+                        <View style={styles.progressHeader}>
+                            <Text style={styles.progressLabel}>Porcentaje de Aprobación</Text>
+                            <Text style={[styles.progressPercent, { color: getProgressColor(approvalPct) }]}>
+                                {approvalPct.toFixed(1)}%
+                            </Text>
+                        </View>
+                        <View style={styles.progressBar}>
+                            <View
+                                style={[
+                                    styles.progressFill,
+                                    {
+                                        width: `${approvalPct}%`,
+                                        backgroundColor: getProgressColor(approvalPct)
+                                    }
+                                ]}
+                            />
+                        </View>
+                    </View>
+                )}
+            </Card>
 
             {/* Grados/Secciones Tags */}
             <Card title={gradosTitle} delay={100}>
                 {isLoading ? (
-                    <View style={styles.tagsContainer}>
-                        <View style={styles.tagSkeleton} />
-                        <View style={styles.tagSkeleton} />
-                        <View style={styles.tagSkeleton} />
-                    </View>
+                    <GradeTagsSkeleton count={6} />
                 ) : sectionPreviews.length > 0 ? (
                     <View style={styles.tagsContainer}>
                         {sectionPreviews.map((sec: SectionPreview, i) => (
@@ -240,7 +260,7 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
             {level !== 'pre' && (
                 <Card title={`Rendimiento de ${levelName}`} delay={150} style={{ justifyContent: 'center' }}>
                     {isLoading ? (
-                        <ChartSkeleton type="ring" size={100} />
+                        <RendimientoSkeleton size={100} type={level === 'primary' ? 'literal' : 'numeric'} />
                     ) : level === 'primary' && useLiteral ? (
                         // LITERAL TYPE - Primaria (matches Odoo general_performance_graph screenshot)
                         <View style={styles.numericDisplay}>
@@ -370,11 +390,7 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
             {level !== 'pre' && (
                 <Card title="Top 3 Estudiantes por Sección" delay={200}>
                     {isLoading ? (
-                        <>
-                            <ListRowSkeleton hasAvatar hasBadge />
-                            <ListRowSkeleton hasAvatar hasBadge />
-                            <ListRowSkeleton hasAvatar hasBadge />
-                        </>
+                        <TopTableSkeleton rows={5} color={color} />
                     ) : levelDashboard?.top_students_by_section?.length ? (
                         <View style={styles.tableContainer}>
                             {/* Table Header */}
@@ -440,11 +456,7 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
             {level === 'pre' && (
                 <Card title="Últimas Observaciones" delay={150}>
                     {isLoading ? (
-                        <>
-                            <ListRowSkeleton hasAvatar hasBadge />
-                            <ListRowSkeleton hasAvatar hasBadge />
-                            <ListRowSkeleton hasAvatar hasBadge />
-                        </>
+                        <TimelineSkeleton items={4} color={color} />
                     ) : preObservations?.timeline?.length ? (
                         <View style={styles.timelineContainer}>
                             {/* Vertical line */}
@@ -493,6 +505,22 @@ export const LevelTab: React.FC<Props> = ({ level, levelName, data: d, color, lo
                     ) : <Empty message="Sin observaciones recientes" />}
                 </Card>
             )}
+
+            {/* DEBUG: Toggle Skeletons Button - REMOVE AFTER TESTING */}
+            {/* <TouchableOpacity
+                onPress={() => setForceSkeletons(!forceSkeletons)}
+                style={{
+                    backgroundColor: forceSkeletons ? Colors.error : Colors.success,
+                    padding: 12,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                    marginTop: 8,
+                }}
+            >
+                <Text style={{ color: '#fff', fontWeight: '700' }}>
+                    {forceSkeletons ? '🔴 Skeletons ON' : '🟢 Skeletons OFF'}
+                </Text>
+            </TouchableOpacity> */}
         </View>
     );
 };

@@ -1,4 +1,4 @@
-// Dashboard UI components index
+// Dashboard UI components index - v2.0 Professional Skeletons
 export {
     AnimatedBadge,
     Badge,
@@ -6,6 +6,8 @@ export {
     ChartSkeleton,
     CircleShimmer,
     ConfigRowSkeleton,
+    DarkCircleShimmer,
+    DarkShimmer,
     DistributionRowSkeleton,
     Empty,
     GlassButton,
@@ -22,8 +24,37 @@ export {
     StatCard,
     StatCardSkeleton,
     StudentAvatar,
-    TableRowSkeleton
+    TableRowSkeleton,
+    TopTableSkeleton
 } from './DashboardComponents';
 
+// Professional Skeleton Components
+export {
+    ApprovalGaugeSkeleton,
+    DistributionSkeleton,
+    DonutChartSkeleton,
+    GenderBarSkeleton,
+    GradeTagsSkeleton,
+    KPIRowSkeleton,
+    LapsosTimelineSkeleton,
+    LevelCardGridSkeleton,
+    LevelDistributionSkeleton,
+    MateriasDificultadSkeleton,
+    PolarAreaSkeleton,
+    ProfessorsLevelSkeleton,
+    ProgressBarSkeleton,
+    RendimientoSkeleton,
+    SectionCardsSkeleton,
+    SemiCircleGaugeSkeleton,
+    StateStatsSkeleton,
+    StatsTableSkeleton,
+    SubjectDetailSkeleton,
+    TimelineSkeleton,
+    Top9StudentsSkeleton,
+    TopProfesoresSkeleton,
+    TopTableSkeleton as TopTableSkeletonPro
+} from './ProfessionalSkeletons';
+
 export { LapsosTimeline } from './LapsosTimeline';
+
 

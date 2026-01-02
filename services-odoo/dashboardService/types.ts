@@ -304,6 +304,42 @@ export interface LevelDashboard {
 // ===== Professors Tab =====
 
 /**
+ * Professor ranking item for Top 5 - matches Odoo professor_dashboard_json.top_professors
+ */
+export interface ProfessorRankingItem {
+    professor_id: number;
+    professor_name: string;
+    average: number;
+    evaluations_count: number;
+    subjects_count: number;
+    sections_count: number;
+}
+
+/**
+ * Distribution by level for professors
+ */
+export interface ProfessorsDistributionByLevel {
+    pre: number;
+    primary: number;
+    secundary: number;
+    tecnico: number;
+}
+
+/**
+ * Professor Dashboard JSON - the main data source for Professors tab
+ * Matches Odoo's professor_dashboard_json computed field
+ */
+export interface ProfessorDashboard {
+    total_professors: number;
+    total_subjects: number;
+    total_evaluations: number;
+    general_average: number;
+    top_professors: ProfessorRankingItem[];
+    distribution_by_level: ProfessorsDistributionByLevel;
+    all_professors: ProfessorRankingItem[];
+}
+
+/**
  * Professor summary item
  */
 export interface ProfessorSummaryItem {
@@ -449,6 +485,7 @@ export interface DashboardData {
     studentPreviews?: StudentPreview[];
     tecnicoStudentPreviews?: StudentPreview[];  // Students with mention enrolled
     // Professors tab
+    professorDashboard?: ProfessorDashboard;  // Main professor dashboard data
     professorSummary?: ProfessorSummary;
     professorDetailedStats?: ProfessorDetailedStats;
     difficultSubjects?: DifficultSubjects;

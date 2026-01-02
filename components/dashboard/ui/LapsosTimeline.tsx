@@ -162,26 +162,26 @@ export const LapsosTimeline: React.FC<Props> = ({ currentLapso, state, startDate
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        paddingVertical: 16,
+        paddingVertical: 10,
         paddingHorizontal: 12,
         backgroundColor: 'rgba(0,0,0,0.15)',
         borderRadius: 16,
-        marginTop: 16,
+        marginTop: 8,
     },
     periodInfo: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 6,
-        marginBottom: 16,
+        marginBottom: 8,
     },
     periodText: {
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: '600',
         color: 'rgba(255,255,255,0.9)',
     },
     timelineContainer: {
-        paddingHorizontal: 8,
+        paddingHorizontal: 4,
     },
     timeline: {
         flexDirection: 'row',
@@ -194,8 +194,8 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     circleWrapper: {
-        width: 40,
-        height: 40,
+        width: 32,
+        height: 32,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 2,
@@ -203,22 +203,22 @@ const styles = StyleSheet.create({
     // Solid background to mask connector lines behind circles
     circleBg: {
         position: 'absolute',
-        width: 38,
-        height: 38,
-        borderRadius: 19,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
         backgroundColor: 'rgba(48, 75, 167, 1)', // Matches header gradient
     },
     pulseBg: {
         position: 'absolute',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         backgroundColor: 'rgba(52, 211, 153, 0.3)',
     },
     circle: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 3,
@@ -228,16 +228,16 @@ const styles = StyleSheet.create({
     },
     circleCurrent: {
         backgroundColor: '#fff',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: '#34d399',
     },
     circleUpcoming: {
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.4)',
     },
     circleNumber: {
-        fontSize: 15,
+        fontSize: 13,
         fontWeight: '800',
         color: '#1e40af',
     },
@@ -246,8 +246,8 @@ const styles = StyleSheet.create({
     },
     connector: {
         position: 'absolute',
-        top: 18,
-        height: 3,
+        top: 15,
+        height: 2,
         width: '50%',
         zIndex: 1,
     },
@@ -264,10 +264,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.25)',
     },
     lapsoLabel: {
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: '600',
         color: '#fff',
-        marginTop: 8,
+        marginTop: 4,
         textAlign: 'center',
     },
     lapsoLabelCurrent: {

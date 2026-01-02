@@ -27,6 +27,7 @@ interface DonutChartProps {
     radius?: number;
     innerRadius?: number;
     showLegend?: boolean;
+    legendPosition?: 'bottom' | 'right';
     animate?: boolean;
     interactive?: boolean;
     onSliceSelect?: (item: DonutDataItem | null, index: number) => void;
@@ -40,6 +41,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     radius = 80,
     innerRadius = 55,
     showLegend = true,
+    legendPosition = 'bottom',
     animate = true,
     interactive = true,
     onSliceSelect,
@@ -90,7 +92,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     });
 
     return (
-        <View style={styles.container}>
+        <View style={[
+            styles.container,
+            legendPosition === 'right' && styles.containerRow
+        ]}>
             <Animated.View style={animatedStyle}>
                 <PieChart
                     data={chartData}
@@ -126,7 +131,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
             {/* Legend - Odoo style with left border */}
             {showLegend && data.some(d => d.label) && (
-                <View style={styles.legend}>
+                <View style={[
+                    styles.legend,
+                    legendPosition === 'right' && styles.legendRight
+                ]}>
                     {data.filter(d => d.label).map((item, i) => {
                         const isSelected = selectedIndex === i;
                         const percentage = total > 0 ? ((item.value / total) * 100).toFixed(0) : 0;
@@ -170,7 +178,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: { alignItems: 'center', marginTop: -15 },
+    container: { alignItems: 'center' },
+    containerRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
     center: { alignItems: 'center', justifyContent: 'center' },
     centerValue: { fontWeight: '800' },
     centerLabel: { color: Colors.textSecondary, marginTop: 2, fontWeight: '600', maxWidth: 80, textAlign: 'center' },
@@ -204,6 +213,11 @@ const styles = StyleSheet.create({
         gap: 4,
         marginTop: 8,
         width: '100%',
+    },
+    legendRight: {
+        flex: 1,
+        marginTop: 0,
+        marginLeft: 8,
     },
     legendItem: {
         flexDirection: 'row',

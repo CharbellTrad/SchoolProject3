@@ -19,6 +19,7 @@ import {
     LevelPerformanceJson,
     PerformanceByLevel,
     PreObservationsTimeline,
+    ProfessorDashboard,
     ProfessorDetailedStats,
     ProfessorsDistribution,
     ProfessorSummary,
@@ -145,6 +146,7 @@ const normalizeDashboardData = (raw: any): DashboardData => {
     const secundaryTecnicoDashboard = parseJsonField<LevelDashboard>(raw.secundary_tecnico_dashboard_json);
 
     // Professors tab
+    const professorDashboard = parseJsonField<ProfessorDashboard>(raw.professor_dashboard_json);
     const professorSummary = parseJsonField<ProfessorSummary>(raw.professor_summary_json);
     const professorDetailedStats = parseJsonField<ProfessorDetailedStats>(raw.professor_detailed_stats_json);
     const difficultSubjects = parseJsonField<DifficultSubjects>(raw.difficult_subjects_json);
@@ -181,6 +183,7 @@ const normalizeDashboardData = (raw: any): DashboardData => {
         primaryDashboard,
         secundaryGeneralDashboard,
         secundaryTecnicoDashboard,
+        professorDashboard,
         professorSummary,
         professorDetailedStats,
         difficultSubjects,
