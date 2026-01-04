@@ -10,6 +10,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Colors from '../../../constants/Colors';
 import { DashboardData } from '../../../services-odoo/dashboardService';
+import { ProgressLine } from '../charts';
 import DonutChart from '../charts/DonutChart';
 import { Card, DistributionSkeleton, Empty, KPIRowSkeleton } from '../ui';
 interface Props {
@@ -68,40 +69,58 @@ export const EvaluationsTab: React.FC<Props> = ({ data: d, loading, skipAnimatio
                 {isLoading ? (
                     <KPIRowSkeleton count={4} />
                 ) : (
-                    <View style={styles.kpiRow}>
-                        {/* Calificadas */}
-                        <View style={styles.kpiCard}>
-                            <View style={[styles.kpiIcon, { backgroundColor: Colors.success + '20' }]}>
-                                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                    <>
+                        <View style={styles.kpiRow}>
+                            {/* Calificadas */}
+                            <View style={styles.kpiCard}>
+                                <View style={[styles.kpiIcon, { backgroundColor: Colors.success + '20' }]}>
+                                    <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                                </View>
+                                <Text style={[styles.kpiValue, { color: Colors.success }]}>{qualified}</Text>
+                                <Text style={styles.kpiLabel}>Calificadas</Text>
                             </View>
-                            <Text style={[styles.kpiValue, { color: Colors.success }]}>{qualified}</Text>
-                            <Text style={styles.kpiLabel}>Calificadas</Text>
-                        </View>
-                        {/* Parciales */}
-                        <View style={styles.kpiCard}>
-                            <View style={[styles.kpiIcon, { backgroundColor: Colors.warning + '20' }]}>
-                                <Ionicons name="time" size={16} color={Colors.warning} />
+                            {/* Parciales */}
+                            <View style={styles.kpiCard}>
+                                <View style={[styles.kpiIcon, { backgroundColor: Colors.warning + '20' }]}>
+                                    <Ionicons name="time" size={16} color={Colors.warning} />
+                                </View>
+                                <Text style={[styles.kpiValue, { color: Colors.warning }]}>{partial}</Text>
+                                <Text style={styles.kpiLabel}>Parciales</Text>
                             </View>
-                            <Text style={[styles.kpiValue, { color: Colors.warning }]}>{partial}</Text>
-                            <Text style={styles.kpiLabel}>Parciales</Text>
-                        </View>
-                        {/* Borrador */}
-                        <View style={styles.kpiCard}>
-                            <View style={[styles.kpiIcon, { backgroundColor: Colors.textTertiary + '20' }]}>
-                                <Ionicons name="create" size={16} color={Colors.textTertiary} />
+                            {/* Borrador */}
+                            <View style={styles.kpiCard}>
+                                <View style={[styles.kpiIcon, { backgroundColor: Colors.textTertiary + '20' }]}>
+                                    <Ionicons name="create" size={16} color={Colors.textTertiary} />
+                                </View>
+                                <Text style={[styles.kpiValue, { color: Colors.textTertiary }]}>{draft}</Text>
+                                <Text style={styles.kpiLabel}>Borrador</Text>
                             </View>
-                            <Text style={[styles.kpiValue, { color: Colors.textTertiary }]}>{draft}</Text>
-                            <Text style={styles.kpiLabel}>Borrador</Text>
-                        </View>
-                        {/* Completadas % */}
-                        <View style={styles.kpiCard}>
-                            <View style={[styles.kpiIcon, { backgroundColor: getCompletionColor() + '20' }]}>
-                                <Ionicons name="bar-chart" size={16} color={getCompletionColor()} />
+                            {/* Completadas % */}
+                            <View style={styles.kpiCard}>
+                                <View style={[styles.kpiIcon, { backgroundColor: getCompletionColor() + '20' }]}>
+                                    <Ionicons name="bar-chart" size={16} color={getCompletionColor()} />
+                                </View>
+                                <Text style={[styles.kpiValue, { color: getCompletionColor() }]}>{completionRate}%</Text>
+                                <Text style={styles.kpiLabel}>Completadas</Text>
                             </View>
-                            <Text style={[styles.kpiValue, { color: getCompletionColor() }]}>{completionRate}%</Text>
-                            <Text style={styles.kpiLabel}>Completadas</Text>
                         </View>
-                    </View>
+
+                        {/* Progress Bar - Tasa de Completitud */}
+                        <View style={styles.progressSection}>
+                            <View style={styles.progressHeader}>
+                                <Text style={styles.progressLabel}>Tasa de Completitud de Evaluaciones</Text>
+                                <Text style={[styles.progressPercent, { color: getCompletionColor() }]}>
+                                    {completionRate}%
+                                </Text>
+                            </View>
+                            <ProgressLine
+                                value={completionRate}
+                                height={10}
+                                color={getCompletionColor()}
+                                animate
+                            />
+                        </View>
+                    </>
                 )}
             </Card>
 
@@ -121,10 +140,14 @@ export const EvaluationsTab: React.FC<Props> = ({ data: d, loading, skipAnimatio
                             }))}
                             centerValue={total}
                             centerLabel="Total"
-                            radius={65}
-                            innerRadius={45}
+                            radius={120}
+                            innerRadius={90}
                             showLegend={true}
-                            legendPosition="right"
+                            // legendPosition="right"
+                            legendTextSize={16}
+                            legendValueSize={16}
+                            legendPercentSize={14}
+                            legendItemGap={5}
                             animate
                             interactive
                         />
@@ -175,7 +198,13 @@ const styles = StyleSheet.create({
     kpiLabel: { fontSize: 9, color: Colors.textSecondary, textAlign: 'center', marginTop: 2 },
 
 
-    distributionContainer: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+    distributionContainer: { justifyContent: 'center', paddingVertical: 10 },
+
+    // Progress Bar
+    progressSection: { marginTop: 12 },
+    progressHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+    progressLabel: { fontSize: 10, color: Colors.textSecondary },
+    progressPercent: { fontSize: 11, fontWeight: '700' },
 });
 
 export default EvaluationsTab;

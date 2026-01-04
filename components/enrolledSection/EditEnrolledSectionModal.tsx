@@ -1029,7 +1029,7 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
                 enableHandlePanningGesture={true}
                 enableOverDrag={false}
             >
-                <View style={{ flex: 1, backgroundColor: '#fff', paddingBottom: insets.bottom }}>
+                <View style={{ flex: 1, backgroundColor: '#f8fafc', paddingBottom: insets.bottom }}>
                     <View style={styles.container}>
                         {/* Header */}
                         <View style={styles.header}>
@@ -1050,26 +1050,24 @@ export const EditEnrolledSectionModal: React.FC<EditEnrolledSectionModalProps> =
                         </View>
 
                         {/* Tabs */}
-                        <View style={styles.tabsContainer}>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-                                {tabs.map((tab) => (
-                                    <TouchableOpacity
-                                        key={tab.key}
-                                        style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-                                        onPress={() => setActiveTab(tab.key)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Ionicons
-                                            name={tab.icon as any}
-                                            size={18}
-                                            color={activeTab === tab.key ? Colors.primary : Colors.textTertiary}
-                                        />
-                                        <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
-                                            {tab.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                        <View style={styles.tabBar}>
+                            {tabs.map((tab) => (
+                                <TouchableOpacity
+                                    key={tab.key}
+                                    style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                                    onPress={() => setActiveTab(tab.key)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons
+                                        name={tab.icon as any}
+                                        size={18}
+                                        color={activeTab === tab.key ? Colors.primary : Colors.textSecondary}
+                                    />
+                                    <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+                                        {tab.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
 
                         {/* Body */}
@@ -1161,32 +1159,30 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontWeight: '700',
     },
-    tabsContainer: {
+    tabBar: {
+        flexDirection: 'row',
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: Colors.border,
-    },
-    tabsScroll: {
-        paddingHorizontal: 16,
-        gap: 8,
-        paddingVertical: 12,
+        paddingHorizontal: 10,
     },
     tab: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#f1f5f9',
+        justifyContent: 'center',
         gap: 6,
+        paddingVertical: 12,
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
     },
     tabActive: {
-        backgroundColor: Colors.primary + '15',
+        borderBottomColor: Colors.primary,
     },
     tabLabel: {
         fontSize: 13,
         fontWeight: '600',
-        color: Colors.textTertiary,
+        color: Colors.textSecondary,
     },
     tabLabelActive: {
         color: Colors.primary,
@@ -1476,7 +1472,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         borderTopWidth: 1,
         borderTopColor: Colors.border,
-        backgroundColor: '#fff',
+        backgroundColor: '#f8fafc',
     },
     saveBtn: {
         flexDirection: 'row',

@@ -113,7 +113,7 @@ export default function AdminDashboard() {
 
   const timelineMargin = scrollY.interpolate({
     inputRange: [0, 250],
-    outputRange: [8, 0],
+    outputRange: [1, 0],
     extrapolate: 'clamp',
   });
 
@@ -188,7 +188,13 @@ export default function AdminDashboard() {
   // Scroll to top when switching tabs
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  }, [activeTab]);
+    // Smoothly reset timeline animation to prevent flicker
+    Animated.timing(scrollY, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false
+    }).start();
+  }, [activeTab, scrollY]);
 
   const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
   const handleLogout = async () => { await logout(); router.push('/login'); };
@@ -325,10 +331,7 @@ export default function AdminDashboard() {
             style={styles.content}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} tintColor={Colors.primary} />}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: false } // height animation requires useNativeDriver: false
-            )}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
             scrollEventThrottle={16}
           >
             <View style={styles.contentInner}>
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     // paddingTop: Platform.OS === 'android' ? 44 : 54, // Reduced top padding
-    paddingBottom: 20,
+    paddingBottom: 10,
     borderBottomLeftRadius: 24, // Slightly smaller radius
     borderBottomRightRadius: 24,
     overflow: 'hidden',

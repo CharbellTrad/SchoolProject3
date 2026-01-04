@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
   // Filters
   filtersContainer: {
     flexDirection: 'row',
+    justifyContent: 'center',
     flexWrap: 'nowrap',
     gap: Platform.OS === 'android' ? 2 : 8,
     marginBottom: 10,

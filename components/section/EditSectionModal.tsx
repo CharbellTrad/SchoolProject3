@@ -144,7 +144,7 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
       if (result.success) {
         showAlert('Éxito', 'Sección actualizada correctamente');
         onSave();
-        onClose(); 
+        onClose();
       } else {
         showAlert('Error al actualizar sección', result.message || 'No se pudo actualizar');
       }
@@ -194,7 +194,7 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
                 if (result.success) {
                   showAlert('Éxito', 'Sección eliminada correctamente');
                   onSave();
-                  onClose(); 
+                  onClose();
                 } else {
                   showAlert('Error', result.message || 'No se pudo eliminar la sección');
                 }
@@ -381,7 +381,7 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustPan"
       >
-        <View style={{...styles.container, paddingBottom: insets.bottom}}>
+        <View style={{ ...styles.container, paddingBottom: insets.bottom }}>
           {renderContent()}
         </View>
       </BottomSheetModal>
@@ -393,7 +393,7 @@ export const EditSectionModal: React.FC<EditSectionModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffffff',
   },
   handleIndicator: {
     backgroundColor: Colors.border,

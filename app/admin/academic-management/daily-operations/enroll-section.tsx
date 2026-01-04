@@ -21,13 +21,14 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 
 import { Button } from '../../../../components/ui/Button';
 import Colors from '../../../../constants/Colors';
-import { useEnrolledSections } from '../../../../hooks/useEnrolledSections';
 import * as authService from '../../../../services-odoo/authService';
 import {
     createSectionSubject,
+    EnrolledSection,
     enrollSection,
     loadAvailableProfessors,
     loadAvailableSubjectsForSection,
+    loadCurrentEnrolledSections,
     loadProfessorsForSubject,
     ProfessorForSection,
     RegisterSubject,
@@ -67,7 +68,9 @@ const ProfessorRow = ({
 
 export default function EnrollSectionScreen() {
     const insets = useSafeAreaInsets();
-    const { sections: enrolledSections, onRefresh: refreshEnrolledSections } = useEnrolledSections();
+
+    // State for all enrolled sections (not paginated)
+    const [enrolledSections, setEnrolledSections] = useState<EnrolledSection[]>([]);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -117,9 +120,12 @@ export default function EnrollSectionScreen() {
             const fetchData = async () => {
                 setIsLoading(true);
                 try {
+                    // Load ALL enrolled sections (not paginated) for accurate filtering
+                    const enrolled = await loadCurrentEnrolledSections(false);
+                    setEnrolledSections(enrolled);
+
                     const sections = await loadSections(true); // force reload, no cache
                     setBaseSections(sections);
-                    await refreshEnrolledSections();
                 } catch (error) {
                     if (__DEV__) {
                         console.error('Error loading sections:', error);
@@ -138,9 +144,12 @@ export default function EnrollSectionScreen() {
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
+            // Load ALL enrolled sections (not paginated)
+            const enrolled = await loadCurrentEnrolledSections(false);
+            setEnrolledSections(enrolled);
+
             const sections = await loadSections(true);
             setBaseSections(sections);
-            await refreshEnrolledSections();
         } catch (error) {
             if (__DEV__) {
                 console.error('Error refreshing sections:', error);
@@ -377,7 +386,9 @@ export default function EnrollSectionScreen() {
                     ]);
                 }
 
-                await refreshEnrolledSections();
+                // Refresh enrolled sections list
+                const enrolled = await loadCurrentEnrolledSections(false);
+                setEnrolledSections(enrolled);
             } else {
                 showAlert('❌ Error', result.message || 'No se pudo inscribir la sección');
             }

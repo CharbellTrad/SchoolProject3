@@ -77,6 +77,7 @@ export const SectionFilters: React.FC<SectionFiltersProps> = ({
 const styles = StyleSheet.create({
   filtersContainer: {
     flexDirection: 'row',
+    justifyContent: 'center',
     flexWrap: 'nowrap',
     gap: Platform.OS === 'android' ? 2 : 8,
     marginBottom: 10,

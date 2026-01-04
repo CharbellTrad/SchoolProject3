@@ -31,6 +31,14 @@ interface DonutChartProps {
     animate?: boolean;
     interactive?: boolean;
     onSliceSelect?: (item: DonutDataItem | null, index: number) => void;
+    // Legend customization
+    legendTextSize?: number;
+    legendValueSize?: number;
+    legendPercentSize?: number;
+    legendItemGap?: number;
+    legendItemPaddingVertical?: number;
+    legendItemPaddingHorizontal?: number;
+    legendBorderWidth?: number;
 }
 
 export const DonutChart: React.FC<DonutChartProps> = ({
@@ -45,6 +53,14 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     animate = true,
     interactive = true,
     onSliceSelect,
+    // Legend customization with defaults
+    legendTextSize = 11,
+    legendValueSize = 11,
+    legendPercentSize = 10,
+    legendItemGap = 4,
+    legendItemPaddingVertical = 6,
+    legendItemPaddingHorizontal = 8,
+    legendBorderWidth = 3,
 }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const scale = useSharedValue(1);
@@ -115,7 +131,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 </Text>
                             )}
                             {displayLabel && (
-                                <Text style={[styles.centerLabel, { fontSize: radius * 0.13 }]} numberOfLines={1}>
+                                <Text style={[styles.centerLabel, { fontSize: radius * 0.13 }]} numberOfLines={2}>
                                     {displayLabel}
                                 </Text>
                             )}
@@ -133,6 +149,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             {showLegend && data.some(d => d.label) && (
                 <View style={[
                     styles.legend,
+                    { gap: legendItemGap },
                     legendPosition === 'right' && styles.legendRight
                 ]}>
                     {data.filter(d => d.label).map((item, i) => {
@@ -147,8 +164,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                     {
                                         backgroundColor: isSelected ? item.color + '30' : item.color + '15',
                                         borderLeftColor: item.color,
-                                        borderLeftWidth: isSelected ? 4 : 3,
-                                        transform: [{ scale: isSelected ? 1.02 : 1 }]
+                                        borderLeftWidth: isSelected ? legendBorderWidth + 1 : legendBorderWidth,
+                                        transform: [{ scale: isSelected ? 1.02 : 1 }],
+                                        paddingVertical: legendItemPaddingVertical,
+                                        paddingHorizontal: legendItemPaddingHorizontal,
                                     },
                                     isSelected && styles.legendItemSelected
                                 ]}
@@ -157,14 +176,19 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                             >
                                 <Text style={[
                                     styles.legendText,
+                                    { fontSize: legendTextSize },
                                     isSelected && { fontWeight: '700', color: item.color }
                                 ]} numberOfLines={1}>{item.label}</Text>
                                 <Text style={[
                                     styles.legendValue,
+                                    { fontSize: legendValueSize },
                                     isSelected && { color: item.color }
                                 ]}>{item.value}</Text>
                                 {isSelected && (
-                                    <Text style={[styles.legendPercent, { color: item.color }]}>
+                                    <Text style={[
+                                        styles.legendPercent,
+                                        { color: item.color, fontSize: legendPercentSize }
+                                    ]}>
                                         {percentage}%
                                     </Text>
                                 )}
