@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EditEnrolledSectionModal, ViewEnrolledSectionModal } from '../../../../components/enrolledSection';
 import { EmptyState, Pagination, PaginationSkeleton } from '../../../../components/list';
 import { SectionFilters, SectionFiltersSkeleton } from '../../../../components/section';
@@ -248,6 +248,7 @@ export default function SectionsListScreen() {
         onRefresh,
         handleDelete,
     } = useEnrolledSections();
+    const insets = useSafeAreaInsets();
 
     const navigation = useNavigation();
     const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
@@ -337,7 +338,7 @@ export default function SectionsListScreen() {
                         <View style={styles.container}>
                             <LinearGradient
                                 colors={[Colors.primary, Colors.primaryDark]}
-                                style={styles.header}
+                                style={[styles.header, { paddingTop: insets.top }]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 1 }}
                             >
@@ -481,8 +482,7 @@ export default function SectionsListScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f8fafc' },
     header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingTop: Platform.OS === 'android' ? 60 : 70, paddingBottom: 24, paddingHorizontal: 20,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24, paddingHorizontal: 20,
         borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
     },
     menuButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },

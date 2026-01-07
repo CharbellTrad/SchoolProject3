@@ -292,7 +292,7 @@ export default function CreateEvaluationScreen() {
                             {/* Header */}
                             <LinearGradient
                                 colors={[Colors.primary, Colors.primaryDark]}
-                                style={styles.header}
+                                style={[styles.header, { paddingTop: insets.top }]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 1 }}
                             >
@@ -461,7 +461,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: Platform.OS === 'android' ? 60 : 70,
         paddingBottom: 20,
         paddingHorizontal: 20,
         borderBottomLeftRadius: 28,

@@ -7,7 +7,7 @@ import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState } from '../../../../components/list';
 import { EditProfessorModal, ViewProfessorModal } from '../../../../components/professor';
 import Colors from '../../../../constants/Colors';
@@ -153,6 +153,7 @@ export default function ProfessorsListScreen() {
     } = useProfessors();
 
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
 
     const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
@@ -211,7 +212,7 @@ export default function ProfessorsListScreen() {
                 <View style={styles.container}>
                     <LinearGradient
                         colors={[Colors.primary, Colors.primaryDark]}
-                        style={styles.header}
+                        style={[styles.header, { paddingTop: insets.top }]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
@@ -368,7 +369,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: Platform.OS === 'android' ? 60 : 70,
         paddingBottom: 24,
         paddingHorizontal: 20,
         borderBottomLeftRadius: 28,

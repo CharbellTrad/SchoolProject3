@@ -7,7 +7,7 @@ import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     EditEvaluationModal,
     EvaluationScoresModal,
@@ -176,6 +176,7 @@ export default function EvaluationsListScreen() {
     } = useEvaluations();
 
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
 
     const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
@@ -247,7 +248,7 @@ export default function EvaluationsListScreen() {
                 <View style={styles.container}>
                     <LinearGradient
                         colors={[Colors.primary, Colors.primaryDark]}
-                        style={styles.header}
+                        style={[styles.header, { paddingTop: insets.top }]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f8fafc' },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingTop: Platform.OS === 'android' ? 60 : 70, paddingBottom: 24, paddingHorizontal: 20,
+        paddingBottom: 24, paddingHorizontal: 20,
         borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
         ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 } }),
     },
